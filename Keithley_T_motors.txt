@@ -1,0 +1,4 @@
+T1,13Keithley2:DMM1Ch1_calc.VAL
+T2,13Keithley2:DMM1Ch2_calc.VAL
+T3,13Keithley2:DMM1Ch3_calc.VAL
+T4,13Keithley2:DMM1Ch4_calc.VAL
