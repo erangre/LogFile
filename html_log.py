@@ -110,7 +110,7 @@ class HtmlLogger(object):
                 im = im.point(lambda i:i*(1./256)).convert('L')
             im.thumbnail(self.thumb_size, Image.ANTIALIAS)
             im.save(new_file, "JPEG")
-        except IOError:
+        except (IOError, OSError):
             print "cannot create thumbnail for " + file_name
 
     def update_html(self, new_data):

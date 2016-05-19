@@ -281,6 +281,7 @@ class LogWindow(QtGui.QWidget):
         self.show_log_btn.show()
         self.comment_btn.show()
         self.choose_dir_btn.setEnabled(False)
+        self.choose_file_name_le.setEnabled(False)
 
         full_path = self.label_fullpath.text()
         self.log_file = open(full_path, 'a')
@@ -310,6 +311,7 @@ class LogWindow(QtGui.QWidget):
         self.show_log_btn.hide()
         self.choose_dir_btn.setEnabled(True)
         self.comment_btn.hide()
+        self.choose_file_name_le.setEnabled(True)
 
         self.log_file.close()
         self.log_monitor = epics_monitor.StopMonitors(self)
