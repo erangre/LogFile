@@ -14,6 +14,7 @@ class HtmlLogger(object):
         self.thumb_size = 1024, 1024
         self.parent = parent
         self.xy_file_dict = {}
+
         # Use T folder to help with finding XRD folder
         T_folder = caget(epp['T_File_Path'], as_string=True)
         dash_ind = T_folder.find('-')
@@ -96,24 +97,7 @@ class HtmlLogger(object):
         new_data = new_data + '</table>' + '\n'
         return new_data
 
-    def generate_thumbnail_file_name(self, file_name):
-        new_file = self.NEWFILE.rsplit('\\', 1)[0] + '\\Images\\'
-        new_file = new_file + file_name.rsplit('\\', 1)[-1].rsplit('.', 1)[0] + '.jpg'
-        img_src = 'Images\\' + new_file.rsplit('\\', 1)[-1]
-        return img_src, new_file
-
-    def create_thumbnail(self, file_name, new_file, isxrd=False):
-        try:
-            im = Image.open(file_name)
-            if isxrd:
-                im.mode = 'I'
-                im = im.point(lambda i:i*(1./256)).convert('L')
-            im.thumbnail(self.thumb_size, Image.ANTIALIAS)
-            im.save(new_file, "JPEG")
-        except (IOError, OSError):
-            print "cannot create thumbnail for " + file_name
-
-    def update_html(self, new_data):
+    def update_html(self, new_data):  # There is no way to edit a file, just make a new one and then rename
         temporary_file = 'T:\\webdata\\13IDDLogFile\\Test\\temp.html'
         html_log_file = open(self.NEWFILE, 'r')
         temporary_log = open(temporary_file, 'w')
@@ -144,6 +128,23 @@ class HtmlLogger(object):
 
         # for key in self.xy_file_dict:
             # print key + '\t' + time.ctime(self.xy_file_dict[key])
+
+    def generate_thumbnail_file_name(self, file_name):
+        new_file = self.NEWFILE.rsplit('\\', 1)[0] + '\\Images\\'
+        new_file = new_file + file_name.rsplit('\\', 1)[-1].rsplit('.', 1)[0] + '.jpg'
+        img_src = 'Images\\' + new_file.rsplit('\\', 1)[-1]
+        return img_src, new_file
+
+    def create_thumbnail(self, file_name, new_file, isxrd=False):
+        try:
+            im = Image.open(file_name)
+            if isxrd:
+                im.mode = 'I'
+                im = im.point(lambda i:i*(1./256)).convert('L')
+            im.thumbnail(self.thumb_size, Image.ANTIALIAS)
+            im.save(new_file, "JPEG")
+        except (IOError, OSError):
+            print "cannot create thumbnail for " + file_name
 
     def create_XRD_plot_thumbnail(self, file_name):
         new_dir = self.NEWFILE.rsplit('\\', 1)[0] + '\\Images\\'

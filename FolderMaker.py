@@ -170,7 +170,7 @@ class FolderMaker(QtGui.QWidget):
     def image_changed(self):
         if self.sender() == self.image_dir_edit or self.image_dn_base_edit or self.image_up_base_edit or \
                 self.image_ms_base_edit:
-            pass # ADD HERE TO CHECK
+            pass  # ADD HERE TO CHECK
         self.update_images_path()
 
     def update_xrd_path(self):

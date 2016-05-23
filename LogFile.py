@@ -32,7 +32,6 @@ class MainWindow(QtGui.QMainWindow):
         self.show()
 
         # Create Log Window
-
         self.log = LogWindow(self)
         self.log.move(0, 0)
 
@@ -212,7 +211,7 @@ class LogWindow(QtGui.QWidget):
         self.choose_file = self.choose_file_name_le.text()
         self.label_fullpath.setText(self.choose_dir + '\\' + self.choose_file)
 
-    def file_name_le_change_back(self):
+    def file_name_le_change_back(self):  # in case enter wasn't pressed (to avoid accidental changes)
         self.choose_file_name_le.setText(self.choose_file)
 
     def load_previous_log(self):
@@ -333,7 +332,7 @@ class LogWindow(QtGui.QWidget):
                 curr_item.widget().setEnabled(enable_mode)
 
     def write_headings(self):
-        heading = 'Day_Date_Time_Year\tFile_Name\tExposure_Time_(sec)\t'
+        heading = 'Day_Date_Time_Year\tFile_Name\tDirectory\tExposure_Time_(sec)\t'
         self.list_motor_short.selectAll()
         for motor in self.list_motor_short.selectedItems():
             heading = heading + motor.text() + '\t'
@@ -511,7 +510,7 @@ class LogWindow(QtGui.QWidget):
             sorted_motors.append(temp_dict[index])
         return sorted_motors
 
-    def change_names_selection(self):
+    def change_names_selection(self):  # occurs when the short name selection changes
         self.list_motor_short.itemSelectionChanged.disconnect()
         self.list_motor_names.itemSelectionChanged.disconnect()
         for motor in self.list_motor_names.selectedItems():
@@ -522,7 +521,7 @@ class LogWindow(QtGui.QWidget):
         self.list_motor_short.itemSelectionChanged.connect(self.change_names_selection)
         self.list_motor_names.itemSelectionChanged.connect(self.change_short_selection)
 
-    def change_short_selection(self):
+    def change_short_selection(self):  # occurs when the full motor name selection changes
         self.list_motor_short.itemSelectionChanged.disconnect()
         self.list_motor_names.itemSelectionChanged.disconnect()
         for motor in self.list_motor_short.selectedItems():

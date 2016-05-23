@@ -36,6 +36,7 @@ class StartMonitors(QWidget):
         self.connect(self.us_emit, SIGNAL("new_info(QString)"), self.output_line)
         self.connect(self.ms_emit, SIGNAL("new_info(QString)"), self.output_line)
 
+        # signals to monitor
         camonitor(epmc['XRD_clicked'], callback=self.xrd_signal)
         camonitor(epmc['T_clicked'], callback=self.temp_signal)
         camonitor(epmc['DS_saved'], callback=self.ds_signal)
@@ -76,6 +77,7 @@ class StartMonitors(QWidget):
         if kwargs['char_value'] == 'Done':
             self.ms_emit.start()
 
+    # for XRD and T signals, there is a start time and Done time.
     def output_line(self, sig_name):
         if sig_name == 'XRD_signal':
             self.old_xrd_file_name = caget(epcf['XRD_file_name'], as_string=True)
@@ -170,7 +172,9 @@ class StartMonitors(QWidget):
             return temp_new_line, temp_dict
 
     def output_line_common_end(self, new_line, file_name, start_time, comments, prefix, temp_dict):
-        new_line = file_name + '\t' + new_line
+        file_dir = file_name.replace('/', '\\').rsplit('\\', 1)[0]
+        file_file = file_name.replace('/', '\\').rsplit('\\', 1)[-1]
+        new_line = file_file + '\t' + file_dir + '\t' + new_line
         new_line = start_time + '\t' + new_line + comments + '\n'
         self.parent.log_file.write(new_line)
         self.parent.log_file.flush()
@@ -223,12 +227,17 @@ class StartMonitors(QWidget):
     def update_log_label(self):
         file_name = str(self.parent.log_list.currentItem().text())
         file_name = file_name.split('_', 1)[1]
+        file_dir = file_name.replace('/', '\\').rsplit('\\', 1)[0]
+        file_file = file_name.replace('/', '\\').rsplit('\\', 1)[-1]
         for row in range(self.parent.log_table.rowCount()):
             self.parent.log_table.removeRow(0)
         row_pos = self.parent.log_table.rowCount()
         self.parent.log_table.insertRow(row_pos)
         self.parent.log_table.setItem(row_pos, 0, QTableWidgetItem('File'))
-        self.parent.log_table.setItem(row_pos, 1, QTableWidgetItem(file_name))
+        self.parent.log_table.setItem(row_pos, 1, QTableWidgetItem(file_file))
+        self.parent.log_table.insertRow(row_pos+1)
+        self.parent.log_table.setItem(row_pos+1, 0, QTableWidgetItem('Directory'))
+        self.parent.log_table.setItem(row_pos+1, 1, QTableWidgetItem(file_dir))
 
         for item in self.log_dict[file_name]:
             row_pos = self.parent.log_table.rowCount()
