@@ -72,6 +72,7 @@ class LogWindow(QtGui.QWidget):
         self.motor_rename_btn = QtGui.QPushButton('Rename')
         self.motor_move_up_btn = QtGui.QPushButton(u'\u2191')
         self.motor_move_dn_btn = QtGui.QPushButton(u'\u2193')
+        self.motor_toggle_after_btn = QtGui.QPushButton('Before/After')
         self.collect_bg_btn = QtGui.QPushButton('Collect BG Files')
         self.create_folders_btn = QtGui.QPushButton('Create Folders')
         self.log_list = QtGui.QListWidget(self)
@@ -142,6 +143,7 @@ class LogWindow(QtGui.QWidget):
         self.grid_list_buttons.addWidget(self.motor_clear_btn, 1, 2, 1, 1)
         self.grid_list_buttons.addWidget(self.motor_add_btn, 2, 1, 1, 1)
         self.grid_list_buttons.addWidget(self.motor_rename_btn, 2, 2, 1, 1)
+        self.grid_list_buttons.addWidget(self.motor_toggle_after_btn, 1, 0, 1, 1)
         self.grid_list_buttons.addWidget(self.collect_bg_btn, 3, 0, 1, 1)
         self.grid_list_buttons.addWidget(self.create_folders_btn, 3, 1, 1, 1)
         self.hbox_lists.addLayout(self.grid_list_buttons)
@@ -191,6 +193,7 @@ class LogWindow(QtGui.QWidget):
         self.list_motor_names.doubleClicked.connect(self.edit_motor)
         self.motor_move_up_btn.clicked.connect(self.move_up_motors)
         self.motor_move_dn_btn.clicked.connect(self.move_dn_motors)
+        self.motor_toggle_after_btn.clicked.connect(self.toggle_after)
         self.view_image_btn.clicked.connect(self.open_image_file)
         self.collect_bg_btn.clicked.connect(self.collect_bgs)
         self.create_folders_btn.clicked.connect(self.run_create_folders_widget)
@@ -390,9 +393,18 @@ class LogWindow(QtGui.QWidget):
         with open(load_name, 'r') as in_file:
             for motor in in_file:
                 row = motor.split(',')
-                self.motor_dict[row[0]] = row[-1].split('\n')[0]
+                self.motor_dict[row[0]] = {}
+                self.motor_dict[row[0]]['PV'] = row[1].split('\n')[0]
+                if len(row) > 2:
+                    self.motor_dict[row[0]]['after'] = int(row[2].split('\n')[0])
+                else:
+                    self.motor_dict[row[0]]['after'] = 0
                 self.list_motor_short.addItem(row[0])
                 self.list_motor_names.addItem(row[1].split('\n')[0])
+                if self.motor_dict[row[0]]['after']:
+                    self.list_motor_short.item(self.list_motor_short.count()-1).setTextColor(QtGui.QColor('blue'))
+                    self.list_motor_names.item(self.list_motor_names.count()-1).setTextColor(QtGui.QColor('blue'))
+
             msg = 'Loaded motor list from ' + load_name
             self.parent().statusBar().showMessage(msg)
 
@@ -407,7 +419,8 @@ class LogWindow(QtGui.QWidget):
             self.list_motor_short.selectAll()
             for motor in self.list_motor_short.selectedItems():
                 row_ind = self.list_motor_short.row(motor)
-                out_line = motor.text() + ',' + self.list_motor_names.item(row_ind).text() + '\n'
+                out_line = str(motor.text()) + ',' + self.list_motor_names.item(row_ind).text() + ','
+                out_line = out_line + str(self.motor_dict[str(motor.text())]['after']) + '\n'
                 out_file.write(out_line)
             msg = 'Saved motor list to ' + save_name
             self.parent().statusBar().showMessage(msg)
@@ -433,15 +446,24 @@ class LogWindow(QtGui.QWidget):
     def add_to_motor_list(self):
         short_name, ok_sn = QtGui.QInputDialog.getText(self, 'Add Motor to List', 'Provide short name for motor:')
         motor_name, ok_mn = QtGui.QInputDialog.getText(self, 'Add Motor to List', 'Provide Motor address:')
+        after_msg = 'Should this PV be read after file completion?'
+        after = QtGui.QMessageBox.question(self, 'Message', after_msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
         if ok_sn and ok_mn:
-            self.add_one_motor(short_name, motor_name)
+            self.add_one_motor(short_name, motor_name, after)
             msg = 'Added ' + short_name + ' to motor list'
             self.parent().statusBar().showMessage(msg)
 
-    def add_one_motor(self, short_name, motor_name):
-        self.motor_dict[str(short_name)] = str(motor_name)
+    def add_one_motor(self, short_name, motor_name, after):
+        self.motor_dict[str(short_name)] = {}
+        self.motor_dict[str(short_name)]['PV'] = str(motor_name)
         self.list_motor_short.addItem(str(short_name))
         self.list_motor_names.addItem(str(motor_name))
+        if after == QtGui.QMessageBox.Yes:
+            self.motor_dict[str(short_name)]['after'] = 1
+            self.list_motor_short.item(self.list_motor_short.count()-1).setTextColor(QtGui.QColor('blue'))
+            self.list_motor_names.item(self.list_motor_names.count()-1).setTextColor(QtGui.QColor('blue'))
+        else:
+            self.motor_dict[str(short_name)]['after'] = 0
 
     def rename_motor(self):
         for motor in self.list_motor_short.selectedItems():
@@ -452,10 +474,15 @@ class LogWindow(QtGui.QWidget):
             short_name, ok_sn = QtGui.QInputDialog.getText(self, 'Rename motor in List', message,
                                                            QtGui.QLineEdit.Normal, old_short_name)
             if ok_sn:
+                after = self.motor_dict[str(old_short_name)]['after']
                 del self.motor_dict[str(old_short_name)]
                 self.list_motor_short.takeItem(self.list_motor_short.row(motor))
                 self.list_motor_short.insertItem(row, str(short_name))
-                self.motor_dict[str(short_name)] = str(motor_name)
+                self.motor_dict[str(short_name)] = {}
+                self.motor_dict[str(short_name)]['PV'] = str(motor_name)
+                self.motor_dict[str(short_name)]['after'] = after
+                if after:
+                    self.list_motor_short.item(row).setTextColor(QtGui.QColor('blue'))
                 msg = 'Renamed ' + old_short_name + ' to ' + short_name + ' in motor list'
                 self.parent().statusBar().showMessage(msg)
 
@@ -468,11 +495,23 @@ class LogWindow(QtGui.QWidget):
             motor_name, ok_sn = QtGui.QInputDialog.getText(self, 'Change PV', message,
                                                            QtGui.QLineEdit.Normal, old_motor_name)
             if ok_sn:
-                self.motor_dict[str(motor_short)] = str(motor_name)
+                self.motor_dict[str(motor_short)]['PV'] = str(motor_name)
                 self.list_motor_names.takeItem(self.list_motor_names.row(motor))
                 self.list_motor_names.insertItem(row, str(motor_name))
                 msg = 'Updated ' + motor_short + ' from ' + old_motor_name + ' to ' + motor_name + ' in motor list'
                 self.parent().statusBar().showMessage(msg)
+
+    def toggle_after(self):
+        for motor in self.list_motor_short.selectedItems():
+            row = self.list_motor_short.row(motor)
+            if self.motor_dict[str(motor.text())]['after']:
+                self.motor_dict[str(motor.text())]['after'] = 0
+                self.list_motor_short.item(row).setTextColor(QtGui.QColor('black'))
+                self.list_motor_names.item(row).setTextColor(QtGui.QColor('black'))
+            else:
+                self.motor_dict[str(motor.text())]['after'] = 1
+                self.list_motor_short.item(row).setTextColor(QtGui.QColor('blue'))
+                self.list_motor_names.item(row).setTextColor(QtGui.QColor('blue'))
 
     def move_up_motors(self):
         sorted_motors = self.sort_selected_motors_by_row()

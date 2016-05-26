@@ -85,8 +85,7 @@ class StartMonitors(QWidget):
             self.xrd_start_done = False
             self.xrd_start_time = time.asctime().replace(' ', '_')
             exp_time = caget(epcf['XRD_exp_t'], as_string=True)
-            common_info, self.xrd_temp_dict = self.output_line_common(self.xrd_start_time, exp_time)
-            self.xrd_new_line = exp_time + '\t' + common_info
+            self.xrd_temp_dict = self.output_line_common(self.xrd_start_time, exp_time)
             self.xrd_start_done = True
         elif sig_name == 'XRD_end':
             self.parent.parent().statusBar().showMessage('XRD Collected')
@@ -100,8 +99,7 @@ class StartMonitors(QWidget):
                     break
             new_xrd_file_name = caget(epcf['XRD_file_name'], as_string=True)
             xrd_comments = caget(epcf['XRD_comment'], as_string=True)
-            self.output_line_common_end(self.xrd_new_line, new_xrd_file_name, self.xrd_start_time, xrd_comments, 'XRD_',
-                                        self.xrd_temp_dict)
+            self.output_line_common_end(new_xrd_file_name, xrd_comments, 'XRD_', self.xrd_temp_dict)
             self.parent.html_logger.add_XRD(new_xrd_file_name, self.xrd_temp_dict)
         elif sig_name == 'T_signal':
             self.parent.parent().statusBar().showMessage('T Collecting')
@@ -117,70 +115,84 @@ class StartMonitors(QWidget):
                 exp_time = caget(epcf['T_exp_t_PIMAX'], as_string=True)
             elif detector_T == 'PIXIS_Temperature':
                 exp_time = caget(epcf['T_exp_t_PIXIS'], as_string=True)
-            common_info, self.T_temp_dict = self.output_line_common(self.T_start_time, exp_time)
-            self.T_new_line = exp_time + '\t' + common_info
+            else:
+                exp_time = caget(epcf['T_exp_t_PIXIS'], as_string=True)  # CHECK THIS
+            self.T_temp_dict = self.output_line_common(self.T_start_time, exp_time)
             new_T_file_name = caget(epcf['T_file_name'], as_string=True)
             T_comments = self.temperature_comments()
-            self.output_line_common_end(self.T_new_line, new_T_file_name, self.T_start_time, T_comments, 'T_',
-                                        self.T_temp_dict)
+            time.sleep(0.5)
+            self.output_line_common_end(new_T_file_name, T_comments, 'T_', self.T_temp_dict)
             self.parent.html_logger.add_T(new_T_file_name, self.T_temp_dict)
         elif sig_name == 'ds_signal':
             self.parent.parent().statusBar().showMessage('Downstream Image Collected')
             self.ds_start_time = time.asctime().replace(' ', '_')
             new_ds_file_name = caget(epcf['image_ds_file_name'], as_string=True)
             exp_time = caget(epcf['ds_exp_t'], as_string=True)
-            common_info, self.ds_temp_dict = self.output_line_common(self.ds_start_time, exp_time)
+            self.ds_temp_dict = self.output_line_common(self.ds_start_time, exp_time)
             im_comments = self.image_comments('ds')
-            self.ds_new_line = exp_time + '\t' + common_info
-            self.output_line_common_end(self.ds_new_line, new_ds_file_name, self.ds_start_time, im_comments, 'IM_',
-                                        self.ds_temp_dict)
+            self.output_line_common_end(new_ds_file_name, im_comments, 'IM_', self.ds_temp_dict)
             self.parent.html_logger.add_image(new_ds_file_name, self.ds_temp_dict, 'DS')
         elif sig_name == 'us_signal':
             self.parent.parent().statusBar().showMessage('Upstream Image Collected')
             self.us_start_time = time.asctime().replace(' ', '_')
             new_us_file_name = caget(epcf['image_us_file_name'], as_string=True)
             exp_time = caget(epcf['us_exp_t'], as_string=True)
-            common_info, self.us_temp_dict = self.output_line_common(self.us_start_time, exp_time)
+            self.us_temp_dict = self.output_line_common(self.us_start_time, exp_time)
             im_comments = self.image_comments('us')
-            self.us_new_line = exp_time + '\t' + common_info
-            self.output_line_common_end(self.us_new_line, new_us_file_name, self.us_start_time, im_comments, 'IM_',
-                                        self.us_temp_dict)
+            self.output_line_common_end(new_us_file_name, im_comments, 'IM_', self.us_temp_dict)
             self.parent.html_logger.add_image(new_us_file_name, self.us_temp_dict, 'US')
         elif sig_name == 'ms_signal':
             self.parent.parent().statusBar().showMessage('Microscope Image Collected')
             self.ms_start_time = time.asctime().replace(' ', '_')
             new_ms_file_name = caget(epcf['image_ms_file_name'], as_string=True)
             exp_time = caget(epcf['ms_exp_t'], as_string=True)
-            common_info, self.ms_temp_dict = self.output_line_common(self.ms_start_time, exp_time)
+            self.ms_temp_dict = self.output_line_common(self.ms_start_time, exp_time)
             im_comments = self.image_comments('ms')
-            self.ms_new_line = exp_time + '\t' + common_info
-            self.output_line_common_end(self.ms_new_line, new_ms_file_name, self.ms_start_time, im_comments, 'IM_',
-                                        self.ms_temp_dict)
+            self.output_line_common_end(new_ms_file_name, im_comments, 'IM_', self.ms_temp_dict)
             self.parent.html_logger.add_image(new_ms_file_name, self.ms_temp_dict, 'MS')
 
     def output_line_common(self, start_time, exp_time):
-            temp_dict = collections.OrderedDict()
-            temp_new_line = ''
-            temp_dict['Time'] = start_time
-            temp_dict['Exp_Time'] = exp_time
-            for motor in self.parent.list_motor_short.selectedItems():
-                m_value = caget(self.parent.motor_dict[str(motor.text())], as_string=True)
+        temp_dict = self.create_dict()
+        temp_dict['Time'] = start_time
+        temp_dict['Exp_Time'] = exp_time
+        for motor in self.parent.list_motor_short.selectedItems():
+            if not self.parent.motor_dict[str(motor.text())]['after']:
+                m_value = caget(self.parent.motor_dict[str(motor.text())]['PV'], as_string=True)
                 if m_value == '-2.27e-13':
                     m_value = '0'
-                temp_new_line = temp_new_line + m_value + '\t'
                 temp_dict[str(motor.text())] = m_value
-            return temp_new_line, temp_dict
+        return temp_dict
 
-    def output_line_common_end(self, new_line, file_name, start_time, comments, prefix, temp_dict):
-        file_dir = file_name.replace('/', '\\').rsplit('\\', 1)[0]
-        file_file = file_name.replace('/', '\\').rsplit('\\', 1)[-1]
-        new_line = file_file + '\t' + file_dir + '\t' + new_line
-        new_line = start_time + '\t' + new_line + comments + '\n'
+    def output_line_common_end(self, file_name, comments, prefix, temp_dict):
+        temp_dict['Directory'] = file_name.replace('/', '\\').rsplit('\\', 1)[0]
+        temp_dict['File_Name'] = file_name.replace('/', '\\').rsplit('\\', 1)[-1]
+
+        for motor in self.parent.list_motor_short.selectedItems():
+            if self.parent.motor_dict[str(motor.text())]['after']:
+                m_value = caget(self.parent.motor_dict[str(motor.text())]['PV'], as_string=True)
+                if m_value == '-2.27e-13':
+                    m_value = '0'
+                temp_dict[str(motor.text())] = m_value
+        temp_dict['Comments'] = comments
+        new_line = ''
+        for key in temp_dict:
+            new_line = new_line + str(temp_dict[key]) + '\t'
+        new_line = new_line + '\n'
         self.parent.log_file.write(new_line)
         self.parent.log_file.flush()
         self.parent.log_list.insertItem(0, prefix + file_name)
-        temp_dict['Comments'] = comments
         self.update_log_dict(temp_dict, file_name)
+
+    def create_dict(self):
+        temp_dict = collections.OrderedDict()
+        temp_dict['Time'] = ''
+        temp_dict['File_Name'] = ''
+        temp_dict['Directory'] = ''
+        temp_dict['Exp_Time'] = ''
+        for motor in self.parent.list_motor_short.selectedItems():
+            temp_dict[str(motor.text())] = ''
+        temp_dict['Comments'] = ''
+        return temp_dict
 
     def update_log_dict(self, temp_dict, file_name):
         self.log_dict[str(file_name)] = collections.OrderedDict()
@@ -232,12 +244,6 @@ class StartMonitors(QWidget):
         for row in range(self.parent.log_table.rowCount()):
             self.parent.log_table.removeRow(0)
         row_pos = self.parent.log_table.rowCount()
-        self.parent.log_table.insertRow(row_pos)
-        self.parent.log_table.setItem(row_pos, 0, QTableWidgetItem('File'))
-        self.parent.log_table.setItem(row_pos, 1, QTableWidgetItem(file_file))
-        self.parent.log_table.insertRow(row_pos+1)
-        self.parent.log_table.setItem(row_pos+1, 0, QTableWidgetItem('Directory'))
-        self.parent.log_table.setItem(row_pos+1, 1, QTableWidgetItem(file_dir))
 
         for item in self.log_dict[file_name]:
             row_pos = self.parent.log_table.rowCount()
