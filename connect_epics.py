@@ -2,8 +2,6 @@
 List of EPICS controllers to read/write/monitor
 """
 
-# ADD PG3 filename PV!
-
 epics_config_fixed = {
     'XRD_file_name': '13MARCCD2:TIFF1:FullFileName_RBV',
     'T_file_name': '13IDDLF1:cam1:FullFileName_RBV',
