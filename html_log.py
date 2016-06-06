@@ -18,8 +18,8 @@ class HtmlLogger(object):
         # Use T folder to help with finding XRD folder
         T_folder = caget(epp['T_File_Path'], as_string=True)
         dash_ind = T_folder.find('-')
-        self.base_dir = T_folder[:dash_ind+2]
-        pass
+        self.xrd_base_dir = T_folder[:dash_ind+2]
+        self.base_dir = self.parent.choose_dir
 
     def start_html_logger(self):
         template_file = 'T:\\webdata\\13IDDLogFile\\Test\\index.html'
@@ -49,7 +49,8 @@ class HtmlLogger(object):
             print full_path + ' already exists'
 
     def add_XRD(self, file_name, data):
-        file_name = file_name.replace("/DAC", self.base_dir, 1)
+
+        file_name = file_name.replace("/DAC", self.xrd_base_dir, 1)
         file_name = file_name.replace("/", "\\")
 
         img_src, new_file = self.generate_thumbnail_file_name(file_name)
@@ -114,6 +115,7 @@ class HtmlLogger(object):
         self.check_xy_files()
 
     def check_xy_files(self):
+        time0 = time.time()
         pattern = "*.xy"
         for path, subdirs, files in os.walk(self.base_dir):
             for name in files:
@@ -125,7 +127,7 @@ class HtmlLogger(object):
                             continue
                     self.xy_file_dict[xy_file] = xy_file_mod_time
                     self.create_XRD_plot_thumbnail(xy_file)
-
+        print time.time() - time0
         # for key in self.xy_file_dict:
             # print key + '\t' + time.ctime(self.xy_file_dict[key])
 
@@ -140,7 +142,7 @@ class HtmlLogger(object):
             im = Image.open(file_name)
             if isxrd:
                 im.mode = 'I'
-                im = im.point(lambda i:i*(1./256)).convert('L')
+                im = im.point(lambda i:i*(1./16)).convert('L')
             im.thumbnail(self.thumb_size, Image.ANTIALIAS)
             im.save(new_file, "JPEG")
         except (IOError, OSError):

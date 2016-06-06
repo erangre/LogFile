@@ -5,6 +5,7 @@ List of EPICS controllers to read/write/monitor
 epics_config_fixed = {
     'XRD_file_name': '13MARCCD2:TIFF1:FullFileName_RBV',
     'T_file_name': '13IDDLF1:cam1:FullFileName_RBV',
+    'T_BG_file_name': '13IDDLF1:cam1:LFBackgroundFullFile_RBV',
     'XRD_comment': '13MARCCD2:AcquireSequence.STRA',
     'image_ds_file_name': '13IDD_PG2:TIFF1:FullFileName_RBV',
     'image_us_file_name': '13IDD_PG1:TIFF1:FullFileName_RBV',

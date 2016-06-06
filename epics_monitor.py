@@ -2,6 +2,7 @@ import time
 from epics import caput, caget, PV, camonitor, camonitor_clear
 from connect_epics import epics_config_fixed as epcf
 from connect_epics import epics_monitor_config as epmc
+from connect_epics import epics_BG_config as ebgcfg
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 import collections
@@ -95,12 +96,13 @@ class StartMonitors(QWidget):
             new_xrd_file_name = caget(epcf['XRD_file_name'], as_string=True)
             while self.old_xrd_file_name == new_xrd_file_name:
                 new_xrd_file_name = caget(epcf['XRD_file_name'], as_string=True)
-                if time.time() - start_time > 1:
+                if time.time() - start_time > 5:
                     break
             new_xrd_file_name = caget(epcf['XRD_file_name'], as_string=True)
             xrd_comments = caget(epcf['XRD_comment'], as_string=True)
             self.output_line_common_end(new_xrd_file_name, xrd_comments, 'XRD_', self.xrd_temp_dict)
-            self.parent.html_logger.add_XRD(new_xrd_file_name, self.xrd_temp_dict)
+            if self.parent.html_log_cb.isChecked():
+                self.parent.html_logger.add_XRD(new_xrd_file_name, self.xrd_temp_dict)
         elif sig_name == 'T_signal':
             self.parent.parent().statusBar().showMessage('T Collecting')
             self.T_start_done = False
@@ -118,11 +120,15 @@ class StartMonitors(QWidget):
             else:
                 exp_time = caget(epcf['T_exp_t_PIXIS'], as_string=True)  # CHECK THIS
             self.T_temp_dict = self.output_line_common(self.T_start_time, exp_time)
-            new_T_file_name = caget(epcf['T_file_name'], as_string=True)
+            if caget(ebgcfg['T_change_image_mode']) == 2:
+                new_T_file_name = caget(epcf['T_BG_file_name'], as_string=True)
+            else:
+                new_T_file_name = caget(epcf['T_file_name'], as_string=True)
             T_comments = self.temperature_comments()
             time.sleep(0.5)
             self.output_line_common_end(new_T_file_name, T_comments, 'T_', self.T_temp_dict)
-            self.parent.html_logger.add_T(new_T_file_name, self.T_temp_dict)
+            if self.parent.html_log_cb.isChecked():
+                self.parent.html_logger.add_T(new_T_file_name, self.T_temp_dict)
         elif sig_name == 'ds_signal':
             self.parent.parent().statusBar().showMessage('Downstream Image Collected')
             self.ds_start_time = time.asctime().replace(' ', '_')
@@ -131,7 +137,8 @@ class StartMonitors(QWidget):
             self.ds_temp_dict = self.output_line_common(self.ds_start_time, exp_time)
             im_comments = self.image_comments('ds')
             self.output_line_common_end(new_ds_file_name, im_comments, 'IM_', self.ds_temp_dict)
-            self.parent.html_logger.add_image(new_ds_file_name, self.ds_temp_dict, 'DS')
+            if self.parent.html_log_cb.isChecked():
+                self.parent.html_logger.add_image(new_ds_file_name, self.ds_temp_dict, 'DS')
         elif sig_name == 'us_signal':
             self.parent.parent().statusBar().showMessage('Upstream Image Collected')
             self.us_start_time = time.asctime().replace(' ', '_')
@@ -140,7 +147,8 @@ class StartMonitors(QWidget):
             self.us_temp_dict = self.output_line_common(self.us_start_time, exp_time)
             im_comments = self.image_comments('us')
             self.output_line_common_end(new_us_file_name, im_comments, 'IM_', self.us_temp_dict)
-            self.parent.html_logger.add_image(new_us_file_name, self.us_temp_dict, 'US')
+            if self.parent.html_log_cb.isChecked():
+                self.parent.html_logger.add_image(new_us_file_name, self.us_temp_dict, 'US')
         elif sig_name == 'ms_signal':
             self.parent.parent().statusBar().showMessage('Microscope Image Collected')
             self.ms_start_time = time.asctime().replace(' ', '_')
@@ -149,7 +157,8 @@ class StartMonitors(QWidget):
             self.ms_temp_dict = self.output_line_common(self.ms_start_time, exp_time)
             im_comments = self.image_comments('ms')
             self.output_line_common_end(new_ms_file_name, im_comments, 'IM_', self.ms_temp_dict)
-            self.parent.html_logger.add_image(new_ms_file_name, self.ms_temp_dict, 'MS')
+            if self.parent.html_log_cb.isChecked():
+                self.parent.html_logger.add_image(new_ms_file_name, self.ms_temp_dict, 'MS')
 
     def output_line_common(self, start_time, exp_time):
         temp_dict = self.create_dict()

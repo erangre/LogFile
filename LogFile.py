@@ -55,11 +55,13 @@ class LogWindow(QtGui.QWidget):
         self.choose_dir_btn = QtGui.QPushButton('Choose Folder')
         self.choose_file_name_le = QtGui.QLineEdit()
         self.load_log_btn = QtGui.QPushButton('Load Log')
+        self.reload_log_btn = QtGui.QPushButton('Reload Log')
         self.label_start_time = QtGui.QLabel(self)
         self.label_end_time = QtGui.QLabel(self)
         self.setup_btn = QtGui.QPushButton('Setup')
         self.show_log_btn = QtGui.QPushButton('Log')
         self.comment_btn = QtGui.QPushButton('Comment')
+        self.html_log_cb = QtGui.QCheckBox('HTML Log')
         self.start_btn = QtGui.QPushButton('Start')
         self.stop_btn = QtGui.QPushButton('Stop')
         self.list_motor_short = QtGui.QListWidget(self)
@@ -89,9 +91,13 @@ class LogWindow(QtGui.QWidget):
             label_item.setStyleSheet('background-color: white')
         self.setup_btn.setCheckable(True)
         self.show_log_btn.setCheckable(True)
+        self.reload_log_btn.hide()
         self.show_log_btn.hide()
         self.comment_btn.hide()
         self.comment_btn.setToolTip('Add a comment to the HTML log')
+        self.html_log_cb.setChecked(True)
+        self.html_log_cb.hide()
+        self.html_log_cb.setToolTip('Enable logging to HTML file')
         self.stop_btn.setEnabled(False)
         self.list_motor_short.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.list_motor_names.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
@@ -121,6 +127,7 @@ class LogWindow(QtGui.QWidget):
         hbox_file.addStretch(1)
         hbox_file.addWidget(self.choose_dir_btn)
         hbox_file.addWidget(self.choose_file_name_le)
+        hbox_file.addWidget(self.reload_log_btn)
         hbox_file.addWidget(self.load_log_btn)
 
         hbox_control.addWidget(self.label_start_time)
@@ -128,6 +135,7 @@ class LogWindow(QtGui.QWidget):
         hbox_control.addWidget(self.label_end_time)
         hbox_control.addStretch(1)
         hbox_control.addWidget(self.setup_btn)
+        hbox_control.addWidget(self.html_log_cb)
         hbox_control.addWidget(self.comment_btn)
         hbox_control.addWidget(self.show_log_btn)
         hbox_control.addWidget(self.start_btn)
@@ -168,7 +176,7 @@ class LogWindow(QtGui.QWidget):
         self.vbox.addWidget(self.setup_motors_frame)
 
         self.vbox.addWidget(self.log_frame)
-        self.vbox.addStretch(1)
+        # self.vbox.addStretch(1)
         self.setLayout(self.vbox)
 
         # Create connections
@@ -176,6 +184,7 @@ class LogWindow(QtGui.QWidget):
         self.choose_file_name_le.returnPressed.connect(self.choose_file_name_le_changed)
         self.choose_file_name_le.installEventFilter(self._filter)
         self.load_log_btn.clicked.connect(self.load_previous_log)
+        self.reload_log_btn.clicked.connect(self.reload_previous_log)
         self.setup_btn.clicked.connect(self.toggle_setup_menu)
         self.show_log_btn.clicked.connect(self.toggle_show_log)
         self.comment_btn.clicked.connect(self.add_comment)
@@ -217,9 +226,14 @@ class LogWindow(QtGui.QWidget):
     def file_name_le_change_back(self):  # in case enter wasn't pressed (to avoid accidental changes)
         self.choose_file_name_le.setText(self.choose_file)
 
-    def load_previous_log(self):
+    def load_previous_log(self, file_name=None):
         self.log_dict = collections.OrderedDict()
-        load_log_name = QtGui.QFileDialog.getOpenFileName(self, 'Choose log file to view', '.', 'Text Files (*.txt)')
+        if not file_name:
+            msg = 'Choose log file to view'
+            load_log_name = QtGui.QFileDialog.getOpenFileName(self, msg, '.', 'Text Files (*.txt)')
+        else:
+            load_log_name = file_name
+
         if not load_log_name:
             msg = 'No Log File Opened'
             self.parent().statusBar().showMessage(msg)
@@ -252,7 +266,12 @@ class LogWindow(QtGui.QWidget):
         self.log_list.itemSelectionChanged.connect(self.show_offline_info)
 
         msg = 'Loaded log file ' + load_log_name
+        self.loaded_log = load_log_name
+        self.reload_log_btn.show()
         self.parent().statusBar().showMessage(msg)
+
+    def reload_previous_log(self):
+        self.load_previous_log(self.loaded_log)
 
     def toggle_setup_menu(self):
         self.setup_motors_frame.setVisible(not self.setup_motors_frame.isVisible())
@@ -282,6 +301,7 @@ class LogWindow(QtGui.QWidget):
             self.setup_btn.click()
         self.show_log_btn.show()
         self.comment_btn.show()
+        self.html_log_cb.show()
         self.choose_dir_btn.setEnabled(False)
         self.choose_file_name_le.setEnabled(False)
 
@@ -313,6 +333,7 @@ class LogWindow(QtGui.QWidget):
         self.show_log_btn.hide()
         self.choose_dir_btn.setEnabled(True)
         self.comment_btn.hide()
+        self.html_log_cb.hide()
         self.choose_file_name_le.setEnabled(True)
 
         self.log_file.close()
