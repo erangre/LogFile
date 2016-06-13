@@ -6,14 +6,20 @@ from connect_epics import epics_prepare as epp
 from PIL import Image
 from fnmatch import fnmatch
 import matplotlib.pyplot as plt
+import shutil
+import thread
 
 
-class HtmlLogger(object):
+class HtmlLogger(QtGui.QWidget):
     def __init__(self, parent=None):
         super(HtmlLogger, self).__init__()
         self.thumb_size = 1024, 1024
         self.parent = parent
         self.xy_file_dict = {}
+
+        self.xy_checking = False
+
+        self.comment_counter = 0
 
         # Use T folder to help with finding XRD folder
         T_folder = caget(epp['T_File_Path'], as_string=True)
@@ -22,11 +28,11 @@ class HtmlLogger(object):
         self.base_dir = self.parent.choose_dir
 
     def start_html_logger(self):
-        template_file = 'T:\\webdata\\13IDDLogFile\\Test\\index.html'
+        self.template_file = 'T:\\webdata\\13IDDLogFile\\Test\\index.html'
         self.NEWFILE = 'T:\\webdata\\13IDDLogFile\\Test\\1\\index.html'
         self.check_one_dir(self.NEWFILE.rsplit('\\', 1)[0], 'Created directory for HTML Log File: ')
         self.check_one_dir(self.NEWFILE.rsplit('\\', 1)[0] + '\\Images', 'Created directory for HTML Log File Images: ')
-        self.template_html_log = open(template_file, 'r')
+        self.template_html_log = open(self.template_file, 'r')
         self.html_log_file = open(self.NEWFILE, 'w')
 
         for line in self.template_html_log:
@@ -56,6 +62,7 @@ class HtmlLogger(object):
         img_src, new_file = self.generate_thumbnail_file_name(file_name)
 
         pattern_src = img_src.replace('.jpg', '.png')
+        self.create_XRD_plot_temporary_thumbnail(pattern_src)
 
         new_data = 'XRD collected:' + '<br>\n'
         new_data = new_data + '<a href="' + img_src + '" target="_blank"><img src="' + img_src + \
@@ -65,14 +72,16 @@ class HtmlLogger(object):
         new_data = new_data + self.create_table(file_name, data)
         new_data = new_data + '<hr />' + '\n'
 
-        self.update_html(new_data)
+        self.create_new_html(file_name, new_data)
+        self.update_html(file_name)
         self.create_thumbnail(file_name, new_file, True)
 
     def add_T(self, file_name, data):
         new_data = 'T collected:' + '\n'
         new_data = new_data + self.create_table(file_name, data)
         new_data = new_data + '<hr />' + '\n'
-        self.update_html(new_data)
+        self.create_new_html(file_name, new_data)
+        self.update_html(file_name)
 
     def add_image(self, file_name, data, stream):
 
@@ -84,7 +93,8 @@ class HtmlLogger(object):
         new_data = new_data + self.create_table(file_name, data)
         new_data = new_data + '<hr />' + '\n'
 
-        self.update_html(new_data)
+        self.create_new_html(file_name, new_data)
+        self.update_html(file_name)
         self.create_thumbnail(file_name, new_file)
 
     def create_table(self, file_name, data):
@@ -98,10 +108,29 @@ class HtmlLogger(object):
         new_data = new_data + '</table>' + '\n'
         return new_data
 
-    def update_html(self, new_data):  # There is no way to edit a file, just make a new one and then rename
+    def create_new_html(self, file_name, new_data):
+        file_name = file_name.rsplit('\\', 1)[-1]
+        file_name = file_name.rsplit('.', 1)[0]
+        new_file = 'T:\\webdata\\13IDDLogFile\\Test\\1\\' + file_name + '.html'
+        template_html_log = open(self.template_file, 'r')
+        new_log = open(new_file, 'w')
+        for line in template_html_log:
+            if '<body>' in line:
+                newline = '<body>\n' + new_data
+            else:
+                newline = line
+            new_log.write(newline)
+        new_log.close()
+        template_html_log.close()
+
+    def update_html(self, file_name):  # There is no way to edit a file, just make a new one and then rename
         temporary_file = 'T:\\webdata\\13IDDLogFile\\Test\\temp.html'
+        file_name = file_name.rsplit('\\', 1)[-1]
+        file_name = file_name.rsplit('.', 1)[0]
+
         html_log_file = open(self.NEWFILE, 'r')
         temporary_log = open(temporary_file, 'w')
+        new_data = '<iframe src="' + file_name + '.html' + '" width="420" height="320"></iframe>' + '\n'
         for line in html_log_file:
             if '<body>' in line:
                 newline = '<body>\n' + new_data
@@ -112,7 +141,10 @@ class HtmlLogger(object):
         html_log_file.close()
         os.remove(self.NEWFILE)
         os.rename(temporary_file, self.NEWFILE)
-        self.check_xy_files()
+        if not self.xy_checking:
+            self.xy_checking = True
+            thread.start_new_thread(self.check_xy_files, ())
+            sys.stdout.flush()
 
     def check_xy_files(self):
         time0 = time.time()
@@ -128,6 +160,7 @@ class HtmlLogger(object):
                     self.xy_file_dict[xy_file] = xy_file_mod_time
                     self.create_XRD_plot_thumbnail(xy_file)
         print time.time() - time0
+        self.xy_checking = False
         # for key in self.xy_file_dict:
             # print key + '\t' + time.ctime(self.xy_file_dict[key])
 
@@ -135,6 +168,7 @@ class HtmlLogger(object):
         new_file = self.NEWFILE.rsplit('\\', 1)[0] + '\\Images\\'
         new_file = new_file + file_name.rsplit('\\', 1)[-1].rsplit('.', 1)[0] + '.jpg'
         img_src = 'Images\\' + new_file.rsplit('\\', 1)[-1]
+        img_src = img_src.replace('\\', '/')
         return img_src, new_file
 
     def create_thumbnail(self, file_name, new_file, isxrd=False):
@@ -166,10 +200,18 @@ class HtmlLogger(object):
         plt.savefig(new_file)
         plt.clf()
 
+    def create_XRD_plot_temporary_thumbnail(self, file_name):
+        empty_thumbnail = 'T:\\webdata\\13IDDLogFile\\Test\\empty.png'
+        temp_file = 'T:\\webdata\\13IDDLogFile\\Test\\1\\' + file_name
+        if not os.path.isfile(file_name):
+            shutil.copy(empty_thumbnail, temp_file)
+
     def add_comment_line(self, new_comment):
+        self.comment_counter = self.comment_counter + 1
         new_data = '<b>Comment:</b>' + '\n'
         new_data = new_data + '<br>' + new_comment
         new_data = new_data + '<hr />' + '\n'
-        self.update_html(new_data)
+        file_name = 'comment' + str(self.comment_counter)
+        self.create_new_html(file_name, new_data)
+        self.update_html(file_name)
         pass
-
