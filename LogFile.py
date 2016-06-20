@@ -38,7 +38,7 @@ class MainWindow(QtGui.QMainWindow):
         # Layout
         self.setCentralWidget(self.log)
         self.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
-        self.min_size = self.size()
+        self.min_height = self.height()
 
 
 class LogWindow(QtGui.QWidget):
@@ -49,6 +49,7 @@ class LogWindow(QtGui.QWidget):
 
         self.choose_dir = DEF_DIR
         self.choose_file = DEF_FILE
+        self.motors_file = ''
 
         # Create Widgets
         self.label_fullpath = QtGui.QLabel(self)
@@ -212,11 +213,15 @@ class LogWindow(QtGui.QWidget):
         self.show()
         QtGui.QToolTip.setFont(QtGui.QFont('SansSerif', 10))
         self.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
-        self.load_motor_list('base_motors.txt')
+        # self.load_motor_list('base_motors.txt')
+        self.load_config()
 
     def choose_dir_btn_clicked(self):
         CH_DIR_TEXT = 'Choose directory for saving log file'
         self.choose_dir = QtGui.QFileDialog.getExistingDirectory(self, CH_DIR_TEXT, DEF_DIR)
+        self.set_choose_dir_label()
+
+    def set_choose_dir_label(self):
         self.label_fullpath.setText(self.choose_dir + '\\' + self.choose_file_name_le.text())
 
     def choose_file_name_le_changed(self):
@@ -278,8 +283,8 @@ class LogWindow(QtGui.QWidget):
         # self.resize(self.sizeHint())
         self.parent().resize(self.parent().sizeHint())
         if not self.setup_motors_frame.isVisible():
-            self.parent().setMinimumSize(self.parent().min_size)
-            self.parent().resize(self.parent().minimumSize())
+            self.parent().setMinimumHeight(self.parent().min_height)
+            self.parent().resize(self.parent().width(), self.parent().minimumHeight())
 
     def toggle_show_log(self):
         self.log_frame.setVisible(not self.log_frame.isVisible())
@@ -287,8 +292,8 @@ class LogWindow(QtGui.QWidget):
         self.parent().resize(self.parent().sizeHint())
         # print self.parent().sizeHint()
         if not self.log_frame.isVisible():
-            self.parent().setMinimumSize(self.parent().min_size)
-            self.parent().resize(self.parent().minimumSize())
+            self.parent().setMinimumHeight(self.parent().min_height)
+            self.parent().resize(self.parent().width(), self.parent().minimumHeight())
 
     def start_logging(self):
         f_time = time.asctime()
@@ -315,6 +320,9 @@ class LogWindow(QtGui.QWidget):
         self.parent().statusBar().showMessage(msg)
         self.log_list.itemSelectionChanged.connect(self.show_selected_info)
         self.log_list.clear()
+
+        self.motors_file = self.choose_file.rsplit('.')[0] + '_motors.txt'
+        self.save_config()
 
         self.base_dir = caget(epp['CCD_File_Path'], as_string=True)
         self.html_logger = HtmlLogger(self)
@@ -429,9 +437,13 @@ class LogWindow(QtGui.QWidget):
             msg = 'Loaded motor list from ' + load_name
             self.parent().statusBar().showMessage(msg)
 
-    def save_motor_list(self):
-        save_name = QtGui.QFileDialog.getSaveFileName(self, 'Choose file name for saving motor list', '.',
-                                                      'Text Files (*.txt)')
+    def save_motor_list(self, file_name=None):
+        if not file_name:
+            save_name = QtGui.QFileDialog.getSaveFileName(self, 'Choose file name for saving motor list', '.',
+                                                          'Text Files (*.txt)')
+        else:
+            save_name = file_name
+
         if not save_name:
             msg = 'No File Saved'
             self.parent().statusBar().showMessage(msg)
@@ -619,7 +631,38 @@ class LogWindow(QtGui.QWidget):
         new_comment, ok_sn = QtGui.QInputDialog.getText(self, 'New comment', message, QtGui.QLineEdit.Normal)
         if ok_sn:
             self.html_logger.add_comment_line(new_comment)
-        pass
+
+    def load_config(self):
+        try:
+            cfg_file = open('log_config.txt', 'r')
+        except IOError:
+            print 'No configuration file, using program defaults'
+            return
+
+        self.choose_dir = cfg_file.readline()
+        self.choose_dir = self.choose_dir.split('\n')[0]
+        self.choose_file = cfg_file.readline()
+        self.choose_file = self.choose_file.split('\n')[0]
+        self.motors_file = cfg_file.readline()
+        self.motors_file = self.motors_file.split('\n')[0]
+
+        self.choose_file_name_le.setText(self.choose_file)
+        self.set_choose_dir_label()
+        self.load_motor_list(self.motors_file)
+
+    def save_config(self):
+        cfg_file = open('log_config.txt', 'w')
+
+        outline = self.choose_dir + '\n'
+        cfg_file.write(outline)
+
+        outline = self.choose_file + '\n'
+        cfg_file.write(outline)
+
+        outline = self.motors_file + '\n'
+        cfg_file.write(outline)
+
+        self.save_motor_list(self.motors_file)
 
 
 class Filter(QtCore.QObject):

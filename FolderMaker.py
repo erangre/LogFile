@@ -199,8 +199,9 @@ class FolderMaker(QtGui.QWidget):
     def create_btn_clicked(self):
         self.check_dirs()
         self.update_epics()
-        self.caller.choose_dir = str(self.base_dir).rsplit('\\', 1)[0]
-        self.caller.label_fullpath.setText(self.caller.choose_dir + '\\' + self.caller.choose_file)
+        if self.caller:
+            self.caller.choose_dir = str(self.base_dir).rsplit('\\', 1)[0]
+            self.caller.set_choose_dir_label()
 
     def check_dirs(self):
         base_dir = str(self.base_dir)
@@ -227,7 +228,7 @@ class FolderMaker(QtGui.QWidget):
         full_dir_images = str(self.image_dn_full_path).rsplit('\\', 1)[0]
         main_dir = str(self.main_dir_edit.text())
         ccd_dir = ('\\DAC\\' + main_dir).replace('\\', '/')
-        caput(epp['CCD_File_Path'], ccd_dir)
+        caput(epp['CCD_File_Path'], ccd_dir + '/LaB6')
         caput(epp['XRD_Base_Name'], str(self.xrd_base_edit.text()))
         caput(epp['XRD_Number'], str(self.xrd_num_edit.text()))
 

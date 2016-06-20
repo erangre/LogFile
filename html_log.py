@@ -8,7 +8,7 @@ from fnmatch import fnmatch
 import matplotlib.pyplot as plt
 import shutil
 import thread
-
+import numpy as np
 
 class HtmlLogger(QtGui.QWidget):
     def __init__(self, parent=None):
@@ -26,10 +26,11 @@ class HtmlLogger(QtGui.QWidget):
         dash_ind = T_folder.find('-')
         self.xrd_base_dir = T_folder[:dash_ind+2]
         self.base_dir = self.parent.choose_dir
+        self.html_dir = self.base_dir.rsplit('\\')[-1]
 
     def start_html_logger(self):
         self.template_file = 'T:\\webdata\\13IDDLogFile\\Test\\index.html'
-        self.NEWFILE = 'T:\\webdata\\13IDDLogFile\\Test\\1\\index.html'
+        self.NEWFILE = 'T:\\webdata\\13IDDLogFile\\' + self.html_dir + '\\index.html'
         self.check_one_dir(self.NEWFILE.rsplit('\\', 1)[0], 'Created directory for HTML Log File: ')
         self.check_one_dir(self.NEWFILE.rsplit('\\', 1)[0] + '\\Images', 'Created directory for HTML Log File Images: ')
         self.template_html_log = open(self.template_file, 'r')
@@ -111,7 +112,7 @@ class HtmlLogger(QtGui.QWidget):
     def create_new_html(self, file_name, new_data):
         file_name = file_name.rsplit('\\', 1)[-1]
         file_name = file_name.rsplit('.', 1)[0]
-        new_file = 'T:\\webdata\\13IDDLogFile\\Test\\1\\' + file_name + '.html'
+        new_file = 'T:\\webdata\\13IDDLogFile\\' + self.html_dir + '\\' + file_name + '.html'
         template_html_log = open(self.template_file, 'r')
         new_log = open(new_file, 'w')
         for line in template_html_log:
@@ -124,7 +125,7 @@ class HtmlLogger(QtGui.QWidget):
         template_html_log.close()
 
     def update_html(self, file_name):  # There is no way to edit a file, just make a new one and then rename
-        temporary_file = 'T:\\webdata\\13IDDLogFile\\Test\\temp.html'
+        temporary_file = 'T:\\webdata\\13IDDLogFile\\temp.html'
         file_name = file_name.rsplit('\\', 1)[-1]
         file_name = file_name.rsplit('.', 1)[0]
 
@@ -171,14 +172,27 @@ class HtmlLogger(QtGui.QWidget):
         img_src = img_src.replace('\\', '/')
         return img_src, new_file
 
+    def stretch_intensity(self, ima):
+        imb = np.log10(ima+2)
+        max_i = imb.max()
+        min_i = imb.min()
+        imb_new = (imb-min_i)*255.0/(max_i-min_i)
+        return imb_new
+
     def create_thumbnail(self, file_name, new_file, isxrd=False):
         try:
             im = Image.open(file_name)
             if isxrd:
                 im.mode = 'I'
-                im = im.point(lambda i:i*(1./16)).convert('L')
-            im.thumbnail(self.thumb_size, Image.ANTIALIAS)
-            im.save(new_file, "JPEG")
+                im = im.point(lambda i: i*(1./256)).convert('L')
+                ima = np.array(im)
+                imb = self.stretch_intensity(ima)
+                im2 = Image.fromarray(np.uint8(imb))
+                im2.thumbnail(self.thumb_size, Image.ANTIALIAS)
+                im2.save(new_file, "JPEG")
+            else:
+                im.thumbnail(self.thumb_size, Image.ANTIALIAS)
+                im.save(new_file, "JPEG")
         except (IOError, OSError):
             print "cannot create thumbnail for " + file_name
 
@@ -201,8 +215,8 @@ class HtmlLogger(QtGui.QWidget):
         plt.clf()
 
     def create_XRD_plot_temporary_thumbnail(self, file_name):
-        empty_thumbnail = 'T:\\webdata\\13IDDLogFile\\Test\\empty.png'
-        temp_file = 'T:\\webdata\\13IDDLogFile\\Test\\1\\' + file_name
+        empty_thumbnail = 'T:\\webdata\\13IDDLogFile\\empty.png'
+        temp_file = 'T:\\webdata\\13IDDLogFile\\' + self.html_dir + '\\' + file_name
         if not os.path.isfile(file_name):
             shutil.copy(empty_thumbnail, temp_file)
 
