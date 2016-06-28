@@ -26,7 +26,7 @@ class MainWindow(QtGui.QMainWindow):
 
         # Setup App Window
         self.statusBar()
-        self.setMinimumWidth(800)
+        # self.setMinimumWidth(800)
         self.setWindowTitle('Log File Creator and Monitor')
         self.setWindowIcon(QtGui.QIcon('icons/google_notebook.png'))
         self.show()

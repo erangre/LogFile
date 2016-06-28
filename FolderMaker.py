@@ -1,6 +1,7 @@
 import time
 import os
 import sys
+import glob
 from epics import caput
 from epics import caget
 from connect_epics import epics_prepare as epp
@@ -153,24 +154,44 @@ class FolderMaker(QtGui.QWidget):
     def update_all_full_paths(self):
         self.base_dir = 'T:\\dac_user\\' + self.year_edit.text() + '\\IDD_' + self.year_edit.text() + '-' + \
                         self.cycle_edit.text() + '\\' + self.main_dir_edit.text() + '\\'
-        self.update_xrd_path()
-        self.update_temperature_path()
-        self.update_images_path()
+        self.xrd_changed()
+        self.temperature_changed()
+        self.image_changed()
+        # self.update_xrd_path()
+        # self.update_temperature_path()
+        # self.update_images_path()
 
     def xrd_changed(self):
-        if self.sender() == self.xrd_base_edit:
-            pass  # ADD HERE TO CHECK FILE NUMBERS FOR EXISTING PATHS AND FILENAMES
+        if not self.sender() == self.xrd_num_edit:
+            next_num = self.find_next_number(str(self.base_dir + self.xrd_base_edit.text() + '_'))
+            self.xrd_num_edit.setText(str(next_num))
         self.update_xrd_path()
 
     def temperature_changed(self):
-        if self.sender() == self.temperature_dir_edit or self.temperature_base_edit:
-            pass  # ADD HERE TO CHECK
+        temperature_dir = self.base_dir + '\\' + self.temperature_dir_edit.text() + '\\'
+        if not self.sender() == self.temperature_num_edit:
+            next_num = self.find_next_number(str(temperature_dir + self.temperature_base_edit.text() + '_'))
+            self.temperature_num_edit.setText(str(next_num))
         self.update_temperature_path()
 
     def image_changed(self):
-        if self.sender() == self.image_dir_edit or self.image_dn_base_edit or self.image_up_base_edit or \
-                self.image_ms_base_edit:
-            pass  # ADD HERE TO CHECK
+        image_dir = self.base_dir + '\\' + self.image_dir_edit.text() + '\\'
+        if self.sender() == self.image_dir_edit or self.sender() == self.main_dir_edit:
+            next_num = self.find_next_number(str(image_dir + self.image_up_base_edit.text() + '_'))
+            self.image_up_num_edit.setText(str(next_num))
+            next_num = self.find_next_number(str(image_dir + self.image_dn_base_edit.text() + '_'))
+            self.image_dn_num_edit.setText(str(next_num))
+            next_num = self.find_next_number(str(image_dir + self.image_ms_base_edit.text() + '_'))
+            self.image_ms_num_edit.setText(str(next_num))
+        elif self.sender() == self.image_dn_base_edit:
+            next_num = self.find_next_number(str(image_dir + self.image_dn_base_edit.text() + '_'))
+            self.image_dn_num_edit.setText(str(next_num))
+        elif self.sender() == self.image_up_base_edit:
+            next_num = self.find_next_number(str(image_dir + self.image_up_base_edit.text() + '_'))
+            self.image_up_num_edit.setText(str(next_num))
+        elif self.sender() == self.image_ms_base_edit:
+            next_num = self.find_next_number(str(image_dir + self.image_ms_base_edit.text() + '_'))
+            self.image_ms_num_edit.setText(str(next_num))
         self.update_images_path()
 
     def update_xrd_path(self):
@@ -228,7 +249,10 @@ class FolderMaker(QtGui.QWidget):
         full_dir_images = str(self.image_dn_full_path).rsplit('\\', 1)[0]
         main_dir = str(self.main_dir_edit.text())
         ccd_dir = ('\\DAC\\' + main_dir).replace('\\', '/')
-        caput(epp['CCD_File_Path'], ccd_dir + '/LaB6')
+        if self.xrd_base_edit.text() == 'LaB6':
+            ccd_dir = ccd_dir + '/LaB6'
+        
+        caput(epp['CCD_File_Path'], ccd_dir)
         caput(epp['XRD_Base_Name'], str(self.xrd_base_edit.text()))
         caput(epp['XRD_Number'], str(self.xrd_num_edit.text()))
 
@@ -246,6 +270,14 @@ class FolderMaker(QtGui.QWidget):
         caput(epp['Image_ms_File_Name'], str(self.image_ms_base_edit.text()))
         caput(epp['Image_ms_Number'], str(self.image_ms_num_edit.text()))
 
+    def find_next_number(self, base_name):
+        file_list = glob.glob(base_name + '*.*')
+        fmax = 0
+        for file in file_list:
+            fnum = file.rsplit('.', 1)[0].rsplit('_', 1)[-1]
+            if fnum > fmax:
+                fmax = fnum
+        return int(fmax)+1
 
 def main():
     pass

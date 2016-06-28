@@ -33,20 +33,22 @@ class HtmlLogger(QtGui.QWidget):
         self.NEWFILE = 'T:\\webdata\\13IDDLogFile\\' + self.html_dir + '\\index.html'
         self.check_one_dir(self.NEWFILE.rsplit('\\', 1)[0], 'Created directory for HTML Log File: ')
         self.check_one_dir(self.NEWFILE.rsplit('\\', 1)[0] + '\\Images', 'Created directory for HTML Log File Images: ')
-        self.template_html_log = open(self.template_file, 'r')
-        self.html_log_file = open(self.NEWFILE, 'w')
 
-        for line in self.template_html_log:
-            if '<title>' in line:
-                mod_line = '<title>HTML Log File Testing</title>\n'
-                self.html_log_file.write(mod_line)
-            elif '</body>' in line:
-                mod_line = '<p>Started logging at: ' + time.asctime() + '</p>\n' + line
-                self.html_log_file.write(mod_line)
-            else:
-                self.html_log_file.write(line)
-        self.html_log_file.close()
-        self.template_html_log.close()
+        if not os.path.isfile(self.NEWFILE):
+            self.template_html_log = open(self.template_file, 'r')
+            self.html_log_file = open(self.NEWFILE, 'w')
+
+            for line in self.template_html_log:
+                if '<title>' in line:
+                    mod_line = '<title>HTML Log File Testing</title>\n'
+                    self.html_log_file.write(mod_line)
+                elif '</body>' in line:
+                    mod_line = '<p>Started logging at: ' + time.asctime() + '</p>\n' + line
+                    self.html_log_file.write(mod_line)
+                else:
+                    self.html_log_file.write(line)
+            self.html_log_file.close()
+            self.template_html_log.close()
 
     def check_one_dir(self, full_path, message):
         if not os.path.isdir(full_path):
@@ -150,7 +152,7 @@ class HtmlLogger(QtGui.QWidget):
     def check_xy_files(self):
         time0 = time.time()
         pattern = "*.xy"
-        for path, subdirs, files in os.walk(self.base_dir):
+        for path, subdirs, files in os.walk(self.base_dir + '\\patterns'):
             for name in files:
                 if fnmatch(name, pattern):
                     xy_file = os.path.join(path, name)
@@ -173,11 +175,18 @@ class HtmlLogger(QtGui.QWidget):
         return img_src, new_file
 
     def stretch_intensity(self, ima):
-        imb = np.log10(ima+2)
-        max_i = imb.max()
-        min_i = imb.min()
-        imb_new = (imb-min_i)*255.0/(max_i-min_i)
-        return imb_new
+        # max_i = ima.max()
+        # min_i = ima.min()
+
+        newmax_i = int(np.percentile(ima, 99.9))
+        newmin_i = int(np.percentile(ima, 5))
+
+        ind = ima < newmin_i
+        ima[ind] = newmin_i
+        ind = ima > newmax_i
+        ima[ind] = newmax_i
+        ima_new = (ima-newmin_i)*255.0/(newmax_i-newmin_i)
+        return ima_new
 
     def create_thumbnail(self, file_name, new_file, isxrd=False):
         try:
@@ -209,8 +218,17 @@ class HtmlLogger(QtGui.QWidget):
                 data = line.split()
                 tth_v.append(float(data[0]))
                 intensity_v.append(float(data[1]))
+            elif '2th_deg' in line:
+                x_unit = r'$2\theta \degree$'
+            elif 'q_A^-1' in line:
+                x_unit = r'$q$ $(\AA^{-1})$'
+            elif 'd_A' in line:
+                x_unit = r'$d$ $(\AA)$'
 
         plt.plot(tth_v, intensity_v)
+        plt.xlabel(x_unit)
+        plt.ylabel('intensity')
+        plt.title(file_name.rsplit('\\', 1)[-1])
         plt.savefig(new_file)
         plt.clf()
 
