@@ -251,7 +251,7 @@ class FolderMaker(QtGui.QWidget):
         ccd_dir = ('\\DAC\\' + main_dir).replace('\\', '/')
         if self.xrd_base_edit.text() == 'LaB6':
             ccd_dir = ccd_dir + '/LaB6'
-        
+
         caput(epp['CCD_File_Path'], ccd_dir)
         caput(epp['XRD_Base_Name'], str(self.xrd_base_edit.text()))
         caput(epp['XRD_Number'], str(self.xrd_num_edit.text()))

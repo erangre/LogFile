@@ -10,6 +10,7 @@ import shutil
 import thread
 import numpy as np
 
+
 class HtmlLogger(QtGui.QWidget):
     def __init__(self, parent=None):
         super(HtmlLogger, self).__init__()
