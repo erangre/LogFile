@@ -4,13 +4,13 @@ List of EPICS controllers to read/write/monitor
 
 epics_config_fixed = {
     'XRD_file_name': '13MARCCD2:TIFF1:FullFileName_RBV',
+    'XRD_comment': '13MARCCD2:AcquireSequence.STRA',
+    'XRD_exp_t': '13MARCCD2:cam1:AcquireTime',
     'T_file_name': '13IDDLF1:cam1:FullFileName_RBV',
     'T_BG_file_name': '13IDDLF1:cam1:LFBackgroundFullFile_RBV',
-    'XRD_comment': '13MARCCD2:AcquireSequence.STRA',
     'image_ds_file_name': '13IDD_PG2:TIFF1:FullFileName_RBV',
     'image_us_file_name': '13IDD_PG1:TIFF1:FullFileName_RBV',
     'image_ms_file_name': '13IDD_PG3:TIFF1:FullFileName_RBV',
-    'XRD_exp_t': '13MARCCD2:cam1:AcquireTime',
     'T_detector': '13IDDLF1:cam1:LFExperimentName_RBV',
     'T_exp_t_PIMAX': '13IDDLF1:cam1:LFRepGateWidth',
     'T_exp_t_PIXIS': '13IDDLF1:cam1:AcquireTime',
@@ -31,13 +31,22 @@ epics_config_fixed = {
 
 epics_monitor_config = {
     'XRD_clicked': '13MARCCD2:cam1:Acquire',
+    'XRD_detector_state': '13MARCCD2:cam1:DetectorState_RBV',
+    'XRD_file_write': '13MARCCD2:TIFF1:WriteFile_RBV',
     'T_clicked': '13IDDLF1:cam1:Acquire',
     'DS_saved': '13IDD_PG2:TIFF1:WriteFile_RBV',
     'US_saved': '13IDD_PG1:TIFF1:WriteFile_RBV',
     'MS_saved': '13IDD_PG3:TIFF1:WriteFile_RBV',
+    'pilatus_new_frame': 'CARS-PIL3:cam1:ArrayCounter_RBV',
+    'pilatus_tiff_written': 'CARS-PIL3:TIFF1:FullFileName_RBV',
 }
 
 epics_BG_config = {
+    'XRD_frame_type': '13MARCCD2:cam1:FrameType',
+    'XRD_acquire_time': '13MARCCD2:cam1:AcquireTime',
+    'XRD_acquire_start': '13MARCCD2:cam1:Acquire',
+    'XRD_detector_state': '13MARCCD2:cam1:DetectorState_RBV',
+    'XRD_collect_status': '13MARCCD2:cam1:Acquire',
     'T_change_image_mode': '13IDDLF1:cam1:ImageMode',
     'T_PIMAX_exposure_Time': '13IDDLF1:cam1:LFRepGateWidth',
     'T_PIXIS_exposure_Time': '13IDDLF1:cam1:AcquireTime',
@@ -45,15 +54,16 @@ epics_BG_config = {
     'T_acquire': '13IDDLF1:cam1:Acquire',
     'us_light': '13IDD:Unidig1Bo20',
     'ds_light': '13IDD:Unidig1Bo22',
-    'XRD_frame_type': '13MARCCD2:cam1:FrameType',
-    'XRD_acquire_time': '13MARCCD2:cam1:AcquireTime',
-    'XRD_acquire_start': '13MARCCD2:cam1:Acquire',
 }
 
 epics_prepare = {
     'CCD_File_Path': '13MARCCD2:TIFF1:FilePath',
     'XRD_Base_Name': '13MARCCD2:TIFF1:FileName',
     'XRD_Number': '13MARCCD2:TIFF1:FileNumber',
+    'T_File_Path': '13IDDLF1:cam1:FilePath',
+    'T_File_Name': '13IDDLF1:cam1:FileName',
+    'T_File_Number': '13IDDLF1:cam1:FileNumber',
+    'T_Final_Name': '13IDDLF1:cam1:FullFileName_RBV',
     'Image_Up_File_Path': '13IDD_PG1:TIFF1:FilePath',
     'Image_Up_File_Name': '13IDD_PG1:TIFF1:FileName',
     'Image_Up_Number': '13IDD_PG1:TIFF1:FileNumber',
@@ -62,10 +72,6 @@ epics_prepare = {
     'Image_Dn_File_Name': '13IDD_PG2:TIFF1:FileName',
     'Image_Dn_Number': '13IDD_PG2:TIFF1:FileNumber',
     'Image_Dn_Final_Name': '13IDD_PG2:TIFF1:FullFileName_RBV',
-    'T_File_Path': '13IDDLF1:cam1:FilePath',
-    'T_File_Name': '13IDDLF1:cam1:FileName',
-    'T_File_Number': '13IDDLF1:cam1:FileNumber',
-    'T_Final_Name': '13IDDLF1:cam1:FullFileName_RBV',
     'Image_ms_File_Path': '13IDD_PG3:TIFF1:FilePath',
     'Image_ms_File_Name': '13IDD_PG3:TIFF1:FileName',
     'Image_ms_Number': '13IDD_PG3:TIFF1:FileNumber',

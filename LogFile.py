@@ -12,6 +12,8 @@ import epics_monitor
 from FolderMaker import FolderMaker
 import collections
 from html_log import HtmlLogger
+import thread
+
 
 DEF_DIR = 'T:\\dac_user\\2016\\IDD_2016-1\\Test\\123'
 tm_y = time.localtime().tm_year
@@ -50,6 +52,7 @@ class LogWindow(QtGui.QWidget):
         self.choose_dir = DEF_DIR
         self.choose_file = DEF_FILE
         self.motors_file = ''
+        self.detector = 1
 
         # Create Widgets
         self.label_fullpath = QtGui.QLabel(self)
@@ -63,6 +66,7 @@ class LogWindow(QtGui.QWidget):
         self.show_log_btn = QtGui.QPushButton('Log')
         self.comment_btn = QtGui.QPushButton('Comment')
         self.html_log_cb = QtGui.QCheckBox('HTML Log')
+        self.choose_detector_cb = QtGui.QComboBox()
         self.start_btn = QtGui.QPushButton('Start')
         self.stop_btn = QtGui.QPushButton('Stop')
         self.list_motor_short = QtGui.QListWidget(self)
@@ -99,6 +103,8 @@ class LogWindow(QtGui.QWidget):
         self.html_log_cb.setChecked(True)
         self.html_log_cb.hide()
         self.html_log_cb.setToolTip('Enable logging to HTML file')
+        self.choose_detector_cb.addItems(['none', 'marccd', 'pilatus', 'both'])
+        self.choose_detector_cb.setCurrentIndex(1)
         self.stop_btn.setEnabled(False)
         self.list_motor_short.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.list_motor_names.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
@@ -126,6 +132,8 @@ class LogWindow(QtGui.QWidget):
 
         hbox_file.addWidget(self.label_fullpath)
         hbox_file.addStretch(1)
+        hbox_file.addWidget(self.setup_btn)
+        hbox_file.addWidget(self.html_log_cb)
         hbox_file.addWidget(self.choose_dir_btn)
         hbox_file.addWidget(self.choose_file_name_le)
         hbox_file.addWidget(self.reload_log_btn)
@@ -135,8 +143,7 @@ class LogWindow(QtGui.QWidget):
         hbox_control.addStretch(1)
         hbox_control.addWidget(self.label_end_time)
         hbox_control.addStretch(1)
-        hbox_control.addWidget(self.setup_btn)
-        hbox_control.addWidget(self.html_log_cb)
+        hbox_control.addWidget(self.choose_detector_cb)
         hbox_control.addWidget(self.comment_btn)
         hbox_control.addWidget(self.show_log_btn)
         hbox_control.addWidget(self.start_btn)
@@ -207,6 +214,7 @@ class LogWindow(QtGui.QWidget):
         self.view_image_btn.clicked.connect(self.open_image_file)
         self.collect_bg_btn.clicked.connect(self.collect_bgs)
         self.create_folders_btn.clicked.connect(self.run_create_folders_widget)
+        self.choose_detector_cb.currentIndexChanged.connect(self.choose_detector_changed)
 
         # Setup App Window
         QtGui.QApplication.setStyle(QtGui.QStyleFactory.create('Cleanlooks'))
@@ -282,7 +290,7 @@ class LogWindow(QtGui.QWidget):
         self.setup_motors_frame.setVisible(not self.setup_motors_frame.isVisible())
         # self.resize(self.sizeHint())
         self.parent().resize(self.parent().sizeHint())
-        if not self.setup_motors_frame.isVisible():
+        if not self.setup_motors_frame.isVisible() and not self.log_frame.isVisible():
             self.parent().setMinimumHeight(self.parent().min_height)
             self.parent().resize(self.parent().width(), self.parent().minimumHeight())
 
@@ -291,7 +299,7 @@ class LogWindow(QtGui.QWidget):
         # self.resize(self.sizeHint())
         self.parent().resize(self.parent().sizeHint())
         # print self.parent().sizeHint()
-        if not self.log_frame.isVisible():
+        if not self.log_frame.isVisible() and not self.setup_motors_frame.isVisible():
             self.parent().setMinimumHeight(self.parent().min_height)
             self.parent().resize(self.parent().width(), self.parent().minimumHeight())
 
@@ -301,27 +309,28 @@ class LogWindow(QtGui.QWidget):
         self.start_btn.setEnabled(False)
         self.load_log_btn.setEnabled(False)
         self.stop_btn.setEnabled(True)
-        self.setup_btn.hide()
-        if self.setup_btn.isChecked():
-            self.setup_btn.click()
+        # self.setup_btn.hide()
+        # if self.setup_btn.isChecked():
+        #     self.setup_btn.click()
         self.show_log_btn.show()
         self.comment_btn.show()
         self.html_log_cb.show()
         self.choose_dir_btn.setEnabled(False)
         self.choose_file_name_le.setEnabled(False)
+        self.choose_detector_cb.setVisible(False)
 
         full_path = self.label_fullpath.text()
         self.log_file = open(full_path, 'a')
         self.write_headings()
         self.log_file.flush()
 
-        self.set_enabled_hbox_lists(False)
+        # self.set_enabled_hbox_lists(False)
         msg = 'Started logging to: ' + full_path
         self.parent().statusBar().showMessage(msg)
         self.log_list.itemSelectionChanged.connect(self.show_selected_info)
         self.log_list.clear()
 
-        self.motors_file = self.choose_file.rsplit('.')[0] + '_motors.txt'
+        self.motors_file = str(self.choose_file).rsplit('.')[0] + '_motors.txt'
         self.save_config()
 
         self.base_dir = caget(epp['CCD_File_Path'], as_string=True)
@@ -337,21 +346,23 @@ class LogWindow(QtGui.QWidget):
         self.stop_btn.setEnabled(False)
         if self.show_log_btn.isChecked():
             self.show_log_btn.click()
-        self.setup_btn.show()
+        # self.setup_btn.show()
         self.show_log_btn.hide()
         self.choose_dir_btn.setEnabled(True)
         self.comment_btn.hide()
         self.html_log_cb.hide()
         self.choose_file_name_le.setEnabled(True)
+        self.choose_detector_cb.setVisible(True)
 
         self.log_file.close()
         self.log_monitor = epics_monitor.StopMonitors(self)
         msg = 'Stopped logging!'
         self.parent().statusBar().showMessage(msg)
-        self.set_enabled_hbox_lists(True)
+        # self.set_enabled_hbox_lists(True)
         self.log_list.itemSelectionChanged.disconnect()
         self.log_list.clear()
         self.load_log_btn.setEnabled(True)
+        self.set_enabled_hbox_lists(True)
 
     def set_enabled_hbox_lists(self, enable_mode):
         for ind in range(0, self.hbox_lists.count()):
@@ -364,12 +375,19 @@ class LogWindow(QtGui.QWidget):
                 curr_item.widget().setEnabled(enable_mode)
 
     def write_headings(self):
+        heading = self.read_headings()
+        self.log_file.write(heading)
+
+    def read_headings(self):
         heading = 'Day_Date_Time_Year\tFile_Name\tDirectory\tExposure_Time_(sec)\t'
         self.list_motor_short.selectAll()
         for motor in self.list_motor_short.selectedItems():
             heading = heading + motor.text() + '\t'
         heading = heading + 'Comments' + '\n'
-        self.log_file.write(heading)
+        return heading
+
+    def choose_detector_changed(self):
+        self.detector = self.choose_detector_cb.currentIndex()
 
     def collect_bgs(self):
         msg = 'Please input background exposure time'
@@ -382,9 +400,10 @@ class LogWindow(QtGui.QWidget):
             print 'Background collected'
 
     def collect_T_bg(self, exp_time):  # Image mode 2 is background, 0 is normal
+        save_ds_light = caget(ebgcfg['ds_light'], as_string=False)
+        save_us_light = caget(ebgcfg['us_light'], as_string=False)
         caput(ebgcfg['ds_light'], 0, wait=True)
         caput(ebgcfg['us_light'], 0, wait=True)
-        caput(ebgcfg['T_change_image_mode'], 2, wait=True)
         detector_T = caget(ebgcfg['T_detector'], as_string=True)
         if detector_T == 'PIMAX_temperature':
             caput(ebgcfg['T_PIMAX_exposure_Time'], str(exp_time), wait=True)
@@ -394,15 +413,25 @@ class LogWindow(QtGui.QWidget):
             msg = 'Incorrect T detector - T not collected'
             self.parent().statusBar().showMessage(msg)
             return
+        caput(ebgcfg['T_change_image_mode'], 2, wait=True)
         caput(ebgcfg['T_acquire'], 1, wait=True)
         caput(ebgcfg['T_change_image_mode'], 0, wait=True)
         msg = 'Collected T background'
+        caput(ebgcfg['ds_light'], save_ds_light, wait=True)
+        caput(ebgcfg['us_light'], save_us_light, wait=True)
         self.parent().statusBar().showMessage(msg)
 
     def collect_XRD_bg(self, exp_time):  # Frame Type 1 is background, 0 is normal
         caput(ebgcfg['XRD_frame_type'], 1, wait=True)
         caput(ebgcfg['XRD_acquire_time'], exp_time, wait=True)
         caput(ebgcfg['XRD_acquire_start'], 1, wait=True)
+        thread.start_new_thread(self.end_xrd_bg, ())
+
+    def end_xrd_bg(self):
+        while not caget(ebgcfg['XRD_collect_status'], as_string=True) == 'Done':
+            continue
+        while not caget(ebgcfg['XRD_detector_state'], as_string=True) == 'Idle':
+            continue
         caput(ebgcfg['XRD_frame_type'], 0, wait=True)
         msg = 'Collected XRD background'
         self.parent().statusBar().showMessage(msg)
@@ -624,7 +653,10 @@ class LogWindow(QtGui.QWidget):
         self.log_monitor.view_image_file()
 
     def run_create_folders_widget(self):
-        self.folder_widget = FolderMaker(self)
+        if self.start_btn.isEnabled():
+            self.folder_widget = FolderMaker(self)
+        else:
+            self.folder_widget = FolderMaker()
 
     def add_comment(self):
         message = 'Please input a new comment for the HTML logger'
@@ -633,33 +665,38 @@ class LogWindow(QtGui.QWidget):
             self.html_logger.add_comment_line(new_comment)
 
     def load_config(self):
+        cfg = {}
         try:
             cfg_file = open('log_config.txt', 'r')
         except IOError:
             print 'No configuration file, using program defaults'
             return
+        for line in cfg_file:
+            cfg[line.split()[0]] = line.split()[1]
 
-        self.choose_dir = cfg_file.readline()
-        self.choose_dir = self.choose_dir.split('\n')[0]
-        self.choose_file = cfg_file.readline()
-        self.choose_file = self.choose_file.split('\n')[0]
-        self.motors_file = cfg_file.readline()
-        self.motors_file = self.motors_file.split('\n')[0]
+        self.choose_file = cfg['file']
+        self.choose_dir = cfg['directory']
+        self.motors_file = cfg['motor_file']
+        self.detector = int(cfg['detector'])
 
         self.choose_file_name_le.setText(self.choose_file)
         self.set_choose_dir_label()
         self.load_motor_list(self.motors_file)
+        self.choose_detector_cb.setCurrentIndex(self.detector)
 
     def save_config(self):
         cfg_file = open('log_config.txt', 'w')
 
-        outline = self.choose_dir + '\n'
+        outline = 'directory\t' + self.choose_dir + '\n'
         cfg_file.write(outline)
 
-        outline = self.choose_file + '\n'
+        outline = 'file\t' + self.choose_file + '\n'
         cfg_file.write(outline)
 
-        outline = self.motors_file + '\n'
+        outline = 'motor_file\t' + self.motors_file + '\n'
+        cfg_file.write(outline)
+
+        outline = 'detector\t' + str(self.choose_detector_cb.currentIndex()) + '\n'
         cfg_file.write(outline)
 
         self.save_motor_list(self.motors_file)

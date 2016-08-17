@@ -1,3 +1,5 @@
 Membrane_P,13IDD_PACE5000:PC1:Pressure_RBV,0
 Membrane_SetPoint,13IDD_PACE5000:PC1:Setpoint_RBV,0
 Membrane_Slew,13IDD_PACE5000:PC1:Slew_RBV,0
+Membrane_effort,13IDD_PACE5000:PC1:Effort_RBV,0
+Membrane_error,13IDD_PACE5000:PC1:Error_RBV,0

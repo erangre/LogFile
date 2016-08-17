@@ -19,6 +19,8 @@ class StartMonitors(QWidget):
         self.ds_temp_dict = collections.OrderedDict()
         self.ms_temp_dict = collections.OrderedDict()
         self.log_dict = {}
+        self.old_heading = self.parent.read_headings()
+        self.running_tasks = 0
 
         # connections
         self.xrd_emit = MySignals('XRD_signal', self.parent.motor_dict)
@@ -38,18 +40,29 @@ class StartMonitors(QWidget):
         self.connect(self.ms_emit, SIGNAL("new_info(QString)"), self.output_line)
 
         # signals to monitor
-        camonitor(epmc['XRD_clicked'], callback=self.xrd_signal)
+        # camonitor(epmc['XRD_clicked'], callback=self.xrd_signal)
         camonitor(epmc['T_clicked'], callback=self.temp_signal)
         camonitor(epmc['DS_saved'], callback=self.ds_signal)
         camonitor(epmc['US_saved'], callback=self.us_signal)
         camonitor(epmc['MS_saved'], callback=self.ms_signal)
+        if self.parent.detector == 1 or self.parent.detector == 3:
+            camonitor(epmc['XRD_file_write'], callback=self.xrd_file_signal)
+            camonitor(epmc['XRD_detector_state'], callback=self.xrd_signal)
+        if self.parent.detector == 2 or self.parent.detector == 3:
+            pass
 
     def xrd_signal(self, **kwargs):
         print 'XRD'
         print kwargs['char_value']
         if kwargs['char_value'] == 'Acquire':
             self.xrd_emit.start()
-        elif kwargs['char_value'] == 'Done':
+        # elif kwargs['char_value'] == 'Done':
+        #    self.xrd_end_emit.start()
+
+    def xrd_file_signal(self, **kwargs):
+        print 'XRD File'
+        print kwargs['char_value']
+        if kwargs['char_value'] == 'Done':
             self.xrd_end_emit.start()
 
     def temp_signal(self, **kwargs):
@@ -81,6 +94,13 @@ class StartMonitors(QWidget):
     # for XRD and T signals, there is a start time and Done time.
     def output_line(self, sig_name):
         if sig_name == 'XRD_signal':
+            print "XRD Frame type"
+            print caget(ebgcfg['XRD_frame_type'], as_string=False)
+            if caget(ebgcfg['XRD_frame_type'], as_string=False) == 0:  # normal frame
+                self.running_tasks += 1
+            else:  # background file
+                return
+
             self.old_xrd_file_name = caget(epcf['XRD_file_name'], as_string=True)
             self.parent.parent().statusBar().showMessage('XRD Collecting')
             self.xrd_start_done = False
@@ -98,21 +118,19 @@ class StartMonitors(QWidget):
                 new_xrd_file_name = caget(epcf['XRD_file_name'], as_string=True)
                 if time.time() - start_time > 5:
                     break
+            self.running_tasks -= 1
             new_xrd_file_name = caget(epcf['XRD_file_name'], as_string=True)
             xrd_comments = caget(epcf['XRD_comment'], as_string=True)
             self.output_line_common_end(new_xrd_file_name, xrd_comments, 'XRD_', self.xrd_temp_dict)
             if self.parent.html_log_cb.isChecked():
                 self.parent.html_logger.add_XRD(new_xrd_file_name, self.xrd_temp_dict)
         elif sig_name == 'T_signal':
+            self.running_tasks += 1
             self.parent.parent().statusBar().showMessage('T Collecting')
             self.T_start_done = False
             self.T_start_time = time.asctime().replace(' ', '_')
-            self.T_start_done = True
-        elif sig_name == 'T_end':
-            self.parent.parent().statusBar().showMessage('T Collected')
-            while not self.T_start_done:
-                pass
-            detector_T = caget(epcf['T_detector'], as_string=True)
+            detector_T = caget(epcf['T_detector'], as_string=True)  # moved this whole part including output_common
+                                                                    # from the T_end. make sure it works.
             if detector_T == 'PIMAX_temperature':
                 exp_time = caget(epcf['T_exp_t_PIMAX'], as_string=True)
             elif detector_T == 'PIXIS_Temperature':
@@ -120,6 +138,12 @@ class StartMonitors(QWidget):
             else:
                 exp_time = caget(epcf['T_exp_t_PIXIS'], as_string=True)  # CHECK THIS
             self.T_temp_dict = self.output_line_common(self.T_start_time, exp_time)
+            self.T_start_done = True
+        elif sig_name == 'T_end':
+            self.parent.parent().statusBar().showMessage('T Collected')
+            while not self.T_start_done:
+                pass
+            self.running_tasks -= 1
             if caget(ebgcfg['T_change_image_mode']) == 2:
                 new_T_file_name = caget(epcf['T_BG_file_name'], as_string=True)
             else:
@@ -161,6 +185,12 @@ class StartMonitors(QWidget):
                 self.parent.html_logger.add_image(new_ms_file_name, self.ms_temp_dict, 'MS')
 
     def output_line_common(self, start_time, exp_time):
+        new_heading = self.parent.read_headings()
+        if not self.old_heading == new_heading:
+            self.parent.log_file.write(new_heading)
+            self.old_heading = new_heading
+
+        self.parent.set_enabled_hbox_lists(False)
         temp_dict = self.create_dict()
         temp_dict['Time'] = start_time
         temp_dict['Exp_Time'] = exp_time
@@ -191,6 +221,8 @@ class StartMonitors(QWidget):
         self.parent.log_file.flush()
         self.parent.log_list.insertItem(0, prefix + file_name)
         self.update_log_dict(temp_dict, file_name)
+        if self.running_tasks == 0:
+            self.parent.set_enabled_hbox_lists(True)
 
     def create_dict(self):
         temp_dict = collections.OrderedDict()
@@ -269,11 +301,13 @@ class StartMonitors(QWidget):
 
 class StopMonitors(object):
     def __init__(self, parent=None):
-        camonitor_clear(epmc['XRD_clicked'])
+        # camonitor_clear(epmc['XRD_clicked'])
         camonitor_clear(epmc['T_clicked'])
         camonitor_clear(epmc['DS_saved'])
         camonitor_clear(epmc['US_saved'])
         camonitor_clear(epmc['MS_saved'])
+        camonitor_clear(epmc['XRD_file_write'])
+        camonitor_clear(epmc['XRD_detector_state'])
 
 
 class MySignals(QThread):
