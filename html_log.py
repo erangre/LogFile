@@ -7,8 +7,11 @@ from PIL import Image
 from fnmatch import fnmatch
 import matplotlib.pyplot as plt
 import shutil
-import thread
 import numpy as np
+try:
+    import thread
+except ImportError:
+    import _thread as thread
 
 
 class HtmlLogger(QtGui.QWidget):
@@ -107,8 +110,8 @@ class HtmlLogger(QtGui.QWidget):
         new_data = new_data + '\n' + '<table id="' + short_name + '" style="display:none;">'
         new_data = new_data + '\n' + '<caption>' + str(file_name) + '</caption>' + '\n'
         new_data = new_data + '<th>Item</th>' + '<th>Value</ht>' + '\n'
-        for key, item in data.iteritems():
-            new_data = new_data + '<tr><td>' + key + '</td><td>' + item + '</td></tr>' + '\n'
+        for key in data:
+            new_data = new_data + '<tr><td>' + key + '</td><td>' + data[key] + '</td></tr>' + '\n'
         new_data = new_data + '</table>' + '\n'
         return new_data
 

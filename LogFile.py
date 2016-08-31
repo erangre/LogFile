@@ -12,7 +12,10 @@ import epics_monitor
 from FolderMaker import FolderMaker
 import collections
 from html_log import HtmlLogger
-import thread
+try:
+    import thread
+except ImportError:
+    import _thread as thread
 
 
 DEF_DIR = 'T:\\dac_user\\2016\\IDD_2016-1\\Test\\123'

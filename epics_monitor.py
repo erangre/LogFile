@@ -304,8 +304,8 @@ class StartMonitors(QWidget):
 
     def update_log_dict(self, temp_dict, file_name):
         self.log_dict[str(file_name)] = collections.OrderedDict()
-        for key, value in temp_dict.iteritems():
-            self.log_dict[str(file_name)][key] = value
+        for key in temp_dict:
+            self.log_dict[str(file_name)][key] = temp_dict[key]
 
     def temperature_comments(self):
         Tfilter = caget(epcf['T_filter'], as_string=False)
