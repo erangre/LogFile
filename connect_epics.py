@@ -6,6 +6,9 @@ epics_config_fixed = {
     'XRD_file_name': '13MARCCD2:TIFF1:FullFileName_RBV',
     'XRD_comment': '13MARCCD2:AcquireSequence.STRA',
     'XRD_exp_t': '13MARCCD2:cam1:AcquireTime',
+    'pXRD_exp_t': 'CARS-PIL3:cam1:AcquireTime_RBV',
+    'pXRD_file_name': 'CARS-PIL3:TIFF1:FullFileName_RBV',
+    'pXRD_comment': 'CARS-PIL3:AcquireSequence.STRA',
     'T_file_name': '13IDDLF1:cam1:FullFileName_RBV',
     'T_BG_file_name': '13IDDLF1:cam1:LFBackgroundFullFile_RBV',
     'image_ds_file_name': '13IDD_PG2:TIFF1:FullFileName_RBV',
@@ -27,6 +30,9 @@ epics_config_fixed = {
     'ms_exp_t': '13IDD_PG3:cam1:AcquireTime',
     'ms_gain': '13IDD_PG3:cam1:GainValAbs',
     'ms_zoom': '13IDD:m14.RBV',
+    'pec_XRD_file_name': '13MARCCD1:TIFF1:FullFileName_RBV',
+    'pec_XRD_exp_t': '13MARCCD1:cam1:AcquireTime',
+    'pec_XRD_comment': '13MARCCD2:AcquireSequence.STRA',
 }
 
 epics_monitor_config = {
@@ -39,6 +45,9 @@ epics_monitor_config = {
     'MS_saved': '13IDD_PG3:TIFF1:WriteFile_RBV',
     'pilatus_new_frame': 'CARS-PIL3:cam1:ArrayCounter_RBV',
     'pilatus_tiff_written': 'CARS-PIL3:TIFF1:FullFileName_RBV',
+    'pilatus_status': 'CARS-PIL3:cam1:StatusMessage_RBV',
+    'pec_detector_state': '13MARCCD1:cam1:DetectorState_RBV',
+    'pec_file_write': '13MARCCD1:TIFF1:WriteFile_RBV',
 }
 
 epics_BG_config = {
@@ -54,6 +63,7 @@ epics_BG_config = {
     'T_acquire': '13IDDLF1:cam1:Acquire',
     'us_light': '13IDD:Unidig1Bo20',
     'ds_light': '13IDD:Unidig1Bo22',
+    'pec_XRD_frame_type': '13MARCCD1:cam1:FrameType',
 }
 
 epics_prepare = {

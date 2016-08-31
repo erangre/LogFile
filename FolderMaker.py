@@ -240,9 +240,9 @@ class FolderMaker(QtGui.QWidget):
     def check_one_dir(self, full_path, message):
         if not os.path.isdir(full_path):
             os.makedirs(full_path)
-            print message + full_path
+            print(message + full_path)
         else:
-            print full_path + ' already exists'
+            print(full_path + ' already exists')
 
     def update_epics(self):
         full_dir_temperature = str(self.temperature_full_path).rsplit('\\', 1)[0]

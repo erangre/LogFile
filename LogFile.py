@@ -103,7 +103,7 @@ class LogWindow(QtGui.QWidget):
         self.html_log_cb.setChecked(True)
         self.html_log_cb.hide()
         self.html_log_cb.setToolTip('Enable logging to HTML file')
-        self.choose_detector_cb.addItems(['none', 'marccd', 'pilatus', 'both'])
+        self.choose_detector_cb.addItems(['none', 'marccd2', 'pilatus', 'both', 'pec_marccd1'])
         self.choose_detector_cb.setCurrentIndex(1)
         self.stop_btn.setEnabled(False)
         self.list_motor_short.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
@@ -298,7 +298,7 @@ class LogWindow(QtGui.QWidget):
         self.log_frame.setVisible(not self.log_frame.isVisible())
         # self.resize(self.sizeHint())
         self.parent().resize(self.parent().sizeHint())
-        # print self.parent().sizeHint()
+        # print(self.parent().sizeHint())
         if not self.log_frame.isVisible() and not self.setup_motors_frame.isVisible():
             self.parent().setMinimumHeight(self.parent().min_height)
             self.parent().resize(self.parent().width(), self.parent().minimumHeight())
@@ -392,12 +392,12 @@ class LogWindow(QtGui.QWidget):
     def collect_bgs(self):
         msg = 'Please input background exposure time'
         exp_time, ok = QtGui.QInputDialog.getDouble(self, 'Background collection', msg, 1, 1, 10)
-        # print exp_time
-        # print ok
+        #(print exp_time)
+        # print(ok)
         if ok:
             self.collect_T_bg(exp_time)
             self.collect_XRD_bg(exp_time)
-            print 'Background collected'
+            print('Background collected')
 
     def collect_T_bg(self, exp_time):  # Image mode 2 is background, 0 is normal
         save_ds_light = caget(ebgcfg['ds_light'], as_string=False)
@@ -669,7 +669,7 @@ class LogWindow(QtGui.QWidget):
         try:
             cfg_file = open('log_config.txt', 'r')
         except IOError:
-            print 'No configuration file, using program defaults'
+            print('No configuration file, using program defaults')
             return
         for line in cfg_file:
             cfg[line.split()[0]] = line.split()[1]

@@ -54,9 +54,9 @@ class HtmlLogger(QtGui.QWidget):
     def check_one_dir(self, full_path, message):
         if not os.path.isdir(full_path):
             os.makedirs(full_path)
-            print message + full_path
+            print(message + full_path)
         else:
-            print full_path + ' already exists'
+            print(full_path + ' already exists')
 
     def add_XRD(self, file_name, data):
 
@@ -163,10 +163,10 @@ class HtmlLogger(QtGui.QWidget):
                             continue
                     self.xy_file_dict[xy_file] = xy_file_mod_time
                     self.create_XRD_plot_thumbnail(xy_file)
-        print time.time() - time0
+        print(time.time() - time0)
         self.xy_checking = False
         # for key in self.xy_file_dict:
-            # print key + '\t' + time.ctime(self.xy_file_dict[key])
+            # print(key + '\t' + time.ctime(self.xy_file_dict[key]))
 
     def generate_thumbnail_file_name(self, file_name):
         new_file = self.NEWFILE.rsplit('\\', 1)[0] + '\\Images\\'
@@ -204,13 +204,12 @@ class HtmlLogger(QtGui.QWidget):
                 im.thumbnail(self.thumb_size, Image.ANTIALIAS)
                 im.save(new_file, "JPEG")
         except (IOError, OSError):
-            print "cannot create thumbnail for " + file_name
+            print("cannot create thumbnail for " + file_name)
 
     def create_XRD_plot_thumbnail(self, file_name):
         new_dir = self.NEWFILE.rsplit('\\', 1)[0] + '\\Images\\'
         new_file = file_name.split('.xy')[0] + '.png'
         new_file = new_dir + new_file.rsplit('\\', 1)[-1]
-        # print new_file
         file_data = open(file_name, 'r')
         tth_v = []
         intensity_v = []
