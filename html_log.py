@@ -1,6 +1,5 @@
 import sys, time, os
-from PyQt4 import QtGui, QtCore
-from epics import caput
+from PyQt4 import QtGui
 from epics import caget
 from connect_epics import epics_prepare as epp
 from PIL import Image
@@ -29,7 +28,7 @@ class HtmlLogger(QtGui.QWidget):
         T_folder = caget(epp['T_File_Path'], as_string=True)
         dash_ind = T_folder.find('-')
         self.xrd_base_dir = T_folder[:dash_ind+2]
-        self.base_dir = self.parent.choose_dir
+        self.base_dir = str(self.parent.choose_dir)
         self.html_dir = self.base_dir.rsplit('\\')[-1]
 
     def start_html_logger(self):

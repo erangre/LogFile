@@ -87,11 +87,11 @@ class StartMonitors(QWidget):
             self.pec_xrd_end_emit.start()
 
     def pxrd_frame_signal(self, **kwargs):
-        print('New pilatus frame #' + str(kwargs['char_value']))
+        # print('New pilatus frame #' + str(kwargs['char_value']))
         self.pxrd_emit.start()
 
     def pxrd_tiff_write_signal(self, **kwargs):
-        print('New pilatus Tiff file: ' + kwargs['char_value'])
+        # print('New pilatus Tiff file: ' + kwargs['char_value'])
         self.pxrd_end_emit.start()
 
     def pxrd_status_signal(self, **kwargs):
@@ -158,7 +158,7 @@ class StartMonitors(QWidget):
             self.running_tasks -= 1
             new_pxrd_file_name = caget(epcf['pXRD_file_name'], as_string=True)
             pxrd_comments = caget(epcf['pXRD_comment'], as_string=True)
-            self.output_line_common_end(new_pxrd_file_name, pxrd_comments, 'pXRD_', self.pxrd_temp[0])
+            self.output_line_common_end(new_pxrd_file_name, pxrd_comments, 'XRD_', self.pxrd_temp[0])
             if self.parent.html_log_cb.isChecked():
                 self.parent.html_logger.add_XRD(new_pxrd_file_name, self.pxrd_temp[0])
             del self.pxrd_temp[0]

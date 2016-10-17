@@ -5,10 +5,14 @@ Author: Eran Greenberg
 
 import sys, time, os
 from PyQt4 import QtGui, QtCore
-from epics import caput
-from epics import caget
-from connect_epics import epics_BG_config as ebgcfg, epics_prepare as epp
+try:
+    from epics import caput
+    from epics import caget
+except ImportError:
+    caput = None
+    caget = None
 import epics_monitor
+from connect_epics import epics_BG_config as ebgcfg, epics_prepare as epp
 from FolderMaker import FolderMaker
 import collections
 from html_log import HtmlLogger
@@ -16,7 +20,6 @@ try:
     import thread
 except ImportError:
     import _thread as thread
-
 
 DEF_DIR = 'T:\\dac_user\\2016\\IDD_2016-1\\Test\\123'
 tm_y = time.localtime().tm_year
@@ -226,11 +229,25 @@ class LogWindow(QtGui.QWidget):
         self.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         # self.load_motor_list('base_motors.txt')
         self.load_config()
+        if caget == None or caput == None:
+            self.disable_epics()
+
+    def disable_epics(self):
+        self.setup_btn.setVisible(False)
+        self.start_btn.setVisible(False)
+        self.stop_btn.setVisible(False)
+        self.choose_detector_cb.setVisible(False)
+        self.label_start_time.setVisible(False)
+        self.label_end_time.setVisible(False)
+        self.label_fullpath.setVisible(False)
+        self.choose_file_name_le.setVisible(False)
+        self.choose_dir_btn.setVisible(False)
 
     def choose_dir_btn_clicked(self):
         CH_DIR_TEXT = 'Choose directory for saving log file'
-        self.choose_dir = QtGui.QFileDialog.getExistingDirectory(self, CH_DIR_TEXT, DEF_DIR)
-        self.set_choose_dir_label()
+        self.choose_dir = QtGui.QFileDialog.getExistingDirectory(self, CH_DIR_TEXT, self.choose_dir)
+        if self.choose_dir:
+            self.set_choose_dir_label()
 
     def set_choose_dir_label(self):
         self.label_fullpath.setText(self.choose_dir + '\\' + self.choose_file_name_le.text())
@@ -358,7 +375,7 @@ class LogWindow(QtGui.QWidget):
         self.choose_detector_cb.setVisible(True)
 
         self.log_file.close()
-        self.log_monitor = epics_monitor.StopMonitors(self)
+        epics_monitor.StopMonitors(self)
         msg = 'Stopped logging!'
         self.parent().statusBar().showMessage(msg)
         # self.set_enabled_hbox_lists(True)

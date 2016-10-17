@@ -255,6 +255,9 @@ class FolderMaker(QtGui.QWidget):
         caput(epp['CCD_File_Path'], ccd_dir)
         caput(epp['XRD_Base_Name'], str(self.xrd_base_edit.text()))
         caput(epp['XRD_Number'], str(self.xrd_num_edit.text()))
+        caput(epp['pXRD_File_Path'], ccd_dir)
+        caput(epp['pXRD_Base_Name'], str(self.xrd_base_edit.text()))
+        caput(epp['pXRD_Number'], str(self.xrd_num_edit.text()))
 
         caput(epp['T_File_Path'], full_dir_temperature)
         caput(epp['T_File_Name'], str(self.temperature_base_edit.text()))
@@ -278,6 +281,7 @@ class FolderMaker(QtGui.QWidget):
             if fnum > fmax:
                 fmax = fnum
         return int(fmax)+1
+
 
 def main():
     pass
