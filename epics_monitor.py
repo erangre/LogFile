@@ -170,12 +170,13 @@ class StartMonitors(QWidget):
             self.T_start_time = time.asctime().replace(' ', '_')
             detector_T = caget(epcf['T_detector'], as_string=True)  # moved this whole part including output_common
                                                                     # from the T_end. make sure it works.
-            if detector_T == 'PIMAX_temperature':
-                exp_time = caget(epcf['T_exp_t_PIMAX'], as_string=True)
-            elif detector_T == 'PIXIS_Temperature':
+            if detector_T in ['PIMAX_temperature', 'PIMAX_Ruby', 'PIMAX_temperature_pulsed']:
+                exp_time = caget(epcf['T_exp_t_PIMAX'], as_string=False)
+            elif detector_T in ['PIXIS_Temperature', 'PIXIS_Raman', 'PIXIS_Ruby']:
                 exp_time = caget(epcf['T_exp_t_PIXIS'], as_string=True)
             else:
                 exp_time = caget(epcf['T_exp_t_PIXIS'], as_string=True)  # CHECK THIS
+            exp_time = '{:.2e}'.format(float(exp_time))
             self.T_temp_dict = self.output_line_common(self.T_start_time, exp_time)
             self.T_start_done = True
         elif sig_name == 'T_end':
