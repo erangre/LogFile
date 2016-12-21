@@ -4,7 +4,7 @@ Author: Eran Greenberg
 """
 
 import sys, time, os
-from PyQt4 import QtGui, QtCore
+from qtpy import QtGui, QtCore, QtWidgets
 try:
     from epics import caput
     from epics import caget
@@ -28,7 +28,7 @@ tm_d = time.localtime().tm_mday
 DEF_FILE = 'log_' + str(tm_y) + str(tm_m).zfill(2) + str(tm_d).zfill(2) + '.txt'
 
 
-class MainWindow(QtGui.QMainWindow):
+class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__()
 
@@ -45,11 +45,11 @@ class MainWindow(QtGui.QMainWindow):
 
         # Layout
         self.setCentralWidget(self.log)
-        self.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         self.min_height = self.height()
 
 
-class LogWindow(QtGui.QWidget):
+class LogWindow(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(LogWindow, self).__init__(parent)
         self._filter = Filter()
@@ -61,44 +61,44 @@ class LogWindow(QtGui.QWidget):
         self.detector = 1
 
         # Create Widgets
-        self.label_fullpath = QtGui.QLabel(self)
-        self.choose_dir_btn = QtGui.QPushButton('Choose Folder')
-        self.choose_file_name_le = QtGui.QLineEdit()
-        self.load_log_btn = QtGui.QPushButton('Load Log')
-        self.reload_log_btn = QtGui.QPushButton('Reload Log')
-        self.label_start_time = QtGui.QLabel(self)
-        self.label_end_time = QtGui.QLabel(self)
-        self.setup_btn = QtGui.QPushButton('Setup')
-        self.show_log_btn = QtGui.QPushButton('Log')
-        self.comment_btn = QtGui.QPushButton('Comment')
-        self.html_log_cb = QtGui.QCheckBox('HTML Log')
-        self.choose_detector_cb = QtGui.QComboBox()
-        self.start_btn = QtGui.QPushButton('Start')
-        self.stop_btn = QtGui.QPushButton('Stop')
-        self.list_motor_short = QtGui.QListWidget(self)
-        self.list_motor_names = QtGui.QListWidget(self)
-        self.motor_load_btn = QtGui.QPushButton('Load')
-        self.motor_save_btn = QtGui.QPushButton('Save')
-        self.motor_remove_btn = QtGui.QPushButton('Remove')
-        self.motor_clear_btn = QtGui.QPushButton('Clear')
-        self.motor_add_btn = QtGui.QPushButton('Add')
-        self.motor_rename_btn = QtGui.QPushButton('Rename')
-        self.motor_move_up_btn = QtGui.QPushButton(u'\u2191')
-        self.motor_move_dn_btn = QtGui.QPushButton(u'\u2193')
-        self.motor_toggle_after_btn = QtGui.QPushButton('Before/After')
-        self.collect_bg_btn = QtGui.QPushButton('Collect BG Files')
-        self.create_folders_btn = QtGui.QPushButton('Create Folders')
-        self.log_list = QtGui.QListWidget(self)
-        self.splitter_log = QtGui.QSplitter(QtCore.Qt.Horizontal)
-        self.log_table = QtGui.QTableWidget(self)
-        self.view_image_btn = QtGui.QPushButton('Open Image')
+        self.label_fullpath = QtWidgets.QLabel(self)
+        self.choose_dir_btn = QtWidgets.QPushButton('Choose Folder')
+        self.choose_file_name_le = QtWidgets.QLineEdit()
+        self.load_log_btn = QtWidgets.QPushButton('Load Log')
+        self.reload_log_btn = QtWidgets.QPushButton('Reload Log')
+        self.label_start_time = QtWidgets.QLabel(self)
+        self.label_end_time = QtWidgets.QLabel(self)
+        self.setup_btn = QtWidgets.QPushButton('Setup')
+        self.show_log_btn = QtWidgets.QPushButton('Log')
+        self.comment_btn = QtWidgets.QPushButton('Comment')
+        self.html_log_cb = QtWidgets.QCheckBox('HTML Log')
+        self.choose_detector_cb = QtWidgets.QComboBox()
+        self.start_btn = QtWidgets.QPushButton('Start')
+        self.stop_btn = QtWidgets.QPushButton('Stop')
+        self.list_motor_short = QtWidgets.QListWidget(self)
+        self.list_motor_names = QtWidgets.QListWidget(self)
+        self.motor_load_btn = QtWidgets.QPushButton('Load')
+        self.motor_save_btn = QtWidgets.QPushButton('Save')
+        self.motor_remove_btn = QtWidgets.QPushButton('Remove')
+        self.motor_clear_btn = QtWidgets.QPushButton('Clear')
+        self.motor_add_btn = QtWidgets.QPushButton('Add')
+        self.motor_rename_btn = QtWidgets.QPushButton('Rename')
+        self.motor_move_up_btn = QtWidgets.QPushButton(u'\u2191')
+        self.motor_move_dn_btn = QtWidgets.QPushButton(u'\u2193')
+        self.motor_toggle_after_btn = QtWidgets.QPushButton('Before/After')
+        self.collect_bg_btn = QtWidgets.QPushButton('Collect BG Files')
+        self.create_folders_btn = QtWidgets.QPushButton('Create Folders')
+        self.log_list = QtWidgets.QListWidget(self)
+        self.splitter_log = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
+        self.log_table = QtWidgets.QTableWidget(self)
+        self.view_image_btn = QtWidgets.QPushButton('Open Image')
 
         # Set Widget Properties
         self.choose_file_name_le.setText(self.choose_file)
         self.label_fullpath.setText(self.choose_dir + '\\' + self.choose_file)
         self.label_start_time.setText('Start Time: ')
         self.label_end_time.setText('End Time: ')
-        for label_item in self.findChildren(QtGui.QLabel):
+        for label_item in self.findChildren(QtWidgets.QLabel):
             label_item.setStyleSheet('background-color: white')
         self.setup_btn.setCheckable(True)
         self.show_log_btn.setCheckable(True)
@@ -106,14 +106,14 @@ class LogWindow(QtGui.QWidget):
         self.show_log_btn.hide()
         self.comment_btn.hide()
         self.comment_btn.setToolTip('Add a comment to the HTML log')
-        self.html_log_cb.setChecked(True)
+        self.html_log_cb.setChecked(False)
         self.html_log_cb.hide()
         self.html_log_cb.setToolTip('Enable logging to HTML file')
         self.choose_detector_cb.addItems(['none', 'marccd2', 'pilatus', 'both', 'pec_marccd1'])
         self.choose_detector_cb.setCurrentIndex(1)
         self.stop_btn.setEnabled(False)
-        self.list_motor_short.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        self.list_motor_names.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        self.list_motor_short.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.list_motor_names.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.motor_load_btn.setToolTip('Load does not clear the list')
         self.log_table.setColumnCount(2)
         self.log_table.setAlternatingRowColors(True)
@@ -123,18 +123,18 @@ class LogWindow(QtGui.QWidget):
         self.log_table.horizontalHeader().hide()
 
         # Set Layout
-        self.vbox = QtGui.QVBoxLayout()      # Layout in vbox and hbox
-        hbox_file = QtGui.QHBoxLayout()
-        hbox_control = QtGui.QHBoxLayout()
-        self.setup_motors_frame = QtGui.QFrame(self)
-        self.setup_motors_frame.setFrameShape(QtGui.QFrame.StyledPanel)
-        self.grid_list_buttons = QtGui.QGridLayout()
-        self.hbox_lists = QtGui.QHBoxLayout()
-        vbox_log = QtGui.QVBoxLayout()
-        hbox_log = QtGui.QHBoxLayout()
-        self.log_frame = QtGui.QFrame(self)
-        self.log_frame.setFrameShape(QtGui.QFrame.StyledPanel)
-        hbox_bottom_buttons = QtGui.QHBoxLayout()
+        self.vbox = QtWidgets.QVBoxLayout()      # Layout in vbox and hbox
+        hbox_file = QtWidgets.QHBoxLayout()
+        hbox_control = QtWidgets.QHBoxLayout()
+        self.setup_motors_frame = QtWidgets.QFrame(self)
+        self.setup_motors_frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.grid_list_buttons = QtWidgets.QGridLayout()
+        self.hbox_lists = QtWidgets.QHBoxLayout()
+        vbox_log = QtWidgets.QVBoxLayout()
+        hbox_log = QtWidgets.QHBoxLayout()
+        self.log_frame = QtWidgets.QFrame(self)
+        self.log_frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        hbox_bottom_buttons = QtWidgets.QHBoxLayout()
 
         hbox_file.addWidget(self.label_fullpath)
         hbox_file.addStretch(1)
@@ -223,10 +223,10 @@ class LogWindow(QtGui.QWidget):
         self.choose_detector_cb.currentIndexChanged.connect(self.choose_detector_changed)
 
         # Setup App Window
-        QtGui.QApplication.setStyle(QtGui.QStyleFactory.create('Cleanlooks'))
+        QtWidgets.QApplication.setStyle(QtWidgets.QStyleFactory.create('Cleanlooks'))
         self.show()
-        QtGui.QToolTip.setFont(QtGui.QFont('SansSerif', 10))
-        self.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
+        QtWidgets.QToolTip.setFont(QtGui.QFont('SansSerif', 10))
+        self.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         # self.load_motor_list('base_motors.txt')
         self.load_config()
         if caget == None or caput == None:
@@ -245,7 +245,7 @@ class LogWindow(QtGui.QWidget):
 
     def choose_dir_btn_clicked(self):
         CH_DIR_TEXT = 'Choose directory for saving log file'
-        self.choose_dir = QtGui.QFileDialog.getExistingDirectory(self, CH_DIR_TEXT, self.choose_dir)
+        self.choose_dir, _ = QtWidgets.QFileDialog.getExistingDirectory(self, CH_DIR_TEXT, self.choose_dir)
         if self.choose_dir:
             self.set_choose_dir_label()
 
@@ -263,7 +263,7 @@ class LogWindow(QtGui.QWidget):
         self.log_dict = collections.OrderedDict()
         if not file_name:
             msg = 'Choose log file to view'
-            load_log_name = QtGui.QFileDialog.getOpenFileName(self, msg, '.', 'Text Files (*.txt)')
+            load_log_name, _ = QtWidgets.QFileDialog.getOpenFileName(self, msg, '.', 'Text Files (*.txt)')
         else:
             load_log_name = file_name
 
@@ -333,8 +333,8 @@ class LogWindow(QtGui.QWidget):
         # if self.setup_btn.isChecked():
         #     self.setup_btn.click()
         self.show_log_btn.show()
-        self.comment_btn.show()
-        self.html_log_cb.show()
+        # self.comment_btn.show()
+        # self.html_log_cb.show()
         self.choose_dir_btn.setEnabled(False)
         self.choose_file_name_le.setEnabled(False)
         self.choose_detector_cb.setVisible(False)
@@ -387,11 +387,11 @@ class LogWindow(QtGui.QWidget):
     def set_enabled_hbox_lists(self, enable_mode):
         for ind in range(0, self.hbox_lists.count()):
             curr_item = self.hbox_lists.itemAt(ind)
-            if type(curr_item) == QtGui.QWidgetItem:
+            if type(curr_item) == QtWidgets.QWidgetItem:
                 curr_item.widget().setEnabled(enable_mode)
         for ind in range(0, self.grid_list_buttons.count()):
             curr_item = self.grid_list_buttons.itemAt(ind)
-            if type(curr_item) == QtGui.QWidgetItem:
+            if type(curr_item) == QtWidgets.QWidgetItem:
                 curr_item.widget().setEnabled(enable_mode)
 
     def write_headings(self):
@@ -411,7 +411,7 @@ class LogWindow(QtGui.QWidget):
 
     def collect_bgs(self):
         msg = 'Please input background exposure time'
-        exp_time, ok = QtGui.QInputDialog.getDouble(self, 'Background collection', msg, 1, 1, 10)
+        exp_time, ok = QtWidgets.QInputDialog.getDouble(self, 'Background collection', msg, 1, 1, 10)
         #(print exp_time)
         # print(ok)
         if ok:
@@ -458,7 +458,7 @@ class LogWindow(QtGui.QWidget):
 
     def load_motor_list(self, file_name=None):
         if not file_name or not os.path.isfile(file_name):
-            load_name = QtGui.QFileDialog.getOpenFileName(self, 'Choose file name for loading motor list', '.',
+            load_name, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Choose file name for loading motor list', '.',
                                                           'Text Files (*.txt)')
         else:
             load_name = file_name
@@ -480,15 +480,15 @@ class LogWindow(QtGui.QWidget):
                 self.list_motor_short.addItem(row[0])
                 self.list_motor_names.addItem(row[1].split('\n')[0])
                 if self.motor_dict[row[0]]['after']:
-                    self.list_motor_short.item(self.list_motor_short.count()-1).setTextColor(QtGui.QColor('blue'))
-                    self.list_motor_names.item(self.list_motor_names.count()-1).setTextColor(QtGui.QColor('blue'))
+                    self.list_motor_short.item(self.list_motor_short.count()-1).setForeground(QtGui.QColor('blue'))
+                    self.list_motor_names.item(self.list_motor_names.count()-1).setForeground(QtGui.QColor('blue'))
 
             msg = 'Loaded motor list from ' + load_name
             self.parent().statusBar().showMessage(msg)
 
     def save_motor_list(self, file_name=None):
         if not file_name:
-            save_name = QtGui.QFileDialog.getSaveFileName(self, 'Choose file name for saving motor list', '.',
+            save_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Choose file name for saving motor list', '.',
                                                           'Text Files (*.txt)')
         else:
             save_name = file_name
@@ -526,10 +526,10 @@ class LogWindow(QtGui.QWidget):
         self.parent().statusBar().showMessage(msg)
 
     def add_to_motor_list(self):
-        short_name, ok_sn = QtGui.QInputDialog.getText(self, 'Add Motor to List', 'Provide short name for motor:')
-        motor_name, ok_mn = QtGui.QInputDialog.getText(self, 'Add Motor to List', 'Provide Motor address:')
+        short_name, ok_sn = QtWidgets.QInputDialog.getText(self, 'Add Motor to List', 'Provide short name for motor:')
+        motor_name, ok_mn = QtWidgets.QInputDialog.getText(self, 'Add Motor to List', 'Provide Motor address:')
         after_msg = 'Should this PV be read after file completion?'
-        after = QtGui.QMessageBox.question(self, 'Message', after_msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+        after = QtWidgets.QMessageBox.question(self, 'Message', after_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
         if ok_sn and ok_mn:
             self.add_one_motor(short_name, motor_name, after)
             msg = 'Added ' + short_name + ' to motor list'
@@ -540,10 +540,10 @@ class LogWindow(QtGui.QWidget):
         self.motor_dict[str(short_name)]['PV'] = str(motor_name)
         self.list_motor_short.addItem(str(short_name))
         self.list_motor_names.addItem(str(motor_name))
-        if after == QtGui.QMessageBox.Yes:
+        if after == QtWidgets.QMessageBox.Yes:
             self.motor_dict[str(short_name)]['after'] = 1
-            self.list_motor_short.item(self.list_motor_short.count()-1).setTextColor(QtGui.QColor('blue'))
-            self.list_motor_names.item(self.list_motor_names.count()-1).setTextColor(QtGui.QColor('blue'))
+            self.list_motor_short.item(self.list_motor_short.count()-1).setForeground(QtGui.QColor('blue'))
+            self.list_motor_names.item(self.list_motor_names.count()-1).setForeground(QtGui.QColor('blue'))
         else:
             self.motor_dict[str(short_name)]['after'] = 0
 
@@ -553,8 +553,8 @@ class LogWindow(QtGui.QWidget):
             row = self.list_motor_short.row(motor)
             motor_name = self.list_motor_names.item(row).text()
             message = 'Provide new short name for motor ' + old_short_name + ':'
-            short_name, ok_sn = QtGui.QInputDialog.getText(self, 'Rename motor in List', message,
-                                                           QtGui.QLineEdit.Normal, old_short_name)
+            short_name, ok_sn = QtWidgets.QInputDialog.getText(self, 'Rename motor in List', message,
+                                                           QtWidgets.QLineEdit.Normal, old_short_name)
             if ok_sn:
                 after = self.motor_dict[str(old_short_name)]['after']
                 del self.motor_dict[str(old_short_name)]
@@ -564,7 +564,7 @@ class LogWindow(QtGui.QWidget):
                 self.motor_dict[str(short_name)]['PV'] = str(motor_name)
                 self.motor_dict[str(short_name)]['after'] = after
                 if after:
-                    self.list_motor_short.item(row).setTextColor(QtGui.QColor('blue'))
+                    self.list_motor_short.item(row).setForeground(QtGui.QColor('blue'))
                 msg = 'Renamed ' + old_short_name + ' to ' + short_name + ' in motor list'
                 self.parent().statusBar().showMessage(msg)
 
@@ -574,8 +574,8 @@ class LogWindow(QtGui.QWidget):
             row = self.list_motor_names.row(motor)
             motor_short = self.list_motor_short.item(row).text()
             message = 'Provide new PV for motor ' + motor_short + ':'
-            motor_name, ok_sn = QtGui.QInputDialog.getText(self, 'Change PV', message,
-                                                           QtGui.QLineEdit.Normal, old_motor_name)
+            motor_name, ok_sn = QtWidgets.QInputDialog.getText(self, 'Change PV', message,
+                                                           QtWidgets.QLineEdit.Normal, old_motor_name)
             if ok_sn:
                 self.motor_dict[str(motor_short)]['PV'] = str(motor_name)
                 self.list_motor_names.takeItem(self.list_motor_names.row(motor))
@@ -588,12 +588,12 @@ class LogWindow(QtGui.QWidget):
             row = self.list_motor_short.row(motor)
             if self.motor_dict[str(motor.text())]['after']:
                 self.motor_dict[str(motor.text())]['after'] = 0
-                self.list_motor_short.item(row).setTextColor(QtGui.QColor('black'))
-                self.list_motor_names.item(row).setTextColor(QtGui.QColor('black'))
+                self.list_motor_short.item(row).setForeground(QtGui.QColor('black'))
+                self.list_motor_names.item(row).setForeground(QtGui.QColor('black'))
             else:
                 self.motor_dict[str(motor.text())]['after'] = 1
-                self.list_motor_short.item(row).setTextColor(QtGui.QColor('blue'))
-                self.list_motor_names.item(row).setTextColor(QtGui.QColor('blue'))
+                self.list_motor_short.item(row).setForeground(QtGui.QColor('blue'))
+                self.list_motor_names.item(row).setForeground(QtGui.QColor('blue'))
 
     def move_up_motors(self):
         sorted_motors = self.sort_selected_motors_by_row()
@@ -605,7 +605,7 @@ class LogWindow(QtGui.QWidget):
             motor_name = self.list_motor_names.takeItem(row)
             self.list_motor_short.insertItem(row-1, short_name)
             self.list_motor_names.insertItem(row-1, motor_name)
-            self.list_motor_short.setItemSelected(self.list_motor_short.item(row-1), True)
+            self.list_motor_short.setCurrentItem(self.list_motor_short.item(row-1), QtCore.QItemSelectionModel.Select)
 
     def move_dn_motors(self):
         sorted_motors = self.sort_selected_motors_by_row()
@@ -617,7 +617,7 @@ class LogWindow(QtGui.QWidget):
             motor_name = self.list_motor_names.takeItem(row)
             self.list_motor_short.insertItem(row+1, short_name)
             self.list_motor_names.insertItem(row+1, motor_name)
-            self.list_motor_short.setItemSelected(self.list_motor_short.item(row+1), True)
+            self.list_motor_short.setCurrentItem(self.list_motor_short.item(row+1), QtCore.QItemSelectionModel.Select)
 
     def sort_selected_motors_by_row(self):
         selected_motors = self.list_motor_short.selectedItems()
@@ -635,10 +635,10 @@ class LogWindow(QtGui.QWidget):
         self.list_motor_short.itemSelectionChanged.disconnect()
         self.list_motor_names.itemSelectionChanged.disconnect()
         for motor in self.list_motor_names.selectedItems():
-            self.list_motor_names.setItemSelected(motor, False)
+            self.list_motor_names.setCurrentItem(motor, QtCore.QItemSelectionModel.Deselect)
         for motor in self.list_motor_short.selectedItems():
             row_ind = self.list_motor_short.row(motor)
-            self.list_motor_names.setItemSelected(self.list_motor_names.item(row_ind), True)
+            self.list_motor_names.setCurrentItem(self.list_motor_names.item(row_ind), QtCore.QItemSelectionModel.Select)
         self.list_motor_short.itemSelectionChanged.connect(self.change_names_selection)
         self.list_motor_names.itemSelectionChanged.connect(self.change_short_selection)
 
@@ -646,10 +646,10 @@ class LogWindow(QtGui.QWidget):
         self.list_motor_short.itemSelectionChanged.disconnect()
         self.list_motor_names.itemSelectionChanged.disconnect()
         for motor in self.list_motor_short.selectedItems():
-            self.list_motor_short.setItemSelected(motor, False)
+            self.list_motor_short.setCurrentItem(motor, QtCore.QItemSelectionModel.Deselect)
         for motor in self.list_motor_names.selectedItems():
             row_ind = self.list_motor_names.row(motor)
-            self.list_motor_short.setItemSelected(self.list_motor_short.item(row_ind), True)
+            self.list_motor_short.setCurrentItem(self.list_motor_short.item(row_ind), QtCore.QItemSelectionModel.Select)
         self.list_motor_short.itemSelectionChanged.connect(self.change_names_selection)
         self.list_motor_names.itemSelectionChanged.connect(self.change_short_selection)
 
@@ -665,8 +665,8 @@ class LogWindow(QtGui.QWidget):
         for item in self.log_dict[file_name]:
             row_pos = self.log_table.rowCount()
             self.log_table.insertRow(row_pos)
-            self.log_table.setItem(row_pos, 0, QtGui.QTableWidgetItem(item))
-            self.log_table.setItem(row_pos, 1, QtGui.QTableWidgetItem(self.log_dict[file_name][item]))
+            self.log_table.setItem(row_pos, 0, QtWidgets.QTableWidgetItem(item))
+            self.log_table.setItem(row_pos, 1, QtWidgets.QTableWidgetItem(self.log_dict[file_name][item]))
         self.log_table.resizeColumnsToContents()
 
     def open_image_file(self):
@@ -674,13 +674,22 @@ class LogWindow(QtGui.QWidget):
 
     def run_create_folders_widget(self):
         if self.start_btn.isEnabled():
-            self.folder_widget = FolderMaker(self)
+            use_marccd = False
+            use_pil3 = False
+            if self.choose_detector_cb == 1:
+                use_marccd = True
+            elif self.choose_detector_cb == 2:
+                use_pil3 = True
+            elif self.choose_detector_cb == 2:
+                use_marccd = True
+                use_pil3 = True
+            self.folder_widget = FolderMaker(self, use_marccd, use_pil3)
         else:
             self.folder_widget = FolderMaker()
 
     def add_comment(self):
         message = 'Please input a new comment for the HTML logger'
-        new_comment, ok_sn = QtGui.QInputDialog.getText(self, 'New comment', message, QtGui.QLineEdit.Normal)
+        new_comment, ok_sn = QtWidgets.QInputDialog.getText(self, 'New comment', message, QtWidgets.QLineEdit.Normal)
         if ok_sn:
             self.html_logger.add_comment_line(new_comment)
 
@@ -731,12 +740,34 @@ class Filter(QtCore.QObject):
         else:
             return False
 
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
+import traceback
+
+
+def excepthook(exc_type, exc_value, traceback_obj):
+    """
+    Global function to catch unhandled exceptions. This function will result in an error dialog which displays the
+    error information.
+
+    :param exc_type: exception type
+    :param exc_value: exception value
+    :param traceback_obj: traceback object
+    :return:
+    """
+
+    traceback.print_exception(exc_type, exc_value, traceback_obj)
+
+sys.excepthook = excepthook
+
 
 def main():
     pass
 
 if __name__ == '__main__':
     main()
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     main_window = MainWindow()
     sys.exit(app.exec_())

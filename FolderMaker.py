@@ -5,50 +5,52 @@ import glob
 from epics import caput
 from epics import caget
 from connect_epics import epics_prepare as epp
-from PyQt4 import QtGui, QtCore
+from qtpy import QtGui, QtCore, QtWidgets
 
 
-class FolderMaker(QtGui.QWidget):
-    def __init__(self, parent=None):
+class FolderMaker(QtWidgets.QWidget):
+    def __init__(self, parent=None, use_marccd=False, use_pil3=False):
         super(FolderMaker, self).__init__()
         self.caller = parent
+        self.use_marccd = use_marccd
+        self.use_pil3 = use_pil3
         self.setWindowTitle('Create folders and setup')
         self.setWindowIcon(QtGui.QIcon('icons/folder.jpg'))
         self.show()
         self.setGeometry(100, 100, 300, 200)
-        self.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.MinimumExpanding)
+        self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
 
         # Create Widgets
-        self.year_label = QtGui.QLabel()
-        self.year_edit = QtGui.QLineEdit()
-        self.cycle_label = QtGui.QLabel()
-        self.cycle_edit = QtGui.QLineEdit()
-        self.main_dir_label = QtGui.QLabel()
-        self.main_dir_edit = QtGui.QLineEdit()
-        self.xrd_label = QtGui.QLabel()
-        self.xrd_base_edit = QtGui.QLineEdit()
-        self.xrd_num_edit = QtGui.QLineEdit()
-        self.xrd_full_path_label = QtGui.QLabel()
-        self.temperature_label = QtGui.QLabel()
-        self.temperature_dir_edit = QtGui.QLineEdit()
-        self.temperature_base_edit = QtGui.QLineEdit()
-        self.temperature_num_edit = QtGui.QLineEdit()
-        self.temperature_full_path_label = QtGui.QLabel()
-        self.image_dir_label = QtGui.QLabel()
-        self.image_dir_edit = QtGui.QLineEdit()
-        self.image_dn_label = QtGui.QLabel()
-        self.image_dn_base_edit = QtGui.QLineEdit()
-        self.image_dn_num_edit = QtGui.QLineEdit()
-        self.image_up_label = QtGui.QLabel()
-        self.image_up_base_edit = QtGui.QLineEdit()
-        self.image_up_num_edit = QtGui.QLineEdit()
-        self.image_ms_label = QtGui.QLabel()
-        self.image_ms_base_edit = QtGui.QLineEdit()
-        self.image_ms_num_edit = QtGui.QLineEdit()
-        self.image_dn_full_path_label = QtGui.QLabel()
-        self.image_up_full_path_label = QtGui.QLabel()
-        self.image_ms_full_path_label = QtGui.QLabel()
-        self.create_btn = QtGui.QPushButton('Create')
+        self.year_label = QtWidgets.QLabel()
+        self.year_edit = QtWidgets.QLineEdit()
+        self.cycle_label = QtWidgets.QLabel()
+        self.cycle_edit = QtWidgets.QLineEdit()
+        self.main_dir_label = QtWidgets.QLabel()
+        self.main_dir_edit = QtWidgets.QLineEdit()
+        self.xrd_label = QtWidgets.QLabel()
+        self.xrd_base_edit = QtWidgets.QLineEdit()
+        self.xrd_num_edit = QtWidgets.QLineEdit()
+        self.xrd_full_path_label = QtWidgets.QLabel()
+        self.temperature_label = QtWidgets.QLabel()
+        self.temperature_dir_edit = QtWidgets.QLineEdit()
+        self.temperature_base_edit = QtWidgets.QLineEdit()
+        self.temperature_num_edit = QtWidgets.QLineEdit()
+        self.temperature_full_path_label = QtWidgets.QLabel()
+        self.image_dir_label = QtWidgets.QLabel()
+        self.image_dir_edit = QtWidgets.QLineEdit()
+        self.image_dn_label = QtWidgets.QLabel()
+        self.image_dn_base_edit = QtWidgets.QLineEdit()
+        self.image_dn_num_edit = QtWidgets.QLineEdit()
+        self.image_up_label = QtWidgets.QLabel()
+        self.image_up_base_edit = QtWidgets.QLineEdit()
+        self.image_up_num_edit = QtWidgets.QLineEdit()
+        self.image_ms_label = QtWidgets.QLabel()
+        self.image_ms_base_edit = QtWidgets.QLineEdit()
+        self.image_ms_num_edit = QtWidgets.QLineEdit()
+        self.image_dn_full_path_label = QtWidgets.QLabel()
+        self.image_up_full_path_label = QtWidgets.QLabel()
+        self.image_ms_full_path_label = QtWidgets.QLabel()
+        self.create_btn = QtWidgets.QPushButton('Create')
 
         # Set Widget Properties
         self.all_time = time.localtime()
@@ -99,7 +101,7 @@ class FolderMaker(QtGui.QWidget):
         self.image_ms_num_edit.textChanged.connect(self.image_changed)
 
         # Set Layout
-        self.grid_layout_folders = QtGui.QGridLayout()
+        self.grid_layout_folders = QtWidgets.QGridLayout()
         self.grid_layout_folders.addWidget(self.year_label, 0, 0, 1, 1)
         self.grid_layout_folders.addWidget(self.year_edit, 0, 1, 1, 1)
         self.grid_layout_folders.addWidget(self.cycle_label, 0, 2, 1, 1)
@@ -251,13 +253,14 @@ class FolderMaker(QtGui.QWidget):
         ccd_dir = ('\\DAC\\' + main_dir).replace('\\', '/')
         if self.xrd_base_edit.text() == 'LaB6':
             ccd_dir = ccd_dir + '/LaB6'
-
-        caput(epp['CCD_File_Path'], ccd_dir)
-        caput(epp['XRD_Base_Name'], str(self.xrd_base_edit.text()))
-        caput(epp['XRD_Number'], str(self.xrd_num_edit.text()))
-        caput(epp['pXRD_File_Path'], ccd_dir)
-        caput(epp['pXRD_Base_Name'], str(self.xrd_base_edit.text()))
-        caput(epp['pXRD_Number'], str(self.xrd_num_edit.text()))
+        if self.use_marccd:
+            caput(epp['CCD_File_Path'], ccd_dir)
+            caput(epp['XRD_Base_Name'], str(self.xrd_base_edit.text()))
+            caput(epp['XRD_Number'], str(self.xrd_num_edit.text()))
+        if self.use_pil3:
+            caput(epp['pXRD_File_Path'], ccd_dir)
+            caput(epp['pXRD_Base_Name'], str(self.xrd_base_edit.text()))
+            caput(epp['pXRD_Number'], str(self.xrd_num_edit.text()))
 
         caput(epp['T_File_Path'], full_dir_temperature)
         caput(epp['T_File_Name'], str(self.temperature_base_edit.text()))
@@ -277,7 +280,7 @@ class FolderMaker(QtGui.QWidget):
         file_list = glob.glob(base_name + '*.*')
         fmax = 0
         for file in file_list:
-            fnum = file.rsplit('.', 1)[0].rsplit('_', 1)[-1]
+            fnum = int(file.rsplit('.', 1)[0].rsplit('_', 1)[-1])
             if fnum > fmax:
                 fmax = fnum
         return int(fmax)+1
@@ -288,6 +291,6 @@ def main():
 
 if __name__ == '__main__':
     main()
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     main_window = FolderMaker()
     sys.exit(app.exec_())

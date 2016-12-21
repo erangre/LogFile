@@ -1,5 +1,5 @@
 import sys, time, os
-from PyQt4 import QtGui
+from qtpy import QtWidgets
 from epics import caget
 from connect_epics import epics_prepare as epp
 from PIL import Image
@@ -13,7 +13,7 @@ except ImportError:
     import _thread as thread
 
 
-class HtmlLogger(QtGui.QWidget):
+class HtmlLogger(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(HtmlLogger, self).__init__()
         self.thumb_size = 1024, 1024

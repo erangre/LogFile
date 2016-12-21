@@ -3,13 +3,18 @@ from epics import caput, caget, PV, camonitor, camonitor_clear
 from connect_epics import epics_config_fixed as epcf
 from connect_epics import epics_monitor_config as epmc
 from connect_epics import epics_BG_config as ebgcfg
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from qtpy.QtCore import *
+from qtpy import QtCore
+from qtpy.QtWidgets import *
+from qtpy.QtGui import *
 import collections
 import os
+import threading
 
 
 class StartMonitors(QWidget):
+    log_signal = QtCore.Signal(str)
+
     def __init__(self, parent=None):
         super(StartMonitors, self).__init__()
         self.parent = parent
@@ -26,31 +31,7 @@ class StartMonitors(QWidget):
         self.xrd_start_done = True
 
         # connections
-        self.xrd_emit = MySignals('XRD_signal', self.parent.motor_dict)
-        self.xrd_end_emit = MySignals('XRD_end', self.parent.motor_dict)
-        self.pxrd_emit = MySignals('pXRD_signal', self.parent.motor_dict)
-        self.pxrd_end_emit = MySignals('pXRD_end', self.parent.motor_dict)
-        # self.pxrd_abort_emit = MySignals('pXRD_abort', self.parent.motor_dict)
-        self.T_emit = MySignals('T_signal', self.parent.motor_dict)
-        self.T_end_emit = MySignals('T_end', self.parent.motor_dict)
-        self.ds_emit = MySignals('ds_signal', self.parent.motor_dict)
-        self.us_emit = MySignals('us_signal', self.parent.motor_dict)
-        self.ms_emit = MySignals('ms_signal', self.parent.motor_dict)
-        self.pec_xrd_emit = MySignals('pec_XRD_signal', self.parent.motor_dict)
-        self.pec_xrd_end_emit = MySignals('pec_XRD_end', self.parent.motor_dict)
-
-        self.connect(self.xrd_emit, SIGNAL("new_info(QString)"), self.output_line)
-        self.connect(self.xrd_end_emit, SIGNAL("new_info(QString)"), self.output_line)
-        self.connect(self.pxrd_emit, SIGNAL("new_info(QString)"), self.output_line)
-        self.connect(self.pxrd_end_emit, SIGNAL("new_info(QString)"), self.output_line)
-        # self.connect(self.pxrd_abort_emit, SIGNAL("new_info(QString)"), self.output_line)
-        self.connect(self.T_emit, SIGNAL("new_info(QString)"), self.output_line)
-        self.connect(self.T_end_emit, SIGNAL("new_info(QString)"), self.output_line)
-        self.connect(self.ds_emit, SIGNAL("new_info(QString)"), self.output_line)
-        self.connect(self.us_emit, SIGNAL("new_info(QString)"), self.output_line)
-        self.connect(self.ms_emit, SIGNAL("new_info(QString)"), self.output_line)
-        self.connect(self.pec_xrd_emit, SIGNAL("new_info(QString)"), self.output_line)
-        self.connect(self.pec_xrd_end_emit, SIGNAL("new_info(QString)"), self.output_line)
+        self.log_signal.connect(self.output_line)
 
         # signals to monitor
         # camonitor(epmc['XRD_clicked'], callback=self.xrd_signal)
@@ -72,27 +53,25 @@ class StartMonitors(QWidget):
 
     def xrd_signal(self, **kwargs):
         if kwargs['char_value'] == 'Acquire':
-            self.xrd_emit.start()
+            self.log_signal.emit('XRD_signal')
 
     def xrd_file_signal(self, **kwargs):
         if kwargs['char_value'] == 'Done':
-            self.xrd_end_emit.start()
+            self.log_signal.emit('XRD_end')
 
     def pec_xrd_signal(self, **kwargs):
         if kwargs['char_value'] == 'Acquire':
-            self.pec_xrd_emit.start()
+            self.log_signal.emit('pec_XRD_signal')
 
     def pec_xrd_file_signal(self, **kwargs):
         if kwargs['char_value'] == 'Done':
-            self.pec_xrd_end_emit.start()
+            self.log_signal.emit('pec_XRD_end')
 
     def pxrd_frame_signal(self, **kwargs):
-        # print('New pilatus frame #' + str(kwargs['char_value']))
-        self.pxrd_emit.start()
+        self.log_signal.emit('pXRD_signal')
 
     def pxrd_tiff_write_signal(self, **kwargs):
-        # print('New pilatus Tiff file: ' + kwargs['char_value'])
-        self.pxrd_end_emit.start()
+        self.log_signal.emit('pXRD_end')
 
     def pxrd_status_signal(self, **kwargs):
         if kwargs['char_value'] == "Acqusition aborted":
@@ -101,24 +80,25 @@ class StartMonitors(QWidget):
 
     def temp_signal(self, **kwargs):
         if kwargs['char_value'] == 'Acquire':
-            self.T_emit.start()
+            self.log_signal.emit('T_signal')
         elif kwargs['char_value'] == 'Done':
-            self.T_end_emit.start()
+            self.log_signal.emit('T_end')
 
     def ds_signal(self, **kwargs):
         if kwargs['char_value'] == 'Done':
-            self.ds_emit.start()
+            self.log_signal.emit('ds_signal')
 
     def us_signal(self, **kwargs):
         if kwargs['char_value'] == 'Done':
-            self.us_emit.start()
+            self.log_signal.emit('us_signal')
 
     def ms_signal(self, **kwargs):
         if kwargs['char_value'] == 'Done':
-            self.ms_emit.start()
+            self.log_signal.emit('ms_signal')
 
     # for XRD and T signals, there is a start time and Done time.
     def output_line(self, sig_name):
+
         if sig_name == 'XRD_signal':
             if caget(ebgcfg['XRD_frame_type'], as_string=False) == 0:  # normal frame
                 self.running_tasks += 1
@@ -376,17 +356,22 @@ class StopMonitors(object):
         camonitor_clear(epmc['MS_saved'])
         camonitor_clear(epmc['XRD_file_write'])
         camonitor_clear(epmc['XRD_detector_state'])
+        camonitor_clear(epmc['pilatus_new_frame'])
+        camonitor_clear(epmc['pilatus_tiff_written'])
+        camonitor_clear(epmc['pilatus_status'])
+        camonitor_clear(epmc['pec_file_write'])
+        camonitor_clear(epmc['pec_detector_state'])
 
-
-class MySignals(QThread):
-    def __init__(self, signal_name, motor_names):
-        # super(MySignals, self).__init__()  # Replaced by next line
-        QThread.__init__(self)
-        self.signal_name = signal_name
-        self.motor_names = motor_names
-
-    def __del__(self):
-        self.wait()
-
-    def run(self):
-        self.emit(SIGNAL('new_info(QString)'), self.signal_name)
+#
+# class MySignals(QThread):
+#     def __init__(self, signal_name, motor_names):
+#         # super(MySignals, self).__init__()  # Replaced by next line
+#         QThread.__init__(self)
+#         self.signal_name = signal_name
+#         self.motor_names = motor_names
+#
+#     def __del__(self):
+#         self.wait()
+#
+#     def run(self):
+#         self.emit(SIGNAL('new_info(QString)'), self.signal_name)
