@@ -74,8 +74,8 @@ class StartMonitors(QWidget):
         self.log_signal.emit('pXRD_end')
 
     def pxrd_status_signal(self, **kwargs):
-        if kwargs['char_value'] == "Acqusition aborted":
-            self.running_tasks-=len(self.pxrd_temp)
+        if kwargs['char_value'] == "Acquisition aborted":
+            self.running_tasks -= len(self.pxrd_temp)
             self.pxrd_temp = []
 
     def temp_signal(self, **kwargs):
