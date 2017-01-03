@@ -354,8 +354,8 @@ class LogWindow(QtWidgets.QWidget):
         self.save_config()
 
         self.base_dir = caget(epp['CCD_File_Path'], as_string=True)
-        self.html_logger = HtmlLogger(self)
-        self.html_logger.start_html_logger()
+        # self.html_logger = HtmlLogger(self)
+        # self.html_logger.start_html_logger()
 
         self.log_monitor = epics_monitor.StartMonitors(self)
 
