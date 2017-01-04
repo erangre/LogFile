@@ -676,11 +676,12 @@ class LogWindow(QtWidgets.QWidget):
         if self.start_btn.isEnabled():
             use_marccd = False
             use_pil3 = False
-            if self.choose_detector_cb == 1:
+            detector_choice = self.choose_detector_cb.currentIndex()
+            if detector_choice == 1:
                 use_marccd = True
-            elif self.choose_detector_cb == 2:
+            elif detector_choice == 2:
                 use_pil3 = True
-            elif self.choose_detector_cb == 2:
+            elif detector_choice == 2:
                 use_marccd = True
                 use_pil3 = True
             self.folder_widget = FolderMaker(self, use_marccd, use_pil3)

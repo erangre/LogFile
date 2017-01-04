@@ -103,8 +103,9 @@ class StartMonitors(QWidget):
             if caget(ebgcfg['XRD_frame_type'], as_string=False) == 0:  # normal frame
                 self.running_tasks += 1
             else:  # background file
+                self.parent.parent().statusBar().showMessage('XRD BG collected')
                 return
-            self.old_xrd_file_name = caget(epcf['XRD_file_name'], as_string=True)
+            # self.old_xrd_file_name = caget(epcf['XRD_file_name'], as_string=True)
             self.parent.parent().statusBar().showMessage('XRD Collecting')
             self.xrd_start_done = False
             self.xrd_start_time = time.asctime().replace(' ', '_')
@@ -113,15 +114,16 @@ class StartMonitors(QWidget):
             self.xrd_start_done = True
         elif sig_name == 'XRD_end':
             self.parent.parent().statusBar().showMessage('XRD Collected')
-            while not self.xrd_start_done:
-                pass
-            start_time = time.time()
-            new_xrd_file_name = caget(epcf['XRD_file_name'], as_string=True)
-            while self.old_xrd_file_name == new_xrd_file_name:
-                new_xrd_file_name = caget(epcf['XRD_file_name'], as_string=True)
-                if time.time() - start_time > 5:
-                    break
             self.running_tasks -= 1
+            # while not self.xrd_start_done:
+            #     pass
+            # start_time = time.time()
+            # new_xrd_file_name = caget(epcf['XRD_file_name'], as_string=True)
+            # while self.old_xrd_file_name == new_xrd_file_name:
+            #     new_xrd_file_name = caget(epcf['XRD_file_name'], as_string=True)
+            #     if time.time() - start_time > 5:
+            #         break
+
             new_xrd_file_name = caget(epcf['XRD_file_name'], as_string=True)
             xrd_comments = caget(epcf['XRD_comment'], as_string=True)
             self.output_line_common_end(new_xrd_file_name, xrd_comments, 'XRD_', self.xrd_temp_dict)
