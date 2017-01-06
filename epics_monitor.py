@@ -50,6 +50,9 @@ class StartMonitors(QWidget):
         if self.parent.detector == 4:
             camonitor(epmc['pec_file_write'], callback=self.pec_xrd_file_signal)
             camonitor(epmc['pec_detector_state'], callback=self.pec_xrd_signal)
+        if self.parent.detector == 5:
+            camonitor('13MAR345_2:cam1:Acquire', callback=self.marip_xrd_signal)
+            camonitor('13MAR345_2:TIFF1:FullFileName_RBV', callback=self.marip_tiff_write_signal)
 
     def xrd_signal(self, **kwargs):
         if kwargs['char_value'] == 'Acquire':
@@ -58,6 +61,13 @@ class StartMonitors(QWidget):
     def xrd_file_signal(self, **kwargs):
         if kwargs['char_value'] == 'Done':
             self.log_signal.emit('XRD_end')
+
+    def marip_xrd_signal(self, **kwargs):
+        if kwargs['char_value'] == 'Acquire':
+            self.log_signal.emit('marip_XRD_signal')
+
+    def marip_tiff_write_signal(self, **kwargs):
+        self.log_signal.emit('marip_XRD_end')
 
     def pec_xrd_signal(self, **kwargs):
         if kwargs['char_value'] == 'Acquire':
@@ -126,6 +136,22 @@ class StartMonitors(QWidget):
 
             new_xrd_file_name = caget(epcf['XRD_file_name'], as_string=True)
             xrd_comments = caget(epcf['XRD_comment'], as_string=True)
+            self.output_line_common_end(new_xrd_file_name, xrd_comments, 'XRD_', self.xrd_temp_dict)
+            if self.parent.html_log_cb.isChecked():
+                self.parent.html_logger.add_XRD(new_xrd_file_name, self.xrd_temp_dict)
+        elif sig_name == 'marip_XRD_signal':
+            self.running_tasks += 1
+            self.parent.parent().statusBar().showMessage('MAR IP XRD Collecting')
+            self.xrd_start_done = False
+            self.xrd_start_time = time.asctime().replace(' ', '_')
+            exp_time = caget('13MAR345_2:cam1:AcquireTime_RBV', as_string=True)
+            self.xrd_temp_dict = self.output_line_common(self.xrd_start_time, exp_time)
+            self.xrd_start_done = True
+        elif sig_name == 'marip_XRD_end':
+            self.parent.parent().statusBar().showMessage('MAR IP XRD Collected')
+            self.running_tasks -= 1
+            new_xrd_file_name = caget('13MAR345_2:TIFF1:FullFileName_RBV', as_string=True)
+            xrd_comments = caget('13MAR345_2:AcquireSequence.STRA', as_string=True)
             self.output_line_common_end(new_xrd_file_name, xrd_comments, 'XRD_', self.xrd_temp_dict)
             if self.parent.html_log_cb.isChecked():
                 self.parent.html_logger.add_XRD(new_xrd_file_name, self.xrd_temp_dict)

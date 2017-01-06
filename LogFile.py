@@ -109,7 +109,7 @@ class LogWindow(QtWidgets.QWidget):
         self.html_log_cb.setChecked(False)
         self.html_log_cb.hide()
         self.html_log_cb.setToolTip('Enable logging to HTML file')
-        self.choose_detector_cb.addItems(['none', 'marccd2', 'pilatus', 'both', 'pec_marccd1'])
+        self.choose_detector_cb.addItems(['none', 'marccd2', 'pilatus', 'both', 'pec_marccd1', 'mar_ip2'])
         self.choose_detector_cb.setCurrentIndex(1)
         self.stop_btn.setEnabled(False)
         self.list_motor_short.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
