@@ -63,7 +63,7 @@ detectors = {
         'image_type_exposure_time': {0: '13MAR345_2:cam1:AcquireTime_RBV'},
         'new_file_name': {0: '13MAR345_2:TIFF1:FullFileName_RBV'},
         'comments': 'Pixel Size {0}. {1}',
-        'comments_PVs': ['13MAR345_2:cam1:ScanResolution_RBV', '13MARCCD2:AcquireSequence.STRA'],
+        'comments_PVs': ['13MAR345_2:cam1:ScanResolution_RBV', '13MAR345_2:AcquireSequence.STRA'],
         'comments_values': [None],
         'sleep_after_end': 0.0,
     },
