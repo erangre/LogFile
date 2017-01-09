@@ -52,7 +52,7 @@ class StartMonitors(QWidget):
             camonitor(epmc['pec_detector_state'], callback=self.pec_xrd_signal)
         if self.parent.detector == 5:
             camonitor('13MAR345_2:cam1:DetectorState_RBV', callback=self.marip_xrd_signal)
-            camonitor('13MAR345_2:TIFF1:FullFileName_RBV', callback=self.marip_tiff_write_signal)
+            camonitor('13MAR345_2:TIFF1:WriteFile_RBV', callback=self.marip_tiff_write_signal)
 
     def xrd_signal(self, **kwargs):
         if kwargs['char_value'] == 'Acquire':
@@ -67,7 +67,8 @@ class StartMonitors(QWidget):
             self.log_signal.emit('marip_XRD_signal')
 
     def marip_tiff_write_signal(self, **kwargs):
-        self.log_signal.emit('marip_XRD_end')
+        if kwargs['char_value'] == 'Done':
+            self.log_signal.emit('marip_XRD_end')
 
     def pec_xrd_signal(self, **kwargs):
         if kwargs['char_value'] == 'Acquire':

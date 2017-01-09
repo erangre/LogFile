@@ -1,6 +1,6 @@
 detectors = {
     'marccd2': {
-        'name': 'MARCCD2',
+        'name': '13MARCCD2',
         'prefix': 'XRD_',
         'monitor_signal_start': '13MARCCD2:cam1:DetectorState_RBV',
         'monitor_signal_start_value': 'Acquire',
@@ -25,7 +25,7 @@ detectors = {
     },
 
     'pilatus1m': {
-        'name': 'Pilatus1M',
+        'name': '13PIL3',
         'prefix': 'XRD_',
         'monitor_signal_start': '13PIL3:cam1:ArrayCounter_RBV',
         'monitor_signal_start_value': None,
@@ -48,32 +48,28 @@ detectors = {
     },
 
     'marip2': {
-        'name': 'MARIP2',
+        'name': '13MAR345_2',
         'prefix': 'XRD_',
-        'monitor_signal_start': '13MAR345_2:cam1:Acquire',
-        'monitor_signal_start_value': 'Acquire',
-        'monitor_signal_end': '13MARCCD2:TIFF1:WriteFile_RBV',
+        'monitor_signal_start': '13MAR345_2:cam1:DetectorState_RBV',
+        'monitor_signal_start_value': 'Exposing',
+        'monitor_signal_end': '13MAR345_2:TIFF1:WriteFile_RBV',
         'monitor_signal_end_value': 'Done',
         'track_running_tasks': True,
-        'frame_type_PV': '13MARCCD2:cam1:FrameType',
-        'frame_type_values': {0: 'normal',
-                              1: 'background',
-                              },
-        'frame_type_messages': {0: 'MARCCD2 XRD',
-                                1: 'MARCCD2 XRD BG',
-                                },
+        'frame_type_PV': None,
+        'frame_type_values': 0,
+        'frame_type_messages': {0: 'MARIP2 XRD'},
         'image_type_PV': None,
         'image_type_values': 0,
-        'image_type_exposure_time': {0: '13MARCCD2:cam1:AcquireTime'},
-        'new_file_name': {0: '13MARCCD2:TIFF1:FullFileName_RBV'},
-        'comments': '{0}',
-        'comments_PVs': ['13MARCCD2:AcquireSequence.STRA'],
+        'image_type_exposure_time': {0: '13MAR345_2:cam1:AcquireTime_RBV'},
+        'new_file_name': {0: '13MAR345_2:TIFF1:FullFileName_RBV'},
+        'comments': 'Pixel Size {0}. {1}',
+        'comments_PVs': ['13MAR345_2:cam1:ScanResolution_RBV', '13MARCCD2:AcquireSequence.STRA'],
         'comments_values': [None],
         'sleep_after_end': 0.0,
     },
 
     'lightfield': {
-        'name': 'lightfield',
+        'name': '13IDDLF1',
         'prefix': 'T_',
         'monitor_signal_start': '13IDDLF1:cam1:Acquire',
         'monitor_signal_start_value': 'Acquire',
@@ -126,7 +122,7 @@ detectors = {
     },
 
     'ds_visual': {
-        'name': 'DS_Visual',
+        'name': '13IDD_PG2',
         'prefix': 'IM_',
         'monitor_signal_start': '13IDD_PG2:TIFF1:WriteFile_RBV',
         'monitor_signal_start_value': 'Done',
@@ -163,7 +159,7 @@ detectors = {
     },
 
     'us_visual': {
-        'name': 'US_Visual',
+        'name': '13IDD_PG1',
         'prefix': 'IM_',
         'monitor_signal_start': '13IDD_PG1:TIFF1:WriteFile_RBV',
         'monitor_signal_start_value': 'Done',
@@ -200,7 +196,7 @@ detectors = {
     },
 
     'ms_visual': {
-        'name': 'MS_Visual',
+        'name': '13IDD_PG3',
         'prefix': 'IM_',
         'monitor_signal_start': '13IDD_PG3:TIFF1:WriteFile_RBV',
         'monitor_signal_start_value': 'Done',
