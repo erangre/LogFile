@@ -25,6 +25,8 @@ detectors['marccd2'] = {
     'comments_PVs': ['13MARCCD2:AcquireSequence.STRA'],
     'comments_values': [None],
     'sleep_after_end': 0.0,
+    'default_base_name': 'LaB6',
+    'default_rel_dir': '',
 }
 
 detectors['pilatus3'] = {
@@ -48,6 +50,8 @@ detectors['pilatus3'] = {
     'comments_PVs': ['13PIL3:AcquireSequence.STRA'],
     'comments_values': [None],
     'sleep_after_end': 0.0,
+    'default_base_name': 'LaB6',
+    'default_rel_dir': '',
 }
 
 detectors['marip2'] = {
@@ -69,6 +73,8 @@ detectors['marip2'] = {
     'comments_PVs': ['13MAR345_2:cam1:ScanResolution_RBV', '13MAR345_2:AcquireSequence.STRA'],
     'comments_values': [None, None],
     'sleep_after_end': 0.0,
+    'default_base_name': 'LaB6',
+    'default_rel_dir': '',
 }
 
 detectors['lightfield'] =  {
@@ -122,6 +128,8 @@ detectors['lightfield'] =  {
          }
     ],
     'sleep_after_end': 0.5,
+    'default_base_name': 't',
+    'default_rel_dir': 'T',
 }
 
 detectors['ds_visual'] = {
@@ -159,6 +167,8 @@ detectors['ds_visual'] = {
                         None
                         ],
     'sleep_after_end': 0.0,
+    'default_base_name': 'ds_image',
+    'default_rel_dir': 'images',
 }
 
 detectors['us_visual'] = {
@@ -196,6 +206,8 @@ detectors['us_visual'] = {
                         None
                         ],
     'sleep_after_end': 0.0,
+    'default_base_name': 'us_image',
+    'default_rel_dir': 'images',
 }
 
 detectors['ms_visual'] = {
@@ -219,4 +231,6 @@ detectors['ms_visual'] = {
     'comments_PVs': ['13IDD_PG3:cam1:GainValAbs', '13IDD:m14.RBV'],
     'comments_values': [None, None],
     'sleep_after_end': 0.0,
+    'default_base_name': 'ms_image',
+    'default_rel_dir': 'images',
 }

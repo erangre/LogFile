@@ -686,17 +686,7 @@ class LogWindow(QtWidgets.QWidget):
 
     def run_create_folders_widget(self):
         if self.start_btn.isEnabled():
-            use_marccd = False
-            use_pil3 = False
-            detector_choice = self.choose_detector_cb.currentIndex()
-            if detector_choice == 1:
-                use_marccd = True
-            elif detector_choice == 2:
-                use_pil3 = True
-            elif detector_choice == 2:
-                use_marccd = True
-                use_pil3 = True
-            self.folder_widget = FolderMaker(self, use_marccd, use_pil3)
+            self.folder_widget = FolderMaker(self, self.detectors)
         else:
             self.folder_widget = FolderMaker()
 
@@ -719,11 +709,14 @@ class LogWindow(QtWidgets.QWidget):
         self.choose_file = cfg['file']
         self.choose_dir = cfg['directory']
         self.motors_file = cfg['motor_file']
-        # self.detector = int(cfg['detector'])
+        self.detectors = cfg['detectors'].split(',')
 
         self.choose_file_name_le.setText(self.choose_file)
         self.set_choose_dir_label()
         self.load_motor_list(self.motors_file)
+        for detector in self.choose_detector_menu.actions():
+            if str(detector.text()) in self.detectors:
+                detector.setChecked(True)
         # self.choose_detector_cb.setCurrentIndex(self.detector)
 
     def save_config(self):

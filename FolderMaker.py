@@ -6,19 +6,23 @@ from epics import caput
 from epics import caget
 from connect_epics import epics_prepare as epp
 from qtpy import QtGui, QtCore, QtWidgets
-
+from detectors import detectors
+import collections
 
 class FolderMaker(QtWidgets.QWidget):
-    def __init__(self, parent=None, use_marccd=False, use_pil3=False):
+    def __init__(self, parent=None, detectors=None):
         super(FolderMaker, self).__init__()
         self.caller = parent
-        self.use_marccd = use_marccd
-        self.use_pil3 = use_pil3
+        # self.use_marccd = use_marccd
+        # self.use_pil3 = use_pil3
         self.setWindowTitle('Create folders and setup')
         self.setWindowIcon(QtGui.QIcon('icons/folder.jpg'))
         self.show()
         self.setGeometry(100, 100, 300, 200)
         self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
+        self.chosen_detectors = collections.OrderedDict()
+        for detector in detectors:
+            self.chosen_detectors[detector] = DetectorSection(detector)
 
         # Create Widgets
         self.year_label = QtWidgets.QLabel()
@@ -27,29 +31,6 @@ class FolderMaker(QtWidgets.QWidget):
         self.cycle_edit = QtWidgets.QLineEdit()
         self.main_dir_label = QtWidgets.QLabel()
         self.main_dir_edit = QtWidgets.QLineEdit()
-        self.xrd_label = QtWidgets.QLabel()
-        self.xrd_base_edit = QtWidgets.QLineEdit()
-        self.xrd_num_edit = QtWidgets.QLineEdit()
-        self.xrd_full_path_label = QtWidgets.QLabel()
-        self.temperature_label = QtWidgets.QLabel()
-        self.temperature_dir_edit = QtWidgets.QLineEdit()
-        self.temperature_base_edit = QtWidgets.QLineEdit()
-        self.temperature_num_edit = QtWidgets.QLineEdit()
-        self.temperature_full_path_label = QtWidgets.QLabel()
-        self.image_dir_label = QtWidgets.QLabel()
-        self.image_dir_edit = QtWidgets.QLineEdit()
-        self.image_dn_label = QtWidgets.QLabel()
-        self.image_dn_base_edit = QtWidgets.QLineEdit()
-        self.image_dn_num_edit = QtWidgets.QLineEdit()
-        self.image_up_label = QtWidgets.QLabel()
-        self.image_up_base_edit = QtWidgets.QLineEdit()
-        self.image_up_num_edit = QtWidgets.QLineEdit()
-        self.image_ms_label = QtWidgets.QLabel()
-        self.image_ms_base_edit = QtWidgets.QLineEdit()
-        self.image_ms_num_edit = QtWidgets.QLineEdit()
-        self.image_dn_full_path_label = QtWidgets.QLabel()
-        self.image_up_full_path_label = QtWidgets.QLabel()
-        self.image_ms_full_path_label = QtWidgets.QLabel()
         self.create_btn = QtWidgets.QPushButton('Create')
 
         # Set Widget Properties
@@ -61,87 +42,33 @@ class FolderMaker(QtWidgets.QWidget):
         self.main_dir_label.setText('Main Directory:')
         self.main_dir_edit.setText('GroupName')
 
-        self.xrd_label.setText('XRD basename / #:')
-        self.xrd_base_edit.setText('LaB6')
-        self.xrd_num_edit.setText('1')
-
-        self.temperature_label.setText('Temperature Directory / basename / #')
-        self.temperature_dir_edit.setText('T')
-        self.temperature_base_edit.setText('r')
-        self.temperature_num_edit.setText('1')
-
-        self.image_dir_label.setText('Image Directory:')
-        self.image_dir_edit.setText('Images')
-        self.image_dn_label.setText('Downstream basename / #')
-        self.image_dn_base_edit.setText('ds_image')
-        self.image_dn_num_edit.setText('1')
-        self.image_up_label.setText('Upstream basename / #')
-        self.image_up_base_edit.setText('us_image')
-        self.image_up_num_edit.setText('1')
-        self.image_ms_label.setText('Microscope basename / #')
-        self.image_ms_base_edit.setText('ms_image')
-        self.image_ms_num_edit.setText('1')
-
         # Connections
         self.create_btn.clicked.connect(self.create_btn_clicked)
         self.year_edit.textChanged.connect(self.update_all_full_paths)
         self.cycle_edit.textChanged.connect(self.update_all_full_paths)
         self.main_dir_edit.textChanged.connect(self.update_all_full_paths)
-        self.xrd_base_edit.textChanged.connect(self.xrd_changed)
-        self.xrd_num_edit.textChanged.connect(self.xrd_changed)
-        self.temperature_dir_edit.textChanged.connect(self.temperature_changed)
-        self.temperature_base_edit.textChanged.connect(self.temperature_changed)
-        self.temperature_num_edit.textChanged.connect(self.temperature_changed)
-        self.image_dir_edit.textChanged.connect(self.image_changed)
-        self.image_dn_base_edit.textChanged.connect(self.image_changed)
-        self.image_up_base_edit.textChanged.connect(self.image_changed)
-        self.image_dn_num_edit.textChanged.connect(self.image_changed)
-        self.image_up_num_edit.textChanged.connect(self.image_changed)
-        self.image_ms_base_edit.textChanged.connect(self.image_changed)
-        self.image_ms_num_edit.textChanged.connect(self.image_changed)
 
         # Set Layout
-        self.grid_layout_folders = QtWidgets.QGridLayout()
-        self.grid_layout_folders.addWidget(self.year_label, 0, 0, 1, 1)
-        self.grid_layout_folders.addWidget(self.year_edit, 0, 1, 1, 1)
-        self.grid_layout_folders.addWidget(self.cycle_label, 0, 2, 1, 1)
-        self.grid_layout_folders.addWidget(self.cycle_edit, 0, 3, 1, 1)
-        self.grid_layout_folders.addWidget(self.main_dir_label, 1, 0, 1, 1)
-        self.grid_layout_folders.addWidget(self.main_dir_edit, 1, 1, 1, 3)
+        self.vbox = QtWidgets.QVBoxLayout()
 
-        self.grid_layout_folders.addWidget(self.xrd_label, 2, 0, 1, 1)
-        self.grid_layout_folders.addWidget(self.xrd_base_edit, 2, 1, 1, 2)
-        self.grid_layout_folders.addWidget(self.xrd_num_edit, 2, 3, 1, 1)
-        self.grid_layout_folders.addWidget(self.xrd_full_path_label, 3, 0, 1, 4)
+        self.grid_layout_general = QtWidgets.QGridLayout()
+        self.grid_layout_general.addWidget(self.year_label, 0, 0, 1, 1)
+        self.grid_layout_general.addWidget(self.year_edit, 0, 1, 1, 1)
+        self.grid_layout_general.addWidget(self.cycle_label, 0, 2, 1, 1)
+        self.grid_layout_general.addWidget(self.cycle_edit, 0, 3, 1, 1)
+        self.grid_layout_general.addWidget(self.main_dir_label, 1, 0, 1, 1)
+        self.grid_layout_general.addWidget(self.main_dir_edit, 1, 1, 1, 3)
+        self.grid_layout_general.setVerticalSpacing(12)
 
-        self.grid_layout_folders.addWidget(self.temperature_label, 4, 0, 1, 1)
-        self.grid_layout_folders.addWidget(self.temperature_dir_edit, 4, 1, 1, 1)
-        self.grid_layout_folders.addWidget(self.temperature_base_edit, 4, 2, 1, 1)
-        self.grid_layout_folders.addWidget(self.temperature_num_edit, 4, 3, 1, 1)
-        self.grid_layout_folders.addWidget(self.temperature_full_path_label, 5, 0, 1, 4)
+        self.vbox.addLayout(self.grid_layout_general)
+        for detector in self.chosen_detectors:
+            self.vbox.addWidget(self.chosen_detectors[detector])
+        self.vbox.addWidget(self.create_btn)
 
-        self.grid_layout_folders.addWidget(self.image_dir_label, 6, 0, 1, 1)
-        self.grid_layout_folders.addWidget(self.image_dir_edit, 6, 1, 1, 2)
-        self.grid_layout_folders.addWidget(self.image_dn_label, 7, 0, 1, 1)
-        self.grid_layout_folders.addWidget(self.image_dn_base_edit, 7, 1, 1, 2)
-        self.grid_layout_folders.addWidget(self.image_dn_num_edit, 7, 3, 1, 1)
-        self.grid_layout_folders.addWidget(self.image_dn_full_path_label, 8, 0, 1, 4)
-        self.grid_layout_folders.addWidget(self.image_up_label, 9, 0, 1, 1)
-        self.grid_layout_folders.addWidget(self.image_up_base_edit, 9, 1, 1, 2)
-        self.grid_layout_folders.addWidget(self.image_up_num_edit, 9, 3, 1, 1)
-        self.grid_layout_folders.addWidget(self.image_up_full_path_label, 10, 0, 1, 4)
-        self.grid_layout_folders.addWidget(self.image_ms_label, 11, 0, 1, 1)
-        self.grid_layout_folders.addWidget(self.image_ms_base_edit, 11, 1, 1, 2)
-        self.grid_layout_folders.addWidget(self.image_ms_num_edit, 11, 3, 1, 1)
-        self.grid_layout_folders.addWidget(self.image_ms_full_path_label, 12, 0, 1, 4)
+        self.setLayout(self.vbox)
 
-        self.grid_layout_folders.addWidget(self.create_btn, 13, 0, 1, 4)
-
-        self.grid_layout_folders.setVerticalSpacing(12)
-        self.setLayout(self.grid_layout_folders)
-
-        self.base_dir = 'T:\\dac_user\\' + self.year_edit.text() + '\\IDD_' + self.year_edit.text() + '-' + \
-                        self.cycle_edit.text() + '\\' + self.main_dir_edit.text() + '\\'
+        # self.base_dir = 'T:\\dac_user\\' + self.year_edit.text() + '\\IDD_' + self.year_edit.text() + '-' + \
+        #                 self.cycle_edit.text() + '\\' + self.main_dir_edit.text() + '\\'
 
         self.update_all_full_paths()
 
@@ -156,88 +83,35 @@ class FolderMaker(QtWidgets.QWidget):
     def update_all_full_paths(self):
         self.base_dir = 'T:\\dac_user\\' + self.year_edit.text() + '\\IDD_' + self.year_edit.text() + '-' + \
                         self.cycle_edit.text() + '\\' + self.main_dir_edit.text() + '\\'
-        self.xrd_changed()
-        self.temperature_changed()
-        self.image_changed()
-        # self.update_xrd_path()
-        # self.update_temperature_path()
-        # self.update_images_path()
-
-    def xrd_changed(self):
-        if not self.sender() == self.xrd_num_edit:
-            next_num = self.find_next_number(str(self.base_dir + self.xrd_base_edit.text() + '_'))
-            self.xrd_num_edit.setText(str(next_num))
-        self.update_xrd_path()
-
-    def temperature_changed(self):
-        temperature_dir = self.base_dir + '\\' + self.temperature_dir_edit.text() + '\\'
-        if not self.sender() == self.temperature_num_edit:
-            next_num = self.find_next_number(str(temperature_dir + self.temperature_base_edit.text() + '_'))
-            self.temperature_num_edit.setText(str(next_num))
-        self.update_temperature_path()
-
-    def image_changed(self):
-        image_dir = self.base_dir + '\\' + self.image_dir_edit.text() + '\\'
-        if self.sender() == self.image_dir_edit or self.sender() == self.main_dir_edit:
-            next_num = self.find_next_number(str(image_dir + self.image_up_base_edit.text() + '_'))
-            self.image_up_num_edit.setText(str(next_num))
-            next_num = self.find_next_number(str(image_dir + self.image_dn_base_edit.text() + '_'))
-            self.image_dn_num_edit.setText(str(next_num))
-            next_num = self.find_next_number(str(image_dir + self.image_ms_base_edit.text() + '_'))
-            self.image_ms_num_edit.setText(str(next_num))
-        elif self.sender() == self.image_dn_base_edit:
-            next_num = self.find_next_number(str(image_dir + self.image_dn_base_edit.text() + '_'))
-            self.image_dn_num_edit.setText(str(next_num))
-        elif self.sender() == self.image_up_base_edit:
-            next_num = self.find_next_number(str(image_dir + self.image_up_base_edit.text() + '_'))
-            self.image_up_num_edit.setText(str(next_num))
-        elif self.sender() == self.image_ms_base_edit:
-            next_num = self.find_next_number(str(image_dir + self.image_ms_base_edit.text() + '_'))
-            self.image_ms_num_edit.setText(str(next_num))
-        self.update_images_path()
-
-    def update_xrd_path(self):
-        self.xrd_full_path = self.base_dir + self.xrd_base_edit.text() + '_' + str(self.xrd_num_edit.text()).zfill(3)
-        self.xrd_full_path_label.setText(self.xrd_full_path)
-
-    def update_temperature_path(self):
-        self.temperature_full_path = self.base_dir + self.temperature_dir_edit.text() + '\\' + \
-                                     self.temperature_base_edit.text() + '_' + \
-                                     str(self.temperature_num_edit.text()).zfill(3)
-        self.temperature_full_path_label.setText(self.temperature_full_path)
-
-    def update_images_path(self):
-        self.image_dn_full_path = self.base_dir + self.image_dir_edit.text() + '\\' + \
-                                     self.image_dn_base_edit.text() + '_' + str(self.image_dn_num_edit.text()).zfill(3)
-        self.image_dn_full_path_label.setText(self.image_dn_full_path)
-
-        self.image_up_full_path = self.base_dir + self.image_dir_edit.text() + '\\' + \
-                                     self.image_up_base_edit.text() + '_' + str(self.image_up_num_edit.text()).zfill(3)
-        self.image_up_full_path_label.setText(self.image_up_full_path)
-
-        self.image_ms_full_path = self.base_dir + self.image_dir_edit.text() + '\\' + \
-                                     self.image_ms_base_edit.text() + '_' + str(self.image_ms_num_edit.text()).zfill(3)
-        self.image_ms_full_path_label.setText(self.image_ms_full_path)
+        for detector in self.chosen_detectors:
+            self.chosen_detectors[detector].base_dir = self.base_dir
+            self.chosen_detectors[detector].value_changed()
 
     def create_btn_clicked(self):
         self.check_dirs()
-        self.update_epics()
-        if self.caller:
-            self.caller.choose_dir = str(self.base_dir).rsplit('\\', 1)[0]
-            self.caller.set_choose_dir_label()
+        # self.update_epics()
+        # if self.caller:
+        #     self.caller.choose_dir = str(self.base_dir).rsplit('\\', 1)[0]
+        #     self.caller.set_choose_dir_label()
 
     def check_dirs(self):
         base_dir = str(self.base_dir)
-        full_dir_temperature = str(self.temperature_full_path).rsplit('\\', 1)[0]
-        full_dir_images = str(self.image_dn_full_path).rsplit('\\', 1)[0]
-        full_dir_LaB6 = str(base_dir + 'LaB6\\')
-        full_dir_patterns = str(base_dir + 'patterns\\')
-
         self.check_one_dir(base_dir, 'Created base directory: ')
-        self.check_one_dir(full_dir_temperature, 'Created T dir: ')
-        self.check_one_dir(full_dir_images, 'Created Image dir: ')
-        self.check_one_dir(full_dir_LaB6, 'Created dir for LaB6: ')
-        self.check_one_dir(full_dir_patterns, 'Created dir for integrated patterns: ')
+
+        for detector in self.chosen_detectors:
+            full_path = self.chosen_detectors[detector].full_path
+            path, file = os.path.split(full_path)
+            self.check_one_dir(path, 'Created path for ' + detector + ': ')
+
+        # full_dir_temperature = str(self.temperature_full_path).rsplit('\\', 1)[0]
+        # full_dir_images = str(self.image_dn_full_path).rsplit('\\', 1)[0]
+        # full_dir_LaB6 = str(base_dir + 'LaB6\\')
+        # full_dir_patterns = str(base_dir + 'patterns\\')
+
+        # self.check_one_dir(full_dir_temperature, 'Created T dir: ')
+        # self.check_one_dir(full_dir_images, 'Created Image dir: ')
+        # self.check_one_dir(full_dir_LaB6, 'Created dir for LaB6: ')
+        # self.check_one_dir(full_dir_patterns, 'Created dir for integrated patterns: ')
 
     def check_one_dir(self, full_path, message):
         if not os.path.isdir(full_path):
@@ -276,6 +150,74 @@ class FolderMaker(QtWidgets.QWidget):
         caput(epp['Image_ms_File_Name'], str(self.image_ms_base_edit.text()))
         caput(epp['Image_ms_Number'], str(self.image_ms_num_edit.text()))
 
+    # def find_next_number(self, base_name):
+    #     file_list = glob.glob(base_name + '*.*')
+    #     fmax = 0
+    #     for file in file_list:
+    #         fnum = int(file.rsplit('.', 1)[0].rsplit('_', 1)[-1])
+    #         if fnum > fmax:
+    #             fmax = fnum
+    #     return int(fmax)+1
+
+
+class DetectorSection(QtWidgets.QGroupBox):
+    def __init__(self, detector,  parent=None):
+        super(DetectorSection, self).__init__(parent)
+        self.detector = detector
+        self.base_dir = ''
+        self.create_widgets()
+        self.set_widget_properties()
+        self.setup_connections()
+        self.set_layout()
+        self.set_initial_parameters()
+        self.value_changed()
+
+    def create_widgets(self):
+        self.update_label = QtWidgets.QLabel('Auto Update?')
+        self.update_cb = QtWidgets.QCheckBox()
+        self.detector_label = QtWidgets.QLabel()
+        self.rel_dir_edit = QtWidgets.QLineEdit()
+        self.base_name_edit = QtWidgets.QLineEdit()
+        self.num_edit = QtWidgets.QLineEdit()
+        self.full_path_label = QtWidgets.QLabel()
+
+    def set_widget_properties(self):
+        self.detector_label.setText(self.detector + ' directory / basename / #:')
+        self.rel_dir_edit.setText(detectors[self.detector].get('default_rel_dir', ''))
+        self.base_name_edit.setText(detectors[self.detector].get('default_base_name', ''))
+        self.num_edit.setText('1')
+        self.update_cb.setChecked(True)
+
+    def setup_connections(self):
+        self.rel_dir_edit.textChanged.connect(self.value_changed)
+        self.base_name_edit.textChanged.connect(self.value_changed)
+        self.num_edit.textChanged.connect(self.value_changed)
+
+    def set_layout(self):
+        self.grid_layout_section = QtWidgets.QGridLayout()
+        self.grid_layout_section.addWidget(self.update_label, 0, 0, 1, 1)
+        self.grid_layout_section.addWidget(self.update_cb, 0, 1, 1, 1)
+        self.grid_layout_section.addWidget(self.detector_label, 1, 0, 1, 1)
+        self.grid_layout_section.addWidget(self.rel_dir_edit, 1, 1, 1, 1)
+        self.grid_layout_section.addWidget(self.base_name_edit, 1, 2, 1, 1)
+        self.grid_layout_section.addWidget(self.num_edit, 1, 3, 1, 1)
+        self.grid_layout_section.addWidget(self.full_path_label, 2, 0, 1, 4)
+        self.grid_layout_section.setVerticalSpacing(12)
+        self.setLayout(self.grid_layout_section)
+
+    def set_initial_parameters(self):
+        pass
+
+    def value_changed(self):
+        if not self.sender() == self.rel_dir_edit and str(self.base_name_edit.text()) == 'LaB6':
+            self.rel_dir_edit.setText('LaB6')
+        # current_dir = self.base_dir + '\\' + str(self.rel_dir_edit.text()) + '\\'
+        current_dir = os.path.join(self.base_dir, str(self.rel_dir_edit.text()))
+        if not self.sender() == self.num_edit:
+            next_num = self.find_next_number(str(current_dir + self.base_name_edit.text() + '_'))
+            self.num_edit.setText(str(next_num))
+        self.update_path()
+
     def find_next_number(self, base_name):
         file_list = glob.glob(base_name + '*.*')
         fmax = 0
@@ -284,6 +226,15 @@ class FolderMaker(QtWidgets.QWidget):
             if fnum > fmax:
                 fmax = fnum
         return int(fmax)+1
+
+    def update_path(self):
+        # self.full_path = self.base_dir + self.rel_dir_edit.text() + '\\' + \
+        #                                  self.base_name_edit.text() + '_' + \
+        #                                  str(self.num_edit.text()).zfill(3)
+        self.full_path = os.path.join(self.base_dir, str(self.rel_dir_edit.text()),
+                                      str(self.base_name_edit.text()) + '_' + str(self.num_edit.text()).zfill(3))
+
+        self.full_path_label.setText(self.full_path)
 
 
 def main():
