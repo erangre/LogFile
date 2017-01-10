@@ -73,7 +73,6 @@ class StartMonitors(QWidget):
                           callback=self.chosen_detectors[detector]['end_signal_function'])
 
     def signal_received(self, sig_name):
-        print(sig_name)
         t0 = time.time()
         detector, phase = sig_name.rsplit('_', 1)
         frame_type_PV = detectors[detector]['frame_type_PV']
@@ -82,13 +81,10 @@ class StartMonitors(QWidget):
             frame_type = caget(frame_type_PV, as_string=False)
         else:
             frame_type = 0
-        print('after frame type: ' + str(time.time() - t0))
-        print(frame_type)
         self.parent.parent().statusBar().showMessage(
             detectors[detector]['frame_type_messages'][frame_type] + ' ' + phase)
         if not frame_type == 0:
             return
-        print('before phase determination: ' + str(time.time() - t0))
         if phase == 'start':
             if detectors[detector]['track_running_tasks']:
                 self.running_tasks += 1
@@ -99,21 +95,17 @@ class StartMonitors(QWidget):
                 image_type = caget(image_type_PV, as_string=False)
             else:
                 image_type = 0
-            print('after image type: ' + str(time.time() - t0))
             # self.chosen_detectors[detector]['exp_time'] = \
             #     caget(detectors[detector]['image_type_exposure_time'][image_type])
             exposure_time = caget(detectors[detector]['image_type_exposure_time'][image_type])
-            print('after exp time: ' + str(time.time() - t0))
             self.chosen_detectors[detector]['temp_dict'].append(self.output_line_common_start(start_time,
                                                                                               exposure_time).copy())
 
-            print('after finish start: ' + str(time.time() - t0))
             if detectors[detector]['monitor_signal_end'] is None:
                 new_file_name = caget(detectors[detector]['new_file_name'][image_type], as_string=True)
                 comments = self.build_comments(detector)
                 self.output_line_common_end(detectors[detector]['prefix'], new_file_name, comments,
                                             self.chosen_detectors[detector]['temp_dict'][0])
-                print('after finish fake end: ' + str(time.time() - t0))
 
         elif phase == 'end':
             if detectors[detector]['track_running_tasks']:
@@ -145,23 +137,17 @@ class StartMonitors(QWidget):
         if not self.old_heading == new_heading:
             self.parent.log_file.write(new_heading)
             self.old_heading = new_heading
-        print('after headings: ' + str(time.time() - t0))
 
         self.parent.set_enabled_hbox_lists(False)
         temp_dict = self.create_dict()
         temp_dict['Time'] = start_time
         temp_dict['Exp_Time'] = exp_time
-        print('after temp_dict: ' + str(time.time() - t0))
         for motor in self.parent.list_motor_short.selectedItems():
             if not self.parent.motor_dict[str(motor.text())]['after']:
                 m_value = caget(self.parent.motor_dict[str(motor.text())]['PV'], as_string=True)
                 if m_value == '-2.27e-13':
                     m_value = '0'
                 temp_dict[str(motor.text())] = m_value
-                print('after motor ' + str(motor.text()) + ': ' + str(time.time() - t0))
-
-        print('after fill temp dict: ' + str(time.time() - t0))
-
         return temp_dict
 
     def output_line_common_end(self, prefix, file_name, comments, temp_dict):
