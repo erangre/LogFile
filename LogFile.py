@@ -14,6 +14,7 @@ except ImportError:
 import epics_monitor
 from connect_epics import epics_BG_config as ebgcfg, epics_prepare as epp
 from FolderMaker import FolderMaker
+from detectors import detectors
 import collections
 from html_log import HtmlLogger
 try:
@@ -58,7 +59,7 @@ class LogWindow(QtWidgets.QWidget):
         self.choose_dir = DEF_DIR
         self.choose_file = DEF_FILE
         self.motors_file = ''
-        self.detector = 1
+        # self.detector = 1
 
         # Create Widgets
         self.label_fullpath = QtWidgets.QLabel(self)
@@ -72,7 +73,8 @@ class LogWindow(QtWidgets.QWidget):
         self.show_log_btn = QtWidgets.QPushButton('Log')
         self.comment_btn = QtWidgets.QPushButton('Comment')
         self.html_log_cb = QtWidgets.QCheckBox('HTML Log')
-        self.choose_detector_cb = QtWidgets.QComboBox()
+        # self.choose_detector_cb = QtWidgets.QComboBox()
+        self.choose_detector_tb = QtWidgets.QToolButton()
         self.start_btn = QtWidgets.QPushButton('Start')
         self.stop_btn = QtWidgets.QPushButton('Stop')
         self.list_motor_short = QtWidgets.QListWidget(self)
@@ -109,8 +111,17 @@ class LogWindow(QtWidgets.QWidget):
         self.html_log_cb.setChecked(False)
         self.html_log_cb.hide()
         self.html_log_cb.setToolTip('Enable logging to HTML file')
-        self.choose_detector_cb.addItems(['none', 'marccd2', 'pilatus', 'both', 'pec_marccd1', 'mar_ip2'])
-        self.choose_detector_cb.setCurrentIndex(1)
+        # self.choose_detector_cb.addItems(['none', 'marccd2', 'pilatus', 'both', 'pec_marccd1', 'mar_ip2'])
+        # self.choose_detector_cb.setCurrentIndex(1)
+        self.choose_detector_tb.setText('Detectors')
+        self.choose_detector_menu = QtWidgets.QMenu()
+        self.choose_detector_menu.triggered.connect(self.choose_detector_tb.click)
+        for detector in detectors:
+            action = self.choose_detector_menu.addAction(detector)
+            action.setCheckable(True)
+        self.choose_detector_tb.setMenu(self.choose_detector_menu)
+        self.choose_detector_tb.setPopupMode(QtWidgets.QToolButton.InstantPopup)
+
         self.stop_btn.setEnabled(False)
         self.list_motor_short.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.list_motor_names.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
@@ -149,7 +160,8 @@ class LogWindow(QtWidgets.QWidget):
         hbox_control.addStretch(1)
         hbox_control.addWidget(self.label_end_time)
         hbox_control.addStretch(1)
-        hbox_control.addWidget(self.choose_detector_cb)
+        # hbox_control.addWidget(self.choose_detector_cb)
+        hbox_control.addWidget(self.choose_detector_tb)
         hbox_control.addWidget(self.comment_btn)
         hbox_control.addWidget(self.show_log_btn)
         hbox_control.addWidget(self.start_btn)
@@ -220,7 +232,7 @@ class LogWindow(QtWidgets.QWidget):
         self.view_image_btn.clicked.connect(self.open_image_file)
         self.collect_bg_btn.clicked.connect(self.collect_bgs)
         self.create_folders_btn.clicked.connect(self.run_create_folders_widget)
-        self.choose_detector_cb.currentIndexChanged.connect(self.choose_detector_changed)
+        # self.choose_detector_cb.currentIndexChanged.connect(self.choose_detector_changed)
 
         # Setup App Window
         QtWidgets.QApplication.setStyle(QtWidgets.QStyleFactory.create('Cleanlooks'))
@@ -236,7 +248,7 @@ class LogWindow(QtWidgets.QWidget):
         self.setup_btn.setVisible(False)
         self.start_btn.setVisible(False)
         self.stop_btn.setVisible(False)
-        self.choose_detector_cb.setVisible(False)
+        self.choose_detector_tb.setVisible(False)
         self.label_start_time.setVisible(False)
         self.label_end_time.setVisible(False)
         self.label_fullpath.setVisible(False)
@@ -337,7 +349,7 @@ class LogWindow(QtWidgets.QWidget):
         # self.html_log_cb.show()
         self.choose_dir_btn.setEnabled(False)
         self.choose_file_name_le.setEnabled(False)
-        self.choose_detector_cb.setVisible(False)
+        self.choose_detector_tb.setVisible(False)
 
         full_path = self.label_fullpath.text()
         self.log_file = open(full_path, 'a')
@@ -372,7 +384,7 @@ class LogWindow(QtWidgets.QWidget):
         self.comment_btn.hide()
         self.html_log_cb.hide()
         self.choose_file_name_le.setEnabled(True)
-        self.choose_detector_cb.setVisible(True)
+        self.choose_detector_tb.setVisible(True)
 
         self.log_file.close()
         epics_monitor.StopMonitors(self)
@@ -406,8 +418,8 @@ class LogWindow(QtWidgets.QWidget):
         heading = heading + 'Comments' + '\n'
         return heading
 
-    def choose_detector_changed(self):
-        self.detector = self.choose_detector_cb.currentIndex()
+    # def choose_detector_changed(self):
+    #     self.detector = self.choose_detector_cb.currentIndex()
 
     def collect_bgs(self):
         msg = 'Please input background exposure time'
@@ -707,12 +719,12 @@ class LogWindow(QtWidgets.QWidget):
         self.choose_file = cfg['file']
         self.choose_dir = cfg['directory']
         self.motors_file = cfg['motor_file']
-        self.detector = int(cfg['detector'])
+        # self.detector = int(cfg['detector'])
 
         self.choose_file_name_le.setText(self.choose_file)
         self.set_choose_dir_label()
         self.load_motor_list(self.motors_file)
-        self.choose_detector_cb.setCurrentIndex(self.detector)
+        # self.choose_detector_cb.setCurrentIndex(self.detector)
 
     def save_config(self):
         cfg_file = open('log_config.txt', 'w')
@@ -726,7 +738,13 @@ class LogWindow(QtWidgets.QWidget):
         outline = 'motor_file\t' + self.motors_file + '\n'
         cfg_file.write(outline)
 
-        outline = 'detector\t' + str(self.choose_detector_cb.currentIndex()) + '\n'
+        selected_detectors = []
+        for detector in self.choose_detector_menu.actions():
+            if detector.isChecked():
+                selected_detectors.append(detector.text())
+        selected_detectors_csv = ','.join(selected_detectors)
+
+        outline = 'detectors\t' + selected_detectors_csv + '\n'
         cfg_file.write(outline)
 
         self.save_motor_list(self.motors_file)
