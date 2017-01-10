@@ -10,7 +10,7 @@ from detectors import detectors
 import collections
 
 class FolderMaker(QtWidgets.QWidget):
-    def __init__(self, parent=None, detectors=None):
+    def __init__(self, parent=None, chosen_detectors=None):
         super(FolderMaker, self).__init__()
         self.caller = parent
         # self.use_marccd = use_marccd
@@ -21,7 +21,7 @@ class FolderMaker(QtWidgets.QWidget):
         self.setGeometry(100, 100, 300, 200)
         self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
         self.chosen_detectors = collections.OrderedDict()
-        for detector in detectors:
+        for detector in chosen_detectors:
             self.chosen_detectors[detector] = DetectorSection(detector)
 
         # Create Widgets
@@ -84,15 +84,16 @@ class FolderMaker(QtWidgets.QWidget):
         self.base_dir = 'T:\\dac_user\\' + self.year_edit.text() + '\\IDD_' + self.year_edit.text() + '-' + \
                         self.cycle_edit.text() + '\\' + self.main_dir_edit.text() + '\\'
         for detector in self.chosen_detectors:
-            self.chosen_detectors[detector].base_dir = self.base_dir
-            self.chosen_detectors[detector].value_changed()
+            if self.chosen_detectors[detector].update_cb.isChecked():
+                self.chosen_detectors[detector].base_dir = self.base_dir
+                self.chosen_detectors[detector].value_changed()
 
     def create_btn_clicked(self):
         self.check_dirs()
-        # self.update_epics()
-        # if self.caller:
-        #     self.caller.choose_dir = str(self.base_dir).rsplit('\\', 1)[0]
-        #     self.caller.set_choose_dir_label()
+        self.update_epics()
+        if self.caller:
+            self.caller.choose_dir = str(self.base_dir).rsplit('\\', 1)[0]
+            self.caller.set_choose_dir_label()
 
     def check_dirs(self):
         base_dir = str(self.base_dir)
@@ -103,16 +104,6 @@ class FolderMaker(QtWidgets.QWidget):
             path, file = os.path.split(full_path)
             self.check_one_dir(path, 'Created path for ' + detector + ': ')
 
-        # full_dir_temperature = str(self.temperature_full_path).rsplit('\\', 1)[0]
-        # full_dir_images = str(self.image_dn_full_path).rsplit('\\', 1)[0]
-        # full_dir_LaB6 = str(base_dir + 'LaB6\\')
-        # full_dir_patterns = str(base_dir + 'patterns\\')
-
-        # self.check_one_dir(full_dir_temperature, 'Created T dir: ')
-        # self.check_one_dir(full_dir_images, 'Created Image dir: ')
-        # self.check_one_dir(full_dir_LaB6, 'Created dir for LaB6: ')
-        # self.check_one_dir(full_dir_patterns, 'Created dir for integrated patterns: ')
-
     def check_one_dir(self, full_path, message):
         if not os.path.isdir(full_path):
             os.makedirs(full_path)
@@ -121,43 +112,22 @@ class FolderMaker(QtWidgets.QWidget):
             print(full_path + ' already exists')
 
     def update_epics(self):
-        full_dir_temperature = str(self.temperature_full_path).rsplit('\\', 1)[0]
-        full_dir_images = str(self.image_dn_full_path).rsplit('\\', 1)[0]
-        main_dir = str(self.main_dir_edit.text())
-        ccd_dir = ('\\DAC\\' + main_dir).replace('\\', '/')
-        if self.xrd_base_edit.text() == 'LaB6':
-            ccd_dir = ccd_dir + '/LaB6'
-        if self.use_marccd:
-            caput(epp['CCD_File_Path'], ccd_dir)
-            caput(epp['XRD_Base_Name'], str(self.xrd_base_edit.text()))
-            caput(epp['XRD_Number'], str(self.xrd_num_edit.text()))
-        if self.use_pil3:
-            caput(epp['pXRD_File_Path'], ccd_dir)
-            caput(epp['pXRD_Base_Name'], str(self.xrd_base_edit.text()))
-            caput(epp['pXRD_Number'], str(self.xrd_num_edit.text()))
+        for detector in self.chosen_detectors:
+            soft_link = detectors[detector].get('soft_link', False)
+            if not soft_link:
+                full_path = self.chosen_detectors[detector].full_path
+                path, file = os.path.split(full_path)
+                file = file.rsplit('_', 1)[0]
+            else:
+                main_dir = str(self.main_dir_edit.text())
+                rel_dir = str(self.chosen_detectors[detector].rel_dir_edit.text())
+                path = (soft_link + main_dir + '\\' + rel_dir).replace('\\', '/')
+                file = str(self.chosen_detectors[detector].base_name_edit.text())
+            number = str(self.chosen_detectors[detector].num_edit.text())
 
-        caput(epp['T_File_Path'], full_dir_temperature)
-        caput(epp['T_File_Name'], str(self.temperature_base_edit.text()))
-        caput(epp['T_File_Number'], str(self.temperature_num_edit.text()))
-
-        caput(epp['Image_Dn_File_Path'], full_dir_images)
-        caput(epp['Image_Dn_File_Name'], str(self.image_dn_base_edit.text()))
-        caput(epp['Image_Dn_Number'], str(self.image_dn_num_edit.text()))
-        caput(epp['Image_Up_File_Path'], full_dir_images)
-        caput(epp['Image_Up_File_Name'], str(self.image_up_base_edit.text()))
-        caput(epp['Image_Up_Number'], str(self.image_up_num_edit.text()))
-        caput(epp['Image_ms_File_Path'], full_dir_images)
-        caput(epp['Image_ms_File_Name'], str(self.image_ms_base_edit.text()))
-        caput(epp['Image_ms_Number'], str(self.image_ms_num_edit.text()))
-
-    # def find_next_number(self, base_name):
-    #     file_list = glob.glob(base_name + '*.*')
-    #     fmax = 0
-    #     for file in file_list:
-    #         fnum = int(file.rsplit('.', 1)[0].rsplit('_', 1)[-1])
-    #         if fnum > fmax:
-    #             fmax = fnum
-    #     return int(fmax)+1
+            caput(detectors[detector]['file_path'], path)
+            caput(detectors[detector]['file_name'], file)
+            caput(detectors[detector]['file_number'], number)
 
 
 class DetectorSection(QtWidgets.QGroupBox):
@@ -211,10 +181,9 @@ class DetectorSection(QtWidgets.QGroupBox):
     def value_changed(self):
         if not self.sender() == self.rel_dir_edit and str(self.base_name_edit.text()) == 'LaB6':
             self.rel_dir_edit.setText('LaB6')
-        # current_dir = self.base_dir + '\\' + str(self.rel_dir_edit.text()) + '\\'
         current_dir = os.path.join(self.base_dir, str(self.rel_dir_edit.text()))
         if not self.sender() == self.num_edit:
-            next_num = self.find_next_number(str(current_dir + self.base_name_edit.text() + '_'))
+            next_num = self.find_next_number(str(current_dir + '\\' + self.base_name_edit.text() + '_'))
             self.num_edit.setText(str(next_num))
         self.update_path()
 
@@ -228,9 +197,6 @@ class DetectorSection(QtWidgets.QGroupBox):
         return int(fmax)+1
 
     def update_path(self):
-        # self.full_path = self.base_dir + self.rel_dir_edit.text() + '\\' + \
-        #                                  self.base_name_edit.text() + '_' + \
-        #                                  str(self.num_edit.text()).zfill(3)
         self.full_path = os.path.join(self.base_dir, str(self.rel_dir_edit.text()),
                                       str(self.base_name_edit.text()) + '_' + str(self.num_edit.text()).zfill(3))
 

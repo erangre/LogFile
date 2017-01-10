@@ -115,7 +115,6 @@ class LogWindow(QtWidgets.QWidget):
         # self.choose_detector_cb.setCurrentIndex(1)
         self.choose_detector_tb.setText('Detectors')
         self.choose_detector_menu = QtWidgets.QMenu()
-        self.choose_detector_menu.triggered.connect(self.choose_detector_tb.click)
         for detector in detectors:
             action = self.choose_detector_menu.addAction(detector)
             action.setCheckable(True)
@@ -232,7 +231,8 @@ class LogWindow(QtWidgets.QWidget):
         self.view_image_btn.clicked.connect(self.open_image_file)
         self.collect_bg_btn.clicked.connect(self.collect_bgs)
         self.create_folders_btn.clicked.connect(self.run_create_folders_widget)
-        # self.choose_detector_cb.currentIndexChanged.connect(self.choose_detector_changed)
+        self.choose_detector_menu.triggered.connect(self.choose_detector_tb.click)
+        self.choose_detector_tb.clicked.connect(self.choose_detector_changed)
 
         # Setup App Window
         QtWidgets.QApplication.setStyle(QtWidgets.QStyleFactory.create('Cleanlooks'))
@@ -418,8 +418,11 @@ class LogWindow(QtWidgets.QWidget):
         heading = heading + 'Comments' + '\n'
         return heading
 
-    # def choose_detector_changed(self):
-    #     self.detector = self.choose_detector_cb.currentIndex()
+    def choose_detector_changed(self):
+        self.detectors = []
+        for detector in self.choose_detector_menu.actions():
+            if detector.isChecked():
+                self.detectors.append(detector.text())
 
     def collect_bgs(self):
         msg = 'Please input background exposure time'

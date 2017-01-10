@@ -27,6 +27,10 @@ detectors['marccd2'] = {
     'sleep_after_end': 0.0,
     'default_base_name': 'LaB6',
     'default_rel_dir': '',
+    'soft_link': '/DAC/',
+    'file_path': '13MARCCD2:TIFF1:FilePath',
+    'file_name': '13MARCCD2:TIFF1:FileName',
+    'file_number': '13MARCCD2:TIFF1:FileNumber',
 }
 
 detectors['pilatus3'] = {
@@ -52,6 +56,10 @@ detectors['pilatus3'] = {
     'sleep_after_end': 0.0,
     'default_base_name': 'LaB6',
     'default_rel_dir': '',
+    'soft_link': '/DAC/',
+    'file_path': '13PIL3:TIFF1:FilePath',
+    'file_name': '13PIL3:TIFF1:FileName',
+    'file_number': '13PIL3:TIFF1:FileNumber',
 }
 
 detectors['marip2'] = {
@@ -75,6 +83,9 @@ detectors['marip2'] = {
     'sleep_after_end': 0.0,
     'default_base_name': 'LaB6',
     'default_rel_dir': '',
+    'file_path': '13MAR345_2:TIFF1:FilePath',
+    'file_name': '13MAR345_2:TIFF1:FileName',
+    'file_number': '13MAR345_2:TIFF1:FileNumber',
 }
 
 detectors['lightfield'] =  {
@@ -130,45 +141,9 @@ detectors['lightfield'] =  {
     'sleep_after_end': 0.5,
     'default_base_name': 't',
     'default_rel_dir': 'T',
-}
-
-detectors['ds_visual'] = {
-    'name': '13IDD_PG2',
-    'prefix': 'IM_',
-    'monitor_signal_start': '13IDD_PG2:TIFF1:WriteFile_RBV',
-    'monitor_signal_start_value': 'Done',
-    'monitor_signal_end': None,
-    'monitor_signal_end_value': None,
-    'track_running_tasks': False,
-    'frame_type_PV': None,
-    'frame_type_values': 0,
-    'frame_type_messages': {0: 'DS Image', },
-    'image_type_PV': None,
-    'image_type_values': 0,
-    'image_type_exposure_time': {0: '13IDD_PG2:cam1:AcquireTime',
-                                 },
-    'new_file_name': {0: '13IDD_PG2:TIFF1:FullFileName_RBV',
-                      },
-    'comments': 'Gain: {0}, DS Light: {1}:{2}, US Light: {3}:{4}',
-    'comments_PVs': ['13IDD_PG2:cam1:GainValAbs',
-                     '13IDD:Unidig1Bo22',
-                     '13IDD:DAC2_2.VAL',
-                     '13IDD:Unidig1Bo20',
-                     '13IDD:DAC2_1.VAL',
-                     ],
-    'comments_values': [None,
-                        {0: 'OFF',
-                         1: 'ON'
-                         },
-                        None,
-                        {0: 'OFF',
-                         1: 'ON'
-                         },
-                        None
-                        ],
-    'sleep_after_end': 0.0,
-    'default_base_name': 'ds_image',
-    'default_rel_dir': 'images',
+    'file_path': '13IDDLF1:cam1:FilePath',
+    'file_name': '13IDDLF1:cam1:FileName',
+    'file_number': '13IDDLF1:cam1:FileNumber',
 }
 
 detectors['us_visual'] = {
@@ -208,6 +183,51 @@ detectors['us_visual'] = {
     'sleep_after_end': 0.0,
     'default_base_name': 'us_image',
     'default_rel_dir': 'images',
+    'file_path': '13IDD_PG1:TIFF1:FilePath',
+    'file_name': '13IDD_PG1:TIFF1:FileName',
+    'file_number': '13IDD_PG1:TIFF1:FileNumber',
+}
+
+detectors['ds_visual'] = {
+    'name': '13IDD_PG2',
+    'prefix': 'IM_',
+    'monitor_signal_start': '13IDD_PG2:TIFF1:WriteFile_RBV',
+    'monitor_signal_start_value': 'Done',
+    'monitor_signal_end': None,
+    'monitor_signal_end_value': None,
+    'track_running_tasks': False,
+    'frame_type_PV': None,
+    'frame_type_values': 0,
+    'frame_type_messages': {0: 'DS Image', },
+    'image_type_PV': None,
+    'image_type_values': 0,
+    'image_type_exposure_time': {0: '13IDD_PG2:cam1:AcquireTime',
+                                 },
+    'new_file_name': {0: '13IDD_PG2:TIFF1:FullFileName_RBV',
+                      },
+    'comments': 'Gain: {0}, DS Light: {1}:{2}, US Light: {3}:{4}',
+    'comments_PVs': ['13IDD_PG2:cam1:GainValAbs',
+                     '13IDD:Unidig1Bo22',
+                     '13IDD:DAC2_2.VAL',
+                     '13IDD:Unidig1Bo20',
+                     '13IDD:DAC2_1.VAL',
+                     ],
+    'comments_values': [None,
+                        {0: 'OFF',
+                         1: 'ON'
+                         },
+                        None,
+                        {0: 'OFF',
+                         1: 'ON'
+                         },
+                        None
+                        ],
+    'sleep_after_end': 0.0,
+    'default_base_name': 'ds_image',
+    'default_rel_dir': 'images',
+    'file_path': '13IDD_PG2:TIFF1:FilePath',
+    'file_name': '13IDD_PG2:TIFF1:FileName',
+    'file_number': '13IDD_PG2:TIFF1:FileNumber',
 }
 
 detectors['ms_visual'] = {
@@ -233,4 +253,7 @@ detectors['ms_visual'] = {
     'sleep_after_end': 0.0,
     'default_base_name': 'ms_image',
     'default_rel_dir': 'images',
+    'file_path': '13IDD_PG3:TIFF1:FilePath',
+    'file_name': '13IDD_PG3:TIFF1:FileName',
+    'file_number': '13IDD_PG3:TIFF1:FileNumber',
 }
