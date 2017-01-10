@@ -10,9 +10,10 @@ from detectors import detectors
 import collections
 
 class FolderMaker(QtWidgets.QWidget):
-    def __init__(self, parent=None, chosen_detectors=None):
+    def __init__(self, parent=None, running=False, chosen_detectors=None, previous_settings=None):
         super(FolderMaker, self).__init__()
         self.caller = parent
+        self.log_running = running
         # self.use_marccd = use_marccd
         # self.use_pil3 = use_pil3
         self.setWindowTitle('Create folders and setup')
@@ -20,9 +21,16 @@ class FolderMaker(QtWidgets.QWidget):
         self.show()
         self.setGeometry(100, 100, 300, 200)
         self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
+        if previous_settings is None:
+            self.new_settings = collections.OrderedDict()
+            for detector in chosen_detectors:
+                self.new_settings[detector] = None
+        else:
+            self.new_settings = previous_settings
+
         self.chosen_detectors = collections.OrderedDict()
         for detector in chosen_detectors:
-            self.chosen_detectors[detector] = DetectorSection(detector)
+            self.chosen_detectors[detector] = DetectorSection(detector, self.new_settings[detector])
 
         # Create Widgets
         self.year_label = QtWidgets.QLabel()
@@ -36,11 +44,17 @@ class FolderMaker(QtWidgets.QWidget):
         # Set Widget Properties
         self.all_time = time.localtime()
         self.year_label.setText('Year:')
-        self.year_edit.setText(str(self.all_time.tm_year))
         self.cycle_label.setText('Cycle:')
-        self.cycle_edit.setText(str(self.get_cycle()))
         self.main_dir_label.setText('Main Directory:')
-        self.main_dir_edit.setText('GroupName')
+
+        if previous_settings is None:
+            self.main_dir_edit.setText('GroupName')
+            self.year_edit.setText(str(self.all_time.tm_year))
+            self.cycle_edit.setText(str(self.get_cycle()))
+        else:
+            self.main_dir_edit.setText(previous_settings['general']['base_dir'])
+            self.year_edit.setText(previous_settings['general']['year'])
+            self.cycle_edit.setText(previous_settings['general']['cycle'])
 
         # Connections
         self.create_btn.clicked.connect(self.create_btn_clicked)
@@ -91,9 +105,11 @@ class FolderMaker(QtWidgets.QWidget):
     def create_btn_clicked(self):
         self.check_dirs()
         self.update_epics()
-        if self.caller:
+        self.update_settings()
+        if not self.log_running:
             self.caller.choose_dir = str(self.base_dir).rsplit('\\', 1)[0]
             self.caller.set_choose_dir_label()
+        self.caller.folder_maker_settings = self.new_settings.copy()
 
     def check_dirs(self):
         base_dir = str(self.base_dir)
@@ -129,17 +145,34 @@ class FolderMaker(QtWidgets.QWidget):
             caput(detectors[detector]['file_name'], file)
             caput(detectors[detector]['file_number'], number)
 
+    def update_settings(self):
+        for detector in self.chosen_detectors:
+            self.new_settings[detector] = {}
+            self.new_settings[detector]['detector_name'] = detector
+            self.new_settings[detector]['base_dir'] = self.chosen_detectors[detector].base_dir
+            self.new_settings[detector]['update_toggle'] = self.chosen_detectors[detector].update_cb.isChecked()
+            # self.new_settings[detector]['detector_label'] = self.chosen_detectors[detector].detector_label.text()
+            self.new_settings[detector]['rel_dir_edit'] = self.chosen_detectors[detector].rel_dir_edit.text()
+            self.new_settings[detector]['base_name_edit'] = self.chosen_detectors[detector].base_name_edit.text()
+            self.new_settings[detector]['num_edit'] = self.chosen_detectors[detector].num_edit.text()
+        self.new_settings['general'] = {}
+        self.new_settings['general']['base_dir'] = self.main_dir_edit.text()
+        self.new_settings['general']['year'] = self.year_edit.text()
+        self.new_settings['general']['cycle'] = self.cycle_edit.text()
+
 
 class DetectorSection(QtWidgets.QGroupBox):
-    def __init__(self, detector,  parent=None):
+    def __init__(self, detector, parameters=None, parent=None):
         super(DetectorSection, self).__init__(parent)
         self.detector = detector
-        self.base_dir = ''
+        if parameters is None:
+            self.base_dir = ''
+        else:
+            self.base_dir = parameters['base_dir']
         self.create_widgets()
-        self.set_widget_properties()
+        self.set_widget_properties(parameters)
         self.setup_connections()
         self.set_layout()
-        self.set_initial_parameters()
         self.value_changed()
 
     def create_widgets(self):
@@ -151,12 +184,19 @@ class DetectorSection(QtWidgets.QGroupBox):
         self.num_edit = QtWidgets.QLineEdit()
         self.full_path_label = QtWidgets.QLabel()
 
-    def set_widget_properties(self):
+    def set_widget_properties(self, parameters=None):
+        if parameters is None:
+            self.rel_dir_edit.setText(detectors[self.detector].get('default_rel_dir', ''))
+            self.base_name_edit.setText(detectors[self.detector].get('default_base_name', ''))
+            self.num_edit.setText('1')
+            self.update_cb.setChecked(True)
+        else:
+            self.detector = parameters['detector_name']
+            self.rel_dir_edit.setText(parameters['rel_dir_edit'])
+            self.base_name_edit.setText(parameters['base_name_edit'])
+            self.num_edit.setText(parameters['num_edit'])
+            self.update_cb.setChecked(parameters['update_toggle'])
         self.detector_label.setText(self.detector + ' directory / basename / #:')
-        self.rel_dir_edit.setText(detectors[self.detector].get('default_rel_dir', ''))
-        self.base_name_edit.setText(detectors[self.detector].get('default_base_name', ''))
-        self.num_edit.setText('1')
-        self.update_cb.setChecked(True)
 
     def setup_connections(self):
         self.rel_dir_edit.textChanged.connect(self.value_changed)
@@ -174,9 +214,6 @@ class DetectorSection(QtWidgets.QGroupBox):
         self.grid_layout_section.addWidget(self.full_path_label, 2, 0, 1, 4)
         self.grid_layout_section.setVerticalSpacing(12)
         self.setLayout(self.grid_layout_section)
-
-    def set_initial_parameters(self):
-        pass
 
     def value_changed(self):
         if not self.sender() == self.rel_dir_edit and str(self.base_name_edit.text()) == 'LaB6':

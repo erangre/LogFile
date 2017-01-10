@@ -59,6 +59,7 @@ class LogWindow(QtWidgets.QWidget):
         self.choose_dir = DEF_DIR
         self.choose_file = DEF_FILE
         self.motors_file = ''
+        self.folder_maker_settings = {}
         # self.detector = 1
 
         # Create Widgets
@@ -689,9 +690,10 @@ class LogWindow(QtWidgets.QWidget):
 
     def run_create_folders_widget(self):
         if self.start_btn.isEnabled():
-            self.folder_widget = FolderMaker(self, self.detectors)
+            self.folder_widget = FolderMaker(parent=self, running=False, chosen_detectors=self.detectors)
         else:
-            self.folder_widget = FolderMaker()
+            self.folder_widget = FolderMaker(parent=self, running=True, chosen_detectors=self.detectors,
+                                             previous_settings=self.folder_maker_settings)
 
     def add_comment(self):
         message = 'Please input a new comment for the HTML logger'
