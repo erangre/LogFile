@@ -290,6 +290,7 @@ class LogWindow(QtWidgets.QWidget):
         self.view_image_btn.setEnabled(False)
 
         self.read_log_file(load_log_name)
+        self.reload_log_btn.show()
 
     def read_log_file(self, load_log_name=None):
         self.log_dict = collections.OrderedDict()
@@ -322,7 +323,7 @@ class LogWindow(QtWidgets.QWidget):
 
         msg = 'Loaded log file ' + load_log_name
         self.loaded_log = load_log_name
-        self.reload_log_btn.show()
+
         self.parent().statusBar().showMessage(msg)
 
     def reload_previous_log(self):
