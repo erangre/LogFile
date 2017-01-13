@@ -2,12 +2,16 @@ import time
 import os
 import sys
 import glob
-from epics import caput
-from epics import caget
+try:
+    from epics import caput
+    from epics import caget
+except ImportError:
+    epics = None
 from connect_epics import epics_prepare as epp
 from qtpy import QtGui, QtCore, QtWidgets
 from detectors import detectors
 import collections
+
 
 class FolderMaker(QtWidgets.QWidget):
     def __init__(self, parent=None, running=False, chosen_detectors=None, previous_settings=None):

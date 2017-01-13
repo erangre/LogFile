@@ -1,6 +1,9 @@
 import sys, time, os
 from qtpy import QtWidgets
-from epics import caget
+try:
+    from epics import caget
+except ImportError:
+    epics = None
 from connect_epics import epics_prepare as epp
 from PIL import Image
 from fnmatch import fnmatch
