@@ -289,6 +289,10 @@ class LogWindow(QtWidgets.QWidget):
         self.setup_btn.setEnabled(False)
         self.choose_dir_btn.setEnabled(False)
         self.view_image_btn.setEnabled(False)
+
+        self.read_log_file(file_name)
+
+    def read_log_file(self, load_log_name=None):
         try:
             self.log_list.itemSelectionChanged.disconnect()
         except Exception:
