@@ -273,7 +273,6 @@ class LogWindow(QtWidgets.QWidget):
         self.choose_file_name_le.setText(self.choose_file)
 
     def load_previous_log(self, file_name=None):
-        self.log_dict = collections.OrderedDict()
         if not file_name:
             msg = 'Choose log file to view'
             load_log_name, _ = QtWidgets.QFileDialog.getOpenFileName(self, msg, '.', 'Text Files (*.txt)')
@@ -290,13 +289,19 @@ class LogWindow(QtWidgets.QWidget):
         self.choose_dir_btn.setEnabled(False)
         self.view_image_btn.setEnabled(False)
 
-        self.read_log_file(file_name)
+        self.read_log_file(load_log_name)
 
     def read_log_file(self, load_log_name=None):
+        self.log_dict = collections.OrderedDict()
         try:
             self.log_list.itemSelectionChanged.disconnect()
         except Exception:
             pass
+
+        if not load_log_name:
+            msg = 'No Log File Opened'
+            self.parent().statusBar().showMessage(msg)
+            return
 
         self.log_list.clear()
         with open(load_log_name, 'r') as in_log_file:
@@ -357,6 +362,8 @@ class LogWindow(QtWidgets.QWidget):
         self.choose_detector_tb.setVisible(False)
 
         full_path = self.label_fullpath.text()
+        if os.path.isfile(full_path):
+            self.read_log_file(full_path)
         self.log_file = open(full_path, 'a')
         self.write_headings()
         self.log_file.flush()
@@ -370,7 +377,7 @@ class LogWindow(QtWidgets.QWidget):
         self.motors_file = str(self.choose_file).rsplit('.')[0] + '_motors.txt'
         self.save_config()
 
-        self.base_dir = caget(epp['CCD_File_Path'], as_string=True)
+        # self.base_dir = caget(epp['CCD_File_Path'], as_string=True)
         # self.html_logger = HtmlLogger(self)
         # self.html_logger.start_html_logger()
 
