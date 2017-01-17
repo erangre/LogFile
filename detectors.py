@@ -4,7 +4,7 @@ detectors = collections.OrderedDict()
 
 detectors['marccd2'] = {
     'name': '13MARCCD2',
-    'prefix': 'XRD_',
+    'prefix': 'XRD|',
     'monitor_signal_start': '13MARCCD2:cam1:DetectorState_RBV',
     'monitor_signal_start_value': 'Acquire',
     'monitor_signal_end': '13MARCCD2:TIFF1:WriteFile_RBV',
@@ -35,7 +35,7 @@ detectors['marccd2'] = {
 
 detectors['pilatus3'] = {
     'name': '13PIL3',
-    'prefix': 'XRD_',
+    'prefix': 'XRD|',
     'monitor_signal_start': '13PIL3:cam1:ArrayCounter_RBV',
     'monitor_signal_start_value': None,
     'monitor_signal_end': '13PIL3:TIFF1:FullFileName_RBV',
@@ -64,7 +64,7 @@ detectors['pilatus3'] = {
 
 detectors['marip2'] = {
     'name': '13MAR345_2',
-    'prefix': 'XRD_',
+    'prefix': 'XRD|',
     'monitor_signal_start': '13MAR345_2:cam1:DetectorState_RBV',
     'monitor_signal_start_value': 'Exposing',
     'monitor_signal_end': '13MAR345_2:TIFF1:WriteFile_RBV',
@@ -90,7 +90,7 @@ detectors['marip2'] = {
 
 detectors['lightfield'] =  {
     'name': '13IDDLF1',
-    'prefix': 'T_',
+    'prefix': 'T|',
     'monitor_signal_start': '13IDDLF1:cam1:Acquire',
     'monitor_signal_start_value': 'Acquire',
     'monitor_signal_end': '13IDDLF1:cam1:Acquire',
@@ -148,7 +148,7 @@ detectors['lightfield'] =  {
 
 detectors['us_visual'] = {
     'name': '13IDD_PG1',
-    'prefix': 'IM_',
+    'prefix': 'IM|',
     'monitor_signal_start': '13IDD_PG1:TIFF1:WriteFile_RBV',
     'monitor_signal_start_value': 'Done',
     'monitor_signal_end': None,
@@ -190,7 +190,7 @@ detectors['us_visual'] = {
 
 detectors['ds_visual'] = {
     'name': '13IDD_PG2',
-    'prefix': 'IM_',
+    'prefix': 'IM|',
     'monitor_signal_start': '13IDD_PG2:TIFF1:WriteFile_RBV',
     'monitor_signal_start_value': 'Done',
     'monitor_signal_end': None,
@@ -232,7 +232,7 @@ detectors['ds_visual'] = {
 
 detectors['ms_visual'] = {
     'name': '13IDD_PG3',
-    'prefix': 'IM_',
+    'prefix': 'IM|',
     'monitor_signal_start': '13IDD_PG3:TIFF1:WriteFile_RBV',
     'monitor_signal_start_value': 'Done',
     'monitor_signal_end': None,

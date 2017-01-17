@@ -19,7 +19,7 @@ from detectors import detectors
 class StartMonitors(QWidget):
     log_signal = QtCore.Signal(str)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, log_dict=None):
         super(StartMonitors, self).__init__()
         self.parent = parent
         self.xrd_temp_dict = collections.OrderedDict()
@@ -29,7 +29,10 @@ class StartMonitors(QWidget):
         self.us_temp_dict = collections.OrderedDict()
         self.ds_temp_dict = collections.OrderedDict()
         self.ms_temp_dict = collections.OrderedDict()
-        self.log_dict = {}
+        if log_dict is None:
+            self.log_dict = {}
+        else:
+            self.log_dict = log_dict.copy()
         self.old_heading = self.parent.read_headings()
         self.running_tasks = 0
         self.xrd_start_done = True
@@ -100,7 +103,7 @@ class StartMonitors(QWidget):
                 image_type = 0
             # self.chosen_detectors[detector]['exp_time'] = \
             #     caget(detectors[detector]['image_type_exposure_time'][image_type])
-            exposure_time = caget(detectors[detector]['image_type_exposure_time'][image_type])
+            exposure_time = caget(detectors[detector]['image_type_exposure_time'][image_type], as_string=True)
             self.chosen_detectors[detector]['temp_dict'].append(self.output_line_common_start(start_time,
                                                                                               exposure_time).copy())
 
@@ -530,7 +533,10 @@ class StartMonitors(QWidget):
 
     def update_log_label(self):
         file_name = str(self.parent.log_list.currentItem().text())
-        file_name = file_name.split('_', 1)[1]
+        try:
+            file_name = file_name.split('|', 1)[1]
+        except IndexError:
+            pass
         file_dir = file_name.replace('/', '\\').rsplit('\\', 1)[0]
         file_file = file_name.replace('/', '\\').rsplit('\\', 1)[-1]
         for row in range(self.parent.log_table.rowCount()):
@@ -545,7 +551,7 @@ class StartMonitors(QWidget):
         self.parent.log_table.resizeColumnsToContents()
 
     def view_image_file(self):
-        file_name = str(self.parent.log_list.currentItem().text()).split('_', 1)
+        file_name = str(self.parent.log_list.currentItem().text()).split('|', 1)
         if file_name[0] == 'IM':
             os.system("start " + file_name[-1])
 

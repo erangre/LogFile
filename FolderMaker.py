@@ -111,8 +111,14 @@ class FolderMaker(QtWidgets.QWidget):
         self.update_epics()
         self.update_settings()
         if not self.log_running:
+            self.caller.choose_file_name_le.setText('log_' +
+                                                    str(time.localtime().tm_year) + '_' +
+                                                    str(time.localtime().tm_mon).zfill(2) + '_' +
+                                                    str(time.localtime().tm_mday).zfill(2) +
+                                                    '.txt')
             self.caller.choose_dir = str(self.base_dir).rsplit('\\', 1)[0]
             self.caller.set_choose_dir_label()
+
         self.caller.folder_maker_settings = self.new_settings.copy()
 
     def check_dirs(self):

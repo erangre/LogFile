@@ -48,6 +48,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(self.log)
         self.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         self.min_height = self.height()
+        self.log_dict = None
 
 
 class LogWindow(QtWidgets.QWidget):
@@ -312,7 +313,7 @@ class LogWindow(QtWidgets.QWidget):
                     self.headings = curr_line.split('\t')
                 else:
                     line_data = curr_line.split('\t')
-                    file_name = line_data[1]
+                    file_name = line_data[2] + '\\' + line_data[1]
                     self.log_dict[file_name] = collections.OrderedDict()
                     for col_name, col_data in zip(self.headings, line_data):
                         self.log_dict[file_name][col_name] = col_data
@@ -361,10 +362,16 @@ class LogWindow(QtWidgets.QWidget):
         self.choose_dir_btn.setEnabled(False)
         self.choose_file_name_le.setEnabled(False)
         self.choose_detector_tb.setVisible(False)
+        self.log_list.clear()
 
         full_path = self.label_fullpath.text()
         if os.path.isfile(full_path):
             self.read_log_file(full_path)
+            try:
+                self.log_list.itemSelectionChanged.disconnect()
+            except Exception:
+                pass
+
         self.log_file = open(full_path, 'a')
         self.write_headings()
         self.log_file.flush()
@@ -372,8 +379,9 @@ class LogWindow(QtWidgets.QWidget):
         # self.set_enabled_hbox_lists(False)
         msg = 'Started logging to: ' + full_path
         self.parent().statusBar().showMessage(msg)
+
         self.log_list.itemSelectionChanged.connect(self.show_selected_info)
-        self.log_list.clear()
+
 
         self.motors_file = str(self.choose_file).rsplit('.')[0] + '_motors.txt'
         self.save_config()
@@ -382,7 +390,7 @@ class LogWindow(QtWidgets.QWidget):
         # self.html_logger = HtmlLogger(self)
         # self.html_logger.start_html_logger()
 
-        self.log_monitor = epics_monitor.StartMonitors(self)
+        self.log_monitor = epics_monitor.StartMonitors(self, self.log_dict)
 
     def stop_logging(self):
         f_time = time.asctime()
