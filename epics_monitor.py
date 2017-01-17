@@ -38,29 +38,8 @@ class StartMonitors(QWidget):
         self.xrd_start_done = True
 
         # connections
-        # self.log_signal.connect(self.output_line)
-        self.log_signal.connect(self.signal_received)
 
-        # signals to monitor
-        # camonitor(epmc['XRD_clicked'], callback=self.xrd_signal)
-        # if not self.parent.detector == 4:
-        #     camonitor(epmc['T_clicked'], callback=self.temp_signal)
-        #     camonitor(epmc['DS_saved'], callback=self.ds_signal)
-        #     camonitor(epmc['US_saved'], callback=self.us_signal)
-        #     camonitor(epmc['MS_saved'], callback=self.ms_signal)
-        # if self.parent.detector == 1 or self.parent.detector == 3:
-        #     camonitor(epmc['XRD_file_write'], callback=self.xrd_file_signal)
-        #     camonitor(epmc['XRD_detector_state'], callback=self.xrd_signal)
-        # if self.parent.detector == 2 or self.parent.detector == 3:
-        #     camonitor(epmc['pilatus_new_frame'], callback=self.pxrd_frame_signal)
-        #     camonitor(epmc['pilatus_tiff_written'], callback=self.pxrd_tiff_write_signal)
-        #     camonitor(epmc['pilatus_status'], callback=self.pxrd_status_signal)
-        # if self.parent.detector == 4:
-        #     camonitor(epmc['pec_file_write'], callback=self.pec_xrd_file_signal)
-        #     camonitor(epmc['pec_detector_state'], callback=self.pec_xrd_signal)
-        # if self.parent.detector == 5:
-        #     camonitor('13MAR345_2:cam1:DetectorState_RBV', callback=self.marip_xrd_signal)
-        #     camonitor('13MAR345_2:TIFF1:WriteFile_RBV', callback=self.marip_tiff_write_signal)
+        self.log_signal.connect(self.signal_received)
 
         self.chosen_detectors = {}
         for detector in self.parent.choose_detector_menu.actions():
@@ -94,15 +73,12 @@ class StartMonitors(QWidget):
         if phase == 'start':
             if detectors[detector]['track_running_tasks']:
                 self.running_tasks += 1
-            # self.chosen_detectors[detector]['start_time'] = time.asctime().replace(' ', '_')
             start_time = time.asctime().replace(' ', '_')
             image_type_PV = detectors[detector]['image_type_PV']
             if not image_type_PV is None:
                 image_type = caget(image_type_PV, as_string=False)
             else:
                 image_type = 0
-            # self.chosen_detectors[detector]['exp_time'] = \
-            #     caget(detectors[detector]['image_type_exposure_time'][image_type])
             exposure_time = caget(detectors[detector]['image_type_exposure_time'][image_type], as_string=True)
             self.chosen_detectors[detector]['temp_dict'].append(self.output_line_common_start(start_time,
                                                                                               exposure_time).copy())
@@ -178,38 +154,6 @@ class StartMonitors(QWidget):
         if self.running_tasks == 0:
             self.parent.set_enabled_hbox_lists(True)
 
-        # if sig_name == 'XRD_signal':
-        #     if caget(ebgcfg['XRD_frame_type'], as_string=False) == 0:  # normal frame
-        #         self.running_tasks += 1
-        #     else:  # background file
-        #         self.parent.parent().statusBar().showMessage('XRD BG collected')
-        #         return
-        #     # self.old_xrd_file_name = caget(epcf['XRD_file_name'], as_string=True)
-        #     self.parent.parent().statusBar().showMessage('XRD Collecting')
-        #     self.xrd_start_done = False
-        #     self.xrd_start_time = time.asctime().replace(' ', '_')
-        #     exp_time = caget(epcf['XRD_exp_t'], as_string=True)
-        #     self.xrd_temp_dict = self.output_line_common(self.xrd_start_time, exp_time)
-        #     self.xrd_start_done = True
-        # elif sig_name == 'XRD_end':
-        #     self.parent.parent().statusBar().showMessage('XRD Collected')
-        #     self.running_tasks -= 1
-        #     # while not self.xrd_start_done:
-        #     #     pass
-        #     # start_time = time.time()
-        #     # new_xrd_file_name = caget(epcf['XRD_file_name'], as_string=True)
-        #     # while self.old_xrd_file_name == new_xrd_file_name:
-        #     #     new_xrd_file_name = caget(epcf['XRD_file_name'], as_string=True)
-        #     #     if time.time() - start_time > 5:
-        #     #         break
-        #
-        #     new_xrd_file_name = caget(epcf['XRD_file_name'], as_string=True)
-        #     xrd_comments = caget(epcf['XRD_comment'], as_string=True)
-        #     self.output_line_common_end(new_xrd_file_name, xrd_comments, 'XRD_', self.xrd_temp_dict)
-        #     if self.parent.html_log_cb.isChecked():
-        #         self.parent.html_logger.add_XRD(new_xrd_file_name, self.xrd_temp_dict)
-
-
     def create_start_signal_function(self, detector):
         def new_start_signal_function(*args, **kwargs):
             if detectors[detector]['monitor_signal_start_value'] is None:
@@ -231,212 +175,6 @@ class StartMonitors(QWidget):
                     self.log_signal.emit(detector + '_end')
         return new_end_signal_function
 
-    def xrd_signal(self, **kwargs):
-        if kwargs['char_value'] == 'Acquire':
-            self.log_signal.emit('XRD_signal')
-
-    def xrd_file_signal(self, **kwargs):
-        if kwargs['char_value'] == 'Done':
-            self.log_signal.emit('XRD_end')
-
-    def marip_xrd_signal(self, **kwargs):
-        if kwargs['char_value'] == 'Exposing':
-            self.log_signal.emit('marip_XRD_signal')
-
-    def marip_tiff_write_signal(self, **kwargs):
-        if kwargs['char_value'] == 'Done':
-            self.log_signal.emit('marip_XRD_end')
-
-    def pec_xrd_signal(self, **kwargs):
-        if kwargs['char_value'] == 'Acquire':
-            self.log_signal.emit('pec_XRD_signal')
-
-    def pec_xrd_file_signal(self, **kwargs):
-        if kwargs['char_value'] == 'Done':
-            self.log_signal.emit('pec_XRD_end')
-
-    def pxrd_frame_signal(self, **kwargs):
-        self.log_signal.emit('pXRD_signal')
-
-    def pxrd_tiff_write_signal(self, **kwargs):
-        self.log_signal.emit('pXRD_end')
-
-    def pxrd_status_signal(self, **kwargs):
-        if kwargs['char_value'] == "Acquisition aborted":
-            self.running_tasks -= len(self.pxrd_temp)
-            self.pxrd_temp = []
-
-    def temp_signal(self, **kwargs):
-        if kwargs['char_value'] == 'Acquire':
-            self.log_signal.emit('T_signal')
-        elif kwargs['char_value'] == 'Done':
-            self.log_signal.emit('T_end')
-
-    def ds_signal(self, **kwargs):
-        if kwargs['char_value'] == 'Done':
-            self.log_signal.emit('ds_signal')
-
-    def us_signal(self, **kwargs):
-        if kwargs['char_value'] == 'Done':
-            self.log_signal.emit('us_signal')
-
-    def ms_signal(self, **kwargs):
-        if kwargs['char_value'] == 'Done':
-            self.log_signal.emit('ms_signal')
-
-    # for XRD and T signals, there is a start time and Done time.
-    def output_line(self, sig_name):
-        if sig_name == 'XRD_signal':
-            if caget(ebgcfg['XRD_frame_type'], as_string=False) == 0:  # normal frame
-                self.running_tasks += 1
-            else:  # background file
-                self.parent.parent().statusBar().showMessage('XRD BG collected')
-                return
-            # self.old_xrd_file_name = caget(epcf['XRD_file_name'], as_string=True)
-            self.parent.parent().statusBar().showMessage('XRD Collecting')
-            self.xrd_start_done = False
-            self.xrd_start_time = time.asctime().replace(' ', '_')
-            exp_time = caget(epcf['XRD_exp_t'], as_string=True)
-            self.xrd_temp_dict = self.output_line_common(self.xrd_start_time, exp_time)
-            self.xrd_start_done = True
-        elif sig_name == 'XRD_end':
-            self.parent.parent().statusBar().showMessage('XRD Collected')
-            self.running_tasks -= 1
-            # while not self.xrd_start_done:
-            #     pass
-            # start_time = time.time()
-            # new_xrd_file_name = caget(epcf['XRD_file_name'], as_string=True)
-            # while self.old_xrd_file_name == new_xrd_file_name:
-            #     new_xrd_file_name = caget(epcf['XRD_file_name'], as_string=True)
-            #     if time.time() - start_time > 5:
-            #         break
-
-            new_xrd_file_name = caget(epcf['XRD_file_name'], as_string=True)
-            xrd_comments = caget(epcf['XRD_comment'], as_string=True)
-            self.output_line_common_end(new_xrd_file_name, xrd_comments, 'XRD_', self.xrd_temp_dict)
-            if self.parent.html_log_cb.isChecked():
-                self.parent.html_logger.add_XRD(new_xrd_file_name, self.xrd_temp_dict)
-        elif sig_name == 'marip_XRD_signal':
-            self.running_tasks += 1
-            self.parent.parent().statusBar().showMessage('MAR IP XRD Collecting')
-            self.xrd_start_done = False
-            self.xrd_start_time = time.asctime().replace(' ', '_')
-            exp_time = caget('13MAR345_2:cam1:AcquireTime_RBV', as_string=True)
-            self.xrd_temp_dict = self.output_line_common(self.xrd_start_time, exp_time)
-            self.xrd_start_done = True
-        elif sig_name == 'marip_XRD_end':
-            self.parent.parent().statusBar().showMessage('MAR IP XRD Collected')
-            self.running_tasks -= 1
-            new_xrd_file_name = caget('13MAR345_2:TIFF1:FullFileName_RBV', as_string=True)
-            xrd_comments = caget('13MAR345_2:AcquireSequence.STRA', as_string=True)
-            self.output_line_common_end(new_xrd_file_name, xrd_comments, 'XRD_', self.xrd_temp_dict)
-            if self.parent.html_log_cb.isChecked():
-                self.parent.html_logger.add_XRD(new_xrd_file_name, self.xrd_temp_dict)
-        elif sig_name == 'pXRD_signal':
-            self.running_tasks += 1
-            self.parent.parent().statusBar().showMessage('XRD Collecting on Pilatus')
-            self.pxrd_start_time = time.asctime().replace(' ', '_')
-            exp_time = caget(epcf['pXRD_exp_t'], as_string=True)
-            self.pxrd_temp.append(self.output_line_common(self.pxrd_start_time, exp_time).copy())
-        elif sig_name == 'pXRD_end':
-            self.parent.parent().statusBar().showMessage('XRD Collected on Pilatus')
-            self.running_tasks -= 1
-            new_pxrd_file_name = caget(epcf['pXRD_file_name'], as_string=True)
-            pxrd_comments = caget(epcf['pXRD_comment'], as_string=True)
-            self.output_line_common_end(new_pxrd_file_name, pxrd_comments, 'XRD_', self.pxrd_temp[0])
-            if self.parent.html_log_cb.isChecked():
-                self.parent.html_logger.add_XRD(new_pxrd_file_name, self.pxrd_temp[0])
-            del self.pxrd_temp[0]
-
-        elif sig_name == 'T_signal':
-            self.running_tasks += 1
-            self.parent.parent().statusBar().showMessage('T Collecting')
-            self.T_start_done = False
-            self.T_start_time = time.asctime().replace(' ', '_')
-            detector_T = caget(epcf['T_detector'], as_string=True)  # moved this whole part including output_common
-                                                                    # from the T_end. make sure it works.
-            if detector_T in ['PIMAX_temperature', 'PIMAX_Ruby', 'PIMAX_temperature_pulsed']:
-                exp_time = caget(epcf['T_exp_t_PIMAX'], as_string=False)
-            elif detector_T in ['PIXIS_Temperature', 'PIXIS_Raman', 'PIXIS_Ruby']:
-                exp_time = caget(epcf['T_exp_t_PIXIS'], as_string=True)
-            else:
-                exp_time = caget(epcf['T_exp_t_PIXIS'], as_string=True)  # CHECK THIS
-            exp_time = '{:.2e}'.format(float(exp_time))
-            self.T_temp_dict = self.output_line_common(self.T_start_time, exp_time)
-            self.T_start_done = True
-        elif sig_name == 'T_end':
-            self.parent.parent().statusBar().showMessage('T Collected')
-            while not self.T_start_done:
-                pass
-            self.running_tasks -= 1
-            if caget(ebgcfg['T_change_image_mode']) == 2:
-                new_T_file_name = caget(epcf['T_BG_file_name'], as_string=True)
-            else:
-                new_T_file_name = caget(epcf['T_file_name'], as_string=True)
-            T_comments = self.temperature_comments()
-            time.sleep(0.5)
-            self.output_line_common_end(new_T_file_name, T_comments, 'T_', self.T_temp_dict)
-            if self.parent.html_log_cb.isChecked():
-                self.parent.html_logger.add_T(new_T_file_name, self.T_temp_dict)
-        elif sig_name == 'ds_signal':
-            self.parent.parent().statusBar().showMessage('Downstream Image Collected')
-            self.ds_start_time = time.asctime().replace(' ', '_')
-            new_ds_file_name = caget(epcf['image_ds_file_name'], as_string=True)
-            exp_time = caget(epcf['ds_exp_t'], as_string=True)
-            self.ds_temp_dict = self.output_line_common(self.ds_start_time, exp_time)
-            im_comments = self.image_comments('ds')
-            self.output_line_common_end(new_ds_file_name, im_comments, 'IM_', self.ds_temp_dict)
-            if self.parent.html_log_cb.isChecked():
-                self.parent.html_logger.add_image(new_ds_file_name, self.ds_temp_dict, 'DS')
-        elif sig_name == 'us_signal':
-            self.parent.parent().statusBar().showMessage('Upstream Image Collected')
-            self.us_start_time = time.asctime().replace(' ', '_')
-            new_us_file_name = caget(epcf['image_us_file_name'], as_string=True)
-            exp_time = caget(epcf['us_exp_t'], as_string=True)
-            self.us_temp_dict = self.output_line_common(self.us_start_time, exp_time)
-            im_comments = self.image_comments('us')
-            self.output_line_common_end(new_us_file_name, im_comments, 'IM_', self.us_temp_dict)
-            if self.parent.html_log_cb.isChecked():
-                self.parent.html_logger.add_image(new_us_file_name, self.us_temp_dict, 'US')
-        elif sig_name == 'ms_signal':
-            self.parent.parent().statusBar().showMessage('Microscope Image Collected')
-            self.ms_start_time = time.asctime().replace(' ', '_')
-            new_ms_file_name = caget(epcf['image_ms_file_name'], as_string=True)
-            exp_time = caget(epcf['ms_exp_t'], as_string=True)
-            self.ms_temp_dict = self.output_line_common(self.ms_start_time, exp_time)
-            im_comments = self.image_comments('ms')
-            self.output_line_common_end(new_ms_file_name, im_comments, 'IM_', self.ms_temp_dict)
-            if self.parent.html_log_cb.isChecked():
-                self.parent.html_logger.add_image(new_ms_file_name, self.ms_temp_dict, 'MS')
-        elif sig_name == 'pec_XRD_signal':
-            if caget(ebgcfg['pec_XRD_frame_type'], as_string=False) == 0:  # normal frame
-                self.running_tasks += 1
-            else:  # background file
-                return
-            self.old_xrd_file_name = caget(epcf['pec_XRD_file_name'], as_string=True)
-            self.parent.parent().statusBar().showMessage('pec XRD Collecting')
-            self.xrd_start_done = False
-            self.xrd_start_time = time.asctime().replace(' ', '_')
-            exp_time = caget(epcf['pec_XRD_exp_t'], as_string=True)
-            self.xrd_temp_dict = self.output_line_common(self.xrd_start_time, exp_time)
-            self.xrd_start_done = True
-        elif sig_name == 'pec_XRD_end':
-            self.parent.parent().statusBar().showMessage('pec XRD Collected')
-            while not self.xrd_start_done:
-                pass
-            start_time = time.time()
-            new_xrd_file_name = caget(epcf['pec_XRD_file_name'], as_string=True)
-            while self.old_xrd_file_name == new_xrd_file_name:
-                new_xrd_file_name = caget(epcf['pec_XRD_file_name'], as_string=True)
-                if time.time() - start_time > 5:
-                    break
-            self.running_tasks -= 1
-            new_xrd_file_name = caget(epcf['pec_XRD_file_name'], as_string=True)
-            xrd_comments = caget(epcf['pec_XRD_comment'], as_string=True)
-            self.output_line_common_end(new_xrd_file_name, xrd_comments, 'XRD_', self.xrd_temp_dict)
-            # if self.parent.html_log_cb.isChecked():
-            #     self.parent.html_logger.add_XRD(new_xrd_file_name, self.xrd_temp_dict)
-
     def output_line_common(self, start_time, exp_time):
         new_heading = self.parent.read_headings()
         if not self.old_heading == new_heading:
@@ -454,29 +192,6 @@ class StartMonitors(QWidget):
                     m_value = '0'
                 temp_dict[str(motor.text())] = m_value
         return temp_dict
-    """
-    def output_line_common_end(self, file_name, comments, prefix, temp_dict):
-        temp_dict['Directory'] = file_name.replace('/', '\\').rsplit('\\', 1)[0]
-        temp_dict['File_Name'] = file_name.replace('/', '\\').rsplit('\\', 1)[-1]
-
-        for motor in self.parent.list_motor_short.selectedItems():
-            if self.parent.motor_dict[str(motor.text())]['after']:
-                m_value = caget(self.parent.motor_dict[str(motor.text())]['PV'], as_string=True)
-                if m_value == '-2.27e-13':
-                    m_value = '0'
-                temp_dict[str(motor.text())] = m_value
-        temp_dict['Comments'] = comments
-        new_line = ''
-        for key in temp_dict:
-            new_line = new_line + str(temp_dict[key]) + '\t'
-        new_line = new_line + '\n'
-        self.parent.log_file.write(new_line)
-        self.parent.log_file.flush()
-        self.parent.log_list.insertItem(0, prefix + file_name)
-        self.update_log_dict(temp_dict, file_name)
-        if self.running_tasks == 0:
-            self.parent.set_enabled_hbox_lists(True)
-    """
 
     def create_dict(self):
         temp_dict = collections.OrderedDict()
@@ -558,29 +273,9 @@ class StartMonitors(QWidget):
 
 class StopMonitors(object):
     def __init__(self, parent=None):
-        # camonitor_clear(epmc['XRD_clicked'])
-        camonitor_clear(epmc['T_clicked'])
-        camonitor_clear(epmc['DS_saved'])
-        camonitor_clear(epmc['US_saved'])
-        camonitor_clear(epmc['MS_saved'])
-        camonitor_clear(epmc['XRD_file_write'])
-        camonitor_clear(epmc['XRD_detector_state'])
-        camonitor_clear(epmc['pilatus_new_frame'])
-        camonitor_clear(epmc['pilatus_tiff_written'])
-        camonitor_clear(epmc['pilatus_status'])
-        camonitor_clear(epmc['pec_file_write'])
-        camonitor_clear(epmc['pec_detector_state'])
-
-#
-# class MySignals(QThread):
-#     def __init__(self, signal_name, motor_names):
-#         # super(MySignals, self).__init__()  # Replaced by next line
-#         QThread.__init__(self)
-#         self.signal_name = signal_name
-#         self.motor_names = motor_names
-#
-#     def __del__(self):
-#         self.wait()
-#
-#     def run(self):
-#         self.emit(SIGNAL('new_info(QString)'), self.signal_name)
+        self.parent = parent
+        for detector in self.parent.choose_detector_menu.actions():
+            if detector.isChecked():
+                camonitor_clear(detectors[detector.text()]['monitor_signal_start'])
+                if detectors[detector.text()]['monitor_signal_end'] is not None:
+                    camonitor_clear(detectors[detector.text()]['monitor_signal_end'])
