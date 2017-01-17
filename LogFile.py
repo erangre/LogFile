@@ -289,6 +289,7 @@ class LogWindow(QtWidgets.QWidget):
         self.setup_btn.setEnabled(False)
         self.choose_dir_btn.setEnabled(False)
         self.view_image_btn.setEnabled(False)
+        self.choose_detector_tb.setEnabled(False)
 
         self.read_log_file(load_log_name)
         self.reload_log_btn.show()
