@@ -149,7 +149,7 @@ class StartMonitors(QWidget):
         new_line = new_line + '\n'
         self.parent.log_file.write(new_line)
         self.parent.log_file.flush()
-        self.parent.log_list.insertItem(0, prefix + file_name)
+        self.parent.log_list.insertItem(0, prefix + '|' + file_name)
         self.update_log_dict(temp_dict, file_name)
         if self.running_tasks == 0:
             self.parent.set_enabled_hbox_lists(True)

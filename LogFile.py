@@ -48,7 +48,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(self.log)
         self.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         self.min_height = self.height()
-        self.log_dict = None
 
 
 class LogWindow(QtWidgets.QWidget):
@@ -56,6 +55,7 @@ class LogWindow(QtWidgets.QWidget):
         super(LogWindow, self).__init__(parent)
         self._filter = Filter()
         self.motor_dict = {}
+        self.log_dict = None
 
         self.choose_dir = DEF_DIR
         self.choose_file = DEF_FILE
