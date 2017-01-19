@@ -113,8 +113,6 @@ class LogWindow(QtWidgets.QWidget):
         self.html_log_cb.setChecked(False)
         self.html_log_cb.hide()
         self.html_log_cb.setToolTip('Enable logging to HTML file')
-        # self.choose_detector_cb.addItems(['none', 'marccd2', 'pilatus', 'both', 'pec_marccd1', 'mar_ip2'])
-        # self.choose_detector_cb.setCurrentIndex(1)
         self.choose_detector_tb.setText('Detectors')
         self.choose_detector_menu = QtWidgets.QMenu()
         for detector in detectors:
@@ -161,7 +159,6 @@ class LogWindow(QtWidgets.QWidget):
         hbox_control.addStretch(1)
         hbox_control.addWidget(self.label_end_time)
         hbox_control.addStretch(1)
-        # hbox_control.addWidget(self.choose_detector_cb)
         hbox_control.addWidget(self.choose_detector_tb)
         hbox_control.addWidget(self.comment_btn)
         hbox_control.addWidget(self.show_log_btn)
@@ -241,7 +238,6 @@ class LogWindow(QtWidgets.QWidget):
         self.show()
         QtWidgets.QToolTip.setFont(QtGui.QFont('SansSerif', 10))
         self.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        # self.load_motor_list('base_motors.txt')
         self.load_config()
         if caget == None or caput == None:
             self.disable_epics()
@@ -355,9 +351,6 @@ class LogWindow(QtWidgets.QWidget):
         self.start_btn.setEnabled(False)
         self.load_log_btn.setEnabled(False)
         self.stop_btn.setEnabled(True)
-        # self.setup_btn.hide()
-        # if self.setup_btn.isChecked():
-        #     self.setup_btn.click()
         self.show_log_btn.show()
         # self.comment_btn.show()
         # self.html_log_cb.show()
@@ -744,7 +737,6 @@ class LogWindow(QtWidgets.QWidget):
         for detector in self.choose_detector_menu.actions():
             if str(detector.text()) in self.detectors:
                 detector.setChecked(True)
-        # self.choose_detector_cb.setCurrentIndex(self.detector)
 
     def save_config(self):
         cfg_file = open('log_config.txt', 'w')

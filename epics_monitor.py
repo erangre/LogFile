@@ -209,43 +209,6 @@ class StartMonitors(QWidget):
         for key in temp_dict:
             self.log_dict[str(file_name)][key] = temp_dict[key]
 
-    def temperature_comments(self):
-        Tfilter = caget(epcf['T_filter'], as_string=False)
-        if Tfilter:
-            T_comment = 'In'
-        else:
-            T_comment = 'Out'
-        T_comment = 'Filter: ' + T_comment
-        Tshutter = caget(epcf['T_shutter'], as_string=False)
-        if Tshutter:
-            T_comment = T_comment + ', Laser Shutter: Open'
-        else:
-            T_comment = T_comment + ', Laser Shutter: CLOSED'
-        return T_comment
-
-    def image_comments(self, stream):
-        im_comments = 'Gain: '
-        if stream == 'ds':
-            im_comments = im_comments + caget(epcf['ds_gain'], as_string=True) + ', '
-        elif stream == 'us':
-            im_comments = im_comments + caget(epcf['us_gain'], as_string=True) + ', '
-        elif stream == 'ms':
-            im_comments = im_comments + caget(epcf['ms_gain'], as_string=True) + ', '
-            zoom_state = caget(epcf['ms_zoom'], as_string=True)
-            im_comments = im_comments + 'Zoom: ' + zoom_state
-            return im_comments
-        ds_on_off = self.on_off(caget(epcf['ds_light_sw'], as_string=False))
-        us_on_off = self.on_off(caget(epcf['us_light_sw'], as_string=False))
-        im_comments = im_comments + 'DS Light: ' + ds_on_off + ':' + caget(epcf['ds_light_int'], as_string=True)
-        im_comments = im_comments + ', US Light: ' + us_on_off + ':' + caget(epcf['us_light_int'], as_string=True)
-        return im_comments
-
-    def on_off(self, zero_one):
-        if zero_one:
-            return 'ON'
-        else:
-            return 'OFF'
-
     def update_log_label(self):
         file_name = str(self.parent.log_list.currentItem().text())
         try:
