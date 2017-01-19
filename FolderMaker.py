@@ -107,7 +107,7 @@ class FolderMaker(QtWidgets.QWidget):
                 self.chosen_detectors[detector].value_changed()
 
     def create_btn_clicked(self):
-        self.check_dirs()
+        self.check_and_make_dirs()
         self.update_epics()
         self.update_settings()
         if not self.log_running:
@@ -121,16 +121,16 @@ class FolderMaker(QtWidgets.QWidget):
 
         self.caller.folder_maker_settings = self.new_settings.copy()
 
-    def check_dirs(self):
+    def check_and_make_dirs(self):
         base_dir = str(self.base_dir)
-        self.check_one_dir(base_dir, 'Created base directory: ')
+        self.check_and_make_one_dir(base_dir, 'Created base directory: ')
 
         for detector in self.chosen_detectors:
             full_path = self.chosen_detectors[detector].full_path
             path, file = os.path.split(full_path)
-            self.check_one_dir(path, 'Created path for ' + detector + ': ')
+            self.check_and_make_one_dir(path, 'Created path for ' + detector + ': ')
 
-    def check_one_dir(self, full_path, message):
+    def check_and_make_one_dir(self, full_path, message):
         if not os.path.isdir(full_path):
             os.makedirs(full_path)
             print(message + full_path)
@@ -165,6 +165,7 @@ class FolderMaker(QtWidgets.QWidget):
             self.new_settings[detector]['rel_dir_edit'] = self.chosen_detectors[detector].rel_dir_edit.text()
             self.new_settings[detector]['base_name_edit'] = self.chosen_detectors[detector].base_name_edit.text()
             self.new_settings[detector]['num_edit'] = self.chosen_detectors[detector].num_edit.text()
+            self.chosen_detectors[detector].update_path()
         self.new_settings['general'] = {}
         self.new_settings['general']['base_dir'] = self.main_dir_edit.text()
         self.new_settings['general']['year'] = self.year_edit.text()
@@ -186,7 +187,7 @@ class DetectorSection(QtWidgets.QGroupBox):
         self.value_changed()
 
     def create_widgets(self):
-        self.update_label = QtWidgets.QLabel('Auto Update?')
+        self.update_label = QtWidgets.QLabel('Link to basedir?')
         self.update_cb = QtWidgets.QCheckBox()
         self.detector_label = QtWidgets.QLabel()
         self.rel_dir_edit = QtWidgets.QLineEdit()
@@ -207,6 +208,9 @@ class DetectorSection(QtWidgets.QGroupBox):
             self.num_edit.setText(parameters['num_edit'])
             self.update_cb.setChecked(parameters['update_toggle'])
         self.detector_label.setText(self.detector + ' directory / basename / #:')
+        self.full_path_label_font = QtGui.QFont()
+        self.full_path_label_font.setBold(True)
+        self.full_path_label.setFont(self.full_path_label_font)
 
     def setup_connections(self):
         self.rel_dir_edit.textChanged.connect(self.value_changed)
@@ -248,6 +252,10 @@ class DetectorSection(QtWidgets.QGroupBox):
                                       str(self.base_name_edit.text()) + '_' + str(self.num_edit.text()).zfill(3))
 
         self.full_path_label.setText(self.full_path)
+        if os.path.isdir(self.full_path.rsplit('\\', 1)[0]):
+            self.full_path_label.setStyleSheet("QLabel {color:green}")
+        else:
+            self.full_path_label.setStyleSheet("QLabel {color:red}")
 
 
 def main():
