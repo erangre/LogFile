@@ -157,7 +157,7 @@ class StartMonitors(QWidget):
     def create_start_signal_function(self, detector):
         def new_start_signal_function(*args, **kwargs):
             if detectors[detector]['monitor_signal_start_value'] is None:
-                self.log_signal.emit(detector)
+                self.log_signal.emit(detector + '_start')
             else:
                 if kwargs['char_value'] == detectors[detector]['monitor_signal_start_value']:
                     self.log_signal.emit(detector + '_start')
@@ -169,7 +169,7 @@ class StartMonitors(QWidget):
     def create_end_signal_function(self, detector):
         def new_end_signal_function(*args, **kwargs):
             if detectors[detector]['monitor_signal_end_value'] is None:
-                self.log_signal.emit(detector)
+                self.log_signal.emit(detector + '_end')
             else:
                 if kwargs['char_value'] == detectors[detector]['monitor_signal_end_value']:
                     self.log_signal.emit(detector + '_end')
