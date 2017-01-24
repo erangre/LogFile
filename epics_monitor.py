@@ -62,20 +62,22 @@ class StartMonitors(QWidget):
         detector, phase = sig_name.rsplit('_', 1)
         frame_type_PV = detectors[detector]['frame_type_PV']
 
-        if not frame_type_PV is None:
+        if frame_type_PV is not None:
             frame_type = caget(frame_type_PV, as_string=False)
         else:
             frame_type = 0
         self.parent.parent().statusBar().showMessage(
             detectors[detector]['frame_type_messages'][frame_type] + ' ' + phase)
         if not frame_type == 0:
-            return
+            if detectors[detector]['new_file_name'][frame_type] is None:
+                return
+
         if phase == 'start':
             if detectors[detector]['track_running_tasks']:
                 self.running_tasks += 1
             start_time = time.asctime().replace(' ', '_')
             image_type_PV = detectors[detector]['image_type_PV']
-            if not image_type_PV is None:
+            if image_type_PV is not None:
                 image_type = caget(image_type_PV, as_string=False)
             else:
                 image_type = 0
@@ -84,7 +86,7 @@ class StartMonitors(QWidget):
                                                                                               exposure_time).copy())
 
             if detectors[detector]['monitor_signal_end'] is None:
-                new_file_name = caget(detectors[detector]['new_file_name'][image_type], as_string=True)
+                new_file_name = caget(detectors[detector]['new_file_name'][frame_type], as_string=True)
                 comments = self.build_comments(detector)
                 self.output_line_common_end(detectors[detector]['prefix'], new_file_name, comments,
                                             self.chosen_detectors[detector]['temp_dict'][0])
@@ -97,7 +99,7 @@ class StartMonitors(QWidget):
                 image_type = 0
             else:
                 image_type = caget(image_type_PV, as_string=False)
-            new_file_name = caget(detectors[detector]['new_file_name'][0], as_string=True)
+            new_file_name = caget(detectors[detector]['new_file_name'][frame_type], as_string=True)
             comments = self.build_comments(detector)
             self.output_line_common_end(detectors[detector]['prefix'], new_file_name, comments,
                                         self.chosen_detectors[detector]['temp_dict'][0])

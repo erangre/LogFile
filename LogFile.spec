@@ -4,13 +4,13 @@ block_cipher = None
 
 
 a = Analysis(['LogFile.py'],
-             pathex=['C:\\Users\\dac_user\\PycharmProjects\\LogFile'],
-             binaries=None,
-             datas=None,
+             pathex=['C:\\GitHub\\LogFile'],
+             binaries=[],
+             datas=[],
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
-             excludes=[],
+             excludes=['epics'],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher)

@@ -96,7 +96,7 @@ detectors['lightfield'] =  {
     'monitor_signal_end': '13IDDLF1:cam1:Acquire',
     'monitor_signal_end_value': 'Done',
     'track_running_tasks': False,
-    'frame_type_PV': '13MARCCD2:cam1:FrameType',
+    'frame_type_PV': '13IDDLF1:cam1:ImageMode',
     'frame_type_values': {0: 'normal',
                           2: 'background',
                           },
