@@ -90,7 +90,7 @@ class LogWindow(QtWidgets.QWidget):
         self.motor_move_up_btn = QtWidgets.QPushButton(u'\u2191')
         self.motor_move_dn_btn = QtWidgets.QPushButton(u'\u2193')
         self.motor_toggle_after_btn = QtWidgets.QPushButton('Before/After')
-        self.collect_bg_btn = QtWidgets.QPushButton('Collect BG Files')
+        # self.collect_bg_btn = QtWidgets.QPushButton('Collect BG Files')
         self.create_folders_btn = QtWidgets.QPushButton('Create Folders')
         self.log_list = QtWidgets.QListWidget(self)
         self.splitter_log = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
@@ -176,7 +176,7 @@ class LogWindow(QtWidgets.QWidget):
         self.grid_list_buttons.addWidget(self.motor_add_btn, 2, 1, 1, 1)
         self.grid_list_buttons.addWidget(self.motor_rename_btn, 2, 2, 1, 1)
         self.grid_list_buttons.addWidget(self.motor_toggle_after_btn, 1, 0, 1, 1)
-        self.grid_list_buttons.addWidget(self.collect_bg_btn, 3, 0, 1, 1)
+        # self.grid_list_buttons.addWidget(self.collect_bg_btn, 3, 0, 1, 1)
         self.grid_list_buttons.addWidget(self.create_folders_btn, 3, 1, 1, 1)
         self.hbox_lists.addLayout(self.grid_list_buttons)
 
@@ -228,7 +228,7 @@ class LogWindow(QtWidgets.QWidget):
         self.motor_move_dn_btn.clicked.connect(self.move_dn_motors)
         self.motor_toggle_after_btn.clicked.connect(self.toggle_after)
         self.view_image_btn.clicked.connect(self.open_image_file)
-        self.collect_bg_btn.clicked.connect(self.collect_bgs)
+        # self.collect_bg_btn.clicked.connect(self.collect_bgs)
         self.create_folders_btn.clicked.connect(self.run_create_folders_widget)
         self.choose_detector_menu.triggered.connect(self.choose_detector_tb.click)
         self.choose_detector_tb.clicked.connect(self.choose_detector_changed)
@@ -439,53 +439,53 @@ class LogWindow(QtWidgets.QWidget):
         for detector in self.choose_detector_menu.actions():
             if detector.isChecked():
                 self.detectors.append(detector.text())
+    #
+    # def collect_bgs(self):
+    #     msg = 'Please input background exposure time'
+    #     exp_time, ok = QtWidgets.QInputDialog.getDouble(self, 'Background collection', msg, 1, 1, 10)
+    #     #(print exp_time)
+    #     # print(ok)
+    #     if ok:
+    #         self.collect_T_bg(exp_time)
+    #         self.collect_XRD_bg(exp_time)
+    #         print('Background collected')
 
-    def collect_bgs(self):
-        msg = 'Please input background exposure time'
-        exp_time, ok = QtWidgets.QInputDialog.getDouble(self, 'Background collection', msg, 1, 1, 10)
-        #(print exp_time)
-        # print(ok)
-        if ok:
-            self.collect_T_bg(exp_time)
-            self.collect_XRD_bg(exp_time)
-            print('Background collected')
+    # def collect_T_bg(self, exp_time):  # Image mode 2 is background, 0 is normal
+    #     save_ds_light = caget(ebgcfg['ds_light'], as_string=False)
+    #     save_us_light = caget(ebgcfg['us_light'], as_string=False)
+    #     caput(ebgcfg['ds_light'], 0, wait=True)
+    #     caput(ebgcfg['us_light'], 0, wait=True)
+    #     detector_T = caget(ebgcfg['T_detector'], as_string=True)
+    #     if detector_T == 'PIMAX_temperature':
+    #         caput(ebgcfg['T_PIMAX_exposure_Time'], str(exp_time), wait=True)
+    #     elif detector_T == 'PIXIS_Temperature':
+    #         caput(ebgcfg['T_PIXIS_exposure_Time'], str(exp_time), wait=True)
+    #     else:
+    #         msg = 'Incorrect T detector - T not collected'
+    #         self.parent().statusBar().showMessage(msg)
+    #         return
+    #     caput(ebgcfg['T_change_image_mode'], 2, wait=True)
+    #     caput(ebgcfg['T_acquire'], 1, wait=True)
+    #     caput(ebgcfg['T_change_image_mode'], 0, wait=True)
+    #     msg = 'Collected T background'
+    #     caput(ebgcfg['ds_light'], save_ds_light, wait=True)
+    #     caput(ebgcfg['us_light'], save_us_light, wait=True)
+    #     self.parent().statusBar().showMessage(msg)
+    #
+    # def collect_XRD_bg(self, exp_time):  # Frame Type 1 is background, 0 is normal
+    #     caput(ebgcfg['XRD_frame_type'], 1, wait=True)
+    #     caput(ebgcfg['XRD_acquire_time'], exp_time, wait=True)
+    #     caput(ebgcfg['XRD_acquire_start'], 1, wait=True)
+    #     thread.start_new_thread(self.end_xrd_bg, ())
 
-    def collect_T_bg(self, exp_time):  # Image mode 2 is background, 0 is normal
-        save_ds_light = caget(ebgcfg['ds_light'], as_string=False)
-        save_us_light = caget(ebgcfg['us_light'], as_string=False)
-        caput(ebgcfg['ds_light'], 0, wait=True)
-        caput(ebgcfg['us_light'], 0, wait=True)
-        detector_T = caget(ebgcfg['T_detector'], as_string=True)
-        if detector_T == 'PIMAX_temperature':
-            caput(ebgcfg['T_PIMAX_exposure_Time'], str(exp_time), wait=True)
-        elif detector_T == 'PIXIS_Temperature':
-            caput(ebgcfg['T_PIXIS_exposure_Time'], str(exp_time), wait=True)
-        else:
-            msg = 'Incorrect T detector - T not collected'
-            self.parent().statusBar().showMessage(msg)
-            return
-        caput(ebgcfg['T_change_image_mode'], 2, wait=True)
-        caput(ebgcfg['T_acquire'], 1, wait=True)
-        caput(ebgcfg['T_change_image_mode'], 0, wait=True)
-        msg = 'Collected T background'
-        caput(ebgcfg['ds_light'], save_ds_light, wait=True)
-        caput(ebgcfg['us_light'], save_us_light, wait=True)
-        self.parent().statusBar().showMessage(msg)
-
-    def collect_XRD_bg(self, exp_time):  # Frame Type 1 is background, 0 is normal
-        caput(ebgcfg['XRD_frame_type'], 1, wait=True)
-        caput(ebgcfg['XRD_acquire_time'], exp_time, wait=True)
-        caput(ebgcfg['XRD_acquire_start'], 1, wait=True)
-        thread.start_new_thread(self.end_xrd_bg, ())
-
-    def end_xrd_bg(self):
-        while not caget(ebgcfg['XRD_collect_status'], as_string=True) == 'Done':
-            continue
-        while not caget(ebgcfg['XRD_detector_state'], as_string=True) == 'Idle':
-            continue
-        caput(ebgcfg['XRD_frame_type'], 0, wait=True)
-        msg = 'Collected XRD background'
-        self.parent().statusBar().showMessage(msg)
+    # def end_xrd_bg(self):
+    #     while not caget(ebgcfg['XRD_collect_status'], as_string=True) == 'Done':
+    #         continue
+    #     while not caget(ebgcfg['XRD_detector_state'], as_string=True) == 'Idle':
+    #         continue
+    #     caput(ebgcfg['XRD_frame_type'], 0, wait=True)
+    #     msg = 'Collected XRD background'
+    #     self.parent().statusBar().showMessage(msg)
 
     def load_motor_list(self, file_name=None):
         if not file_name or not os.path.isfile(file_name):
