@@ -239,6 +239,7 @@ class LogWindow(QtWidgets.QWidget):
 
         if caget == None or caput == None:
             self.disable_epics()
+            self.load_log_file_settings(offline=True)
         else:
             self.load_log_file_settings()
 
@@ -272,7 +273,8 @@ class LogWindow(QtWidgets.QWidget):
     def load_previous_log(self, file_name=None):
         if not file_name:
             msg = 'Choose log file to view'
-            load_log_name, _ = QtWidgets.QFileDialog.getOpenFileName(self, msg, '.', 'Text Files (*.txt)')
+            load_log_name, _ = QtWidgets.QFileDialog.getOpenFileName(self, msg, directory=self.offline_log_file,
+                                                                     filter='Text Files (*.txt)' )
         else:
             load_log_name = file_name
 
@@ -290,6 +292,7 @@ class LogWindow(QtWidgets.QWidget):
 
         self.read_log_file(load_log_name)
         self.reload_log_btn.show()
+        self.log_file_settings.setValue('offline_log_file', load_log_name)
 
     def read_log_file(self, load_log_name=None):
         self.log_dict = collections.OrderedDict()
@@ -669,7 +672,13 @@ class LogWindow(QtWidgets.QWidget):
         if ok_sn:
             self.html_logger.add_comment_line(new_comment)
 
-    def load_log_file_settings(self):
+    def load_log_file_settings(self, offline=False):
+
+        self.offline_log_file = self.log_file_settings.value('offline_log_file', defaultValue=None)
+
+        if offline:
+            return
+
         self.choose_dir = self.log_file_settings.value('log_file_dir', defaultValue=self.choose_dir)
         self.choose_file = self.log_file_settings.value('log_file_name', defaultValue=self.choose_file)
         self.motors_file = self.log_file_settings.value('pv_list_file', defaultValue='')
