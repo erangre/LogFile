@@ -85,6 +85,7 @@ class StartMonitors(QWidget):
                 comments = self.build_comments(detector)
                 self.output_line_common_end(detectors[detector]['prefix'], new_file_name, comments,
                                             self.chosen_detectors[detector]['temp_dict'][0])
+                del (self.chosen_detectors[detector]['temp_dict'][0])
 
         elif phase == 'end':
             if detectors[detector]['track_running_tasks']:
