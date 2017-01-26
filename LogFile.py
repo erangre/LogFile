@@ -668,14 +668,15 @@ class LogWindow(QtWidgets.QWidget):
             self.html_logger.add_comment_line(new_comment)
 
     def load_log_file_settings(self):
-        self.choose_dir = self.log_file_settings.value('log_file_dir', defaultValue=None)
-        self.choose_file = self.log_file_settings.value('log_file_name', defaultValue=None)
-        self.motors_file = self.log_file_settings.value('pv_list_file', defaultValue=None)
-        self.detectors = self.log_file_settings.value('detectors', defaultValue=None)
+        self.choose_dir = self.log_file_settings.value('log_file_dir', defaultValue=self.choose_dir)
+        self.choose_file = self.log_file_settings.value('log_file_name', defaultValue=self.choose_file)
+        self.motors_file = self.log_file_settings.value('pv_list_file', defaultValue='')
+        self.detectors = self.log_file_settings.value('detectors', defaultValue=[])
 
         self.choose_file_name_le.setText(self.choose_file)
         self.set_choose_dir_label()
         self.load_motor_list(self.motors_file)
+
         for detector in self.choose_detector_menu.actions():
             if str(detector.text()) in self.detectors:
                 detector.setChecked(True)
