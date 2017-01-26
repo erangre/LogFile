@@ -236,9 +236,11 @@ class LogWindow(QtWidgets.QWidget):
         QtWidgets.QToolTip.setFont(QtGui.QFont('SansSerif', 10))
         self.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         # self.load_config()
-        self.load_log_file_settings()
+
         if caget == None or caput == None:
             self.disable_epics()
+        else:
+            self.load_log_file_settings()
 
     def disable_epics(self):
         self.setup_btn.setVisible(False)
