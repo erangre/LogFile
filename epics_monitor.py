@@ -3,16 +3,11 @@ try:
     from epics import caput, caget, PV, camonitor, camonitor_clear
 except ImportError:
     epics = None
-from connect_epics import epics_config_fixed as epcf
-from connect_epics import epics_monitor_config as epmc
-from connect_epics import epics_BG_config as ebgcfg
-from qtpy.QtCore import *
+
 from qtpy import QtCore
 from qtpy.QtWidgets import *
-from qtpy.QtGui import *
 import collections
 import os
-import threading
 from detectors import detectors
 
 

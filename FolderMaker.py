@@ -7,87 +7,81 @@ try:
     from epics import caget
 except ImportError:
     epics = None
-from connect_epics import epics_prepare as epp
 from qtpy import QtGui, QtCore, QtWidgets
 from detectors import detectors
 import collections
 
 
 class FolderMaker(QtWidgets.QWidget):
-    def __init__(self, parent=None, running=False, chosen_detectors=None, previous_settings=None):
+    def __init__(self, parent=None, running=False, chosen_detectors=None, previous_detector_settings=None):
         super(FolderMaker, self).__init__()
+        self.folder_maker_settings = QtCore.QSettings("Logger", "FolderMaker")
         self.caller = parent
         self.log_running = running
-        # self.use_marccd = use_marccd
-        # self.use_pil3 = use_pil3
         self.setWindowTitle('Create folders and setup')
         self.setWindowIcon(QtGui.QIcon('icons/folder.jpg'))
         self.show()
         self.setGeometry(100, 100, 300, 200)
         self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
-        if previous_settings is None:
+        if previous_detector_settings is None:
             self.new_settings = collections.OrderedDict()
             for detector in chosen_detectors:
                 self.new_settings[detector] = None
         else:
-            self.new_settings = previous_settings
+            self.new_settings = previous_detector_settings
 
         self.chosen_detectors = collections.OrderedDict()
         for detector in chosen_detectors:
             self.chosen_detectors[detector] = DetectorSection(detector, self.new_settings[detector])
 
         # Create Widgets
-        self.year_label = QtWidgets.QLabel()
-        self.year_edit = QtWidgets.QLineEdit()
-        self.cycle_label = QtWidgets.QLabel()
-        self.cycle_edit = QtWidgets.QLineEdit()
-        self.main_dir_label = QtWidgets.QLabel()
+        self.advanced_settings_gb = AdvancedSettingsSection()
+        self.main_dir_label = QtWidgets.QLabel('Group Name:')
         self.main_dir_edit = QtWidgets.QLineEdit()
+        self.full_path_header = QtWidgets.QLabel('Full Path:')
+        self.full_path_label = QtWidgets.QLabel()
+        self.show_advanced_settings_btn = QtWidgets.QPushButton('Advanced')
         self.create_btn = QtWidgets.QPushButton('Create')
 
         # Set Widget Properties
         self.all_time = time.localtime()
-        self.year_label.setText('Year:')
-        self.cycle_label.setText('Cycle:')
-        self.main_dir_label.setText('Main Directory:')
+        self.advanced_settings_gb.hide()
+        self.show_advanced_settings_btn.setCheckable(True)
 
-        if previous_settings is None:
+        if previous_detector_settings is None:
             self.main_dir_edit.setText('GroupName')
-            self.year_edit.setText(str(self.all_time.tm_year))
-            self.cycle_edit.setText(str(self.get_cycle()))
+            self.advanced_settings_gb.year_edit.setText(str(self.all_time.tm_year))
+            self.advanced_settings_gb.cycle_edit.setText(str(self.get_cycle()))
         else:
-            self.main_dir_edit.setText(previous_settings['general']['base_dir'])
-            self.year_edit.setText(previous_settings['general']['year'])
-            self.cycle_edit.setText(previous_settings['general']['cycle'])
+            self.main_dir_edit.setText(previous_detector_settings['general']['base_dir'])
+            self.advanced_settings_gb.year_edit.setText(previous_detector_settings['general']['year'])
+            self.advanced_settings_gb.cycle_edit.setText(previous_detector_settings['general']['cycle'])
 
         # Connections
         self.create_btn.clicked.connect(self.create_btn_clicked)
-        self.year_edit.textChanged.connect(self.update_all_full_paths)
-        self.cycle_edit.textChanged.connect(self.update_all_full_paths)
         self.main_dir_edit.textChanged.connect(self.update_all_full_paths)
+        self.advanced_settings_gb.advancedSettingsChanged.connect(self.update_all_full_paths)
+        self.show_advanced_settings_btn.clicked.connect(self.show_advanced_settings_btn_clicked)
 
         # Set Layout
         self.vbox = QtWidgets.QVBoxLayout()
 
         self.grid_layout_general = QtWidgets.QGridLayout()
-        self.grid_layout_general.addWidget(self.year_label, 0, 0, 1, 1)
-        self.grid_layout_general.addWidget(self.year_edit, 0, 1, 1, 1)
-        self.grid_layout_general.addWidget(self.cycle_label, 0, 2, 1, 1)
-        self.grid_layout_general.addWidget(self.cycle_edit, 0, 3, 1, 1)
-        self.grid_layout_general.addWidget(self.main_dir_label, 1, 0, 1, 1)
-        self.grid_layout_general.addWidget(self.main_dir_edit, 1, 1, 1, 3)
+        self.grid_layout_general.addWidget(self.main_dir_label, 0, 0, 1, 1)
+        self.grid_layout_general.addWidget(self.main_dir_edit, 0, 1, 1, 3)
+        self.grid_layout_general.addWidget(self.full_path_header, 1, 0, 1, 1)
+        self.grid_layout_general.addWidget(self.full_path_label, 1, 1, 1, 3)
+        self.grid_layout_general.addWidget(self.show_advanced_settings_btn, 2, 0, 1, 1)
         self.grid_layout_general.setVerticalSpacing(12)
 
         self.vbox.addLayout(self.grid_layout_general)
+        self.vbox.addWidget(self.advanced_settings_gb)
         for detector in self.chosen_detectors:
             self.vbox.addWidget(self.chosen_detectors[detector])
         self.vbox.addWidget(self.create_btn)
 
         self.setLayout(self.vbox)
-
-        # self.base_dir = 'T:\\dac_user\\' + self.year_edit.text() + '\\IDD_' + self.year_edit.text() + '-' + \
-        #                 self.cycle_edit.text() + '\\' + self.main_dir_edit.text() + '\\'
-
+        self.load_folder_maker_settings()
         self.update_all_full_paths()
 
     def get_cycle(self):
@@ -99,17 +93,29 @@ class FolderMaker(QtWidgets.QWidget):
             return 3
 
     def update_all_full_paths(self):
-        self.base_dir = 'T:\\dac_user\\' + self.year_edit.text() + '\\IDD_' + self.year_edit.text() + '-' + \
-                        self.cycle_edit.text() + '\\' + self.main_dir_edit.text() + '\\'
+        root_dir = self.advanced_settings_gb.root_format_edit.text().format(
+            year=self.advanced_settings_gb.year_edit.text(),
+            cycle=self.advanced_settings_gb.cycle_edit.text()
+        )
+        self.base_dir = os.path.join(root_dir, self.main_dir_edit.text())
+        self.full_path_label.setText(self.base_dir)
+
         for detector in self.chosen_detectors:
             if self.chosen_detectors[detector].update_cb.isChecked():
                 self.chosen_detectors[detector].base_dir = self.base_dir
                 self.chosen_detectors[detector].value_changed()
 
+    def show_advanced_settings_btn_clicked(self):
+        if self.advanced_settings_gb.isVisible():
+            self.advanced_settings_gb.hide()
+        else:
+            self.advanced_settings_gb.show()
+
     def create_btn_clicked(self):
         self.check_and_make_dirs()
         self.update_epics()
-        self.update_settings()
+        self.update_detector_settings()
+        self.save_folder_maker_settings()
         if not self.log_running:
             self.caller.choose_file_name_le.setText('log_' +
                                                     str(time.localtime().tm_year) + '_' +
@@ -155,7 +161,7 @@ class FolderMaker(QtWidgets.QWidget):
             caput(detectors[detector]['file_name'], file)
             caput(detectors[detector]['file_number'], number)
 
-    def update_settings(self):
+    def update_detector_settings(self):
         for detector in self.chosen_detectors:
             self.new_settings[detector] = {}
             self.new_settings[detector]['detector_name'] = detector
@@ -168,8 +174,70 @@ class FolderMaker(QtWidgets.QWidget):
             self.chosen_detectors[detector].update_path()
         self.new_settings['general'] = {}
         self.new_settings['general']['base_dir'] = self.main_dir_edit.text()
-        self.new_settings['general']['year'] = self.year_edit.text()
-        self.new_settings['general']['cycle'] = self.cycle_edit.text()
+        self.new_settings['general']['year'] = self.advanced_settings_gb.year_edit.text()
+        self.new_settings['general']['cycle'] = self.advanced_settings_gb.cycle_edit.text()
+
+    def load_folder_maker_settings(self):
+        year = self.folder_maker_settings.value('year', defaultValue=None)
+        if year is None:
+            self.advanced_settings_gb.year_edit.setText(self.all_time.tm_year)
+        else:
+            self.advanced_settings_gb.year_edit.setText(year)
+
+        cycle = self.folder_maker_settings.value('cycle', defaultValue=None)
+        if cycle is None:
+            self.advanced_settings_gb.cycle_edit.setText(self.get_cycle())
+        else:
+            self.advanced_settings_gb.cycle_edit.setText(cycle)
+
+        root_dir_format = self.folder_maker_settings.value('root_dir_format', defaultValue=None)
+        if root_dir_format is None:
+            self.advanced_settings_gb.root_format_edit.setText('')
+        else:
+            self.advanced_settings_gb.root_format_edit.setText(root_dir_format)
+
+    def save_folder_maker_settings(self):
+        self.folder_maker_settings.setValue('year', self.advanced_settings_gb.year_edit.text())
+        self.folder_maker_settings.setValue('cycle', self.advanced_settings_gb.cycle_edit.text())
+        self.folder_maker_settings.setValue('root_dir_format', self.advanced_settings_gb.root_format_edit.text())
+
+
+class AdvancedSettingsSection(QtWidgets.QGroupBox):
+
+    advancedSettingsChanged = QtCore.Signal()
+
+    def __init__(self):
+        super(AdvancedSettingsSection, self).__init__()
+        self.create_widgets()
+        self.setup_connections()
+        self.set_layout()
+
+    def create_widgets(self):
+        self.year_label = QtWidgets.QLabel('Year')
+        self.year_edit = QtWidgets.QLineEdit()
+        self.cycle_label = QtWidgets.QLabel('Cycle')
+        self.cycle_edit = QtWidgets.QLineEdit()
+        self.root_format_label = QtWidgets.QLabel('Root Format')
+        self.root_format_edit = QtWidgets.QLineEdit()
+
+    def setup_connections(self):
+        self.year_edit.editingFinished.connect(self.emit_advanced_settings_changed)
+        self.cycle_edit.editingFinished.connect(self.emit_advanced_settings_changed)
+        self.root_format_edit.editingFinished.connect(self.emit_advanced_settings_changed)
+
+    def set_layout(self):
+        self.grid_layout_section = QtWidgets.QGridLayout()
+        self.grid_layout_section.addWidget(self.year_label, 0, 0, 1, 1)
+        self.grid_layout_section.addWidget(self.year_edit, 0, 1, 1, 1)
+        self.grid_layout_section.addWidget(self.cycle_label, 0, 2, 1, 1)
+        self.grid_layout_section.addWidget(self.cycle_edit, 0, 3, 1, 1)
+        self.grid_layout_section.addWidget(self.root_format_label, 1, 0, 1, 1)
+        self.grid_layout_section.addWidget(self.root_format_edit, 1, 1, 1, 3)
+        self.grid_layout_section.setVerticalSpacing(12)
+        self.setLayout(self.grid_layout_section)
+
+    def emit_advanced_settings_changed(self):
+        self.advancedSettingsChanged.emit()
 
 
 class DetectorSection(QtWidgets.QGroupBox):
@@ -207,7 +275,7 @@ class DetectorSection(QtWidgets.QGroupBox):
             self.base_name_edit.setText(parameters['base_name_edit'])
             self.num_edit.setText(parameters['num_edit'])
             self.update_cb.setChecked(parameters['update_toggle'])
-        self.detector_label.setText(self.detector + ' directory / basename / #:')
+        self.detector_label.setText("<b>" + self.detector + "</b>" + ' directory / basename / #:')
         self.full_path_label_font = QtGui.QFont()
         self.full_path_label_font.setBold(True)
         self.full_path_label.setFont(self.full_path_label_font)
