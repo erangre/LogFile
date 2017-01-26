@@ -55,11 +55,13 @@ class LogWindow(QtWidgets.QWidget):
         self._filter = Filter()
         self.motor_dict = {}
         self.log_dict = None
+        self.log_file_settings = QtCore.QSettings("Logger", "LogFile")
 
         self.choose_dir = DEF_DIR
         self.choose_file = DEF_FILE
         self.motors_file = ''
         self.folder_maker_settings = {}
+
         # self.detector = 1
 
         # Create Widgets
@@ -233,7 +235,8 @@ class LogWindow(QtWidgets.QWidget):
         self.show()
         QtWidgets.QToolTip.setFont(QtGui.QFont('SansSerif', 10))
         self.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        self.load_config()
+        # self.load_config()
+        self.load_log_file_settings()
         if caget == None or caput == None:
             self.disable_epics()
 
@@ -372,9 +375,9 @@ class LogWindow(QtWidgets.QWidget):
 
         self.log_list.itemSelectionChanged.connect(self.show_selected_info)
 
-
         self.motors_file = str(self.choose_file).rsplit('.')[0] + '_motors.txt'
         self.save_config()
+        self.save_log_file_settings()
 
         # self.base_dir = caget(epp['CCD_File_Path'], as_string=True)
         # self.html_logger = HtmlLogger(self)
@@ -663,6 +666,30 @@ class LogWindow(QtWidgets.QWidget):
         new_comment, ok_sn = QtWidgets.QInputDialog.getText(self, 'New comment', message, QtWidgets.QLineEdit.Normal)
         if ok_sn:
             self.html_logger.add_comment_line(new_comment)
+
+    def load_log_file_settings(self):
+        self.choose_dir = self.log_file_settings.value('log_file_dir', defaultValue=None)
+        self.choose_file = self.log_file_settings.value('log_file_name', defaultValue=None)
+        self.motors_file = self.log_file_settings.value('pv_list_file', defaultValue=None)
+        self.detectors = self.log_file_settings.value('detectors', defaultValue=None)
+
+        self.choose_file_name_le.setText(self.choose_file)
+        self.set_choose_dir_label()
+        self.load_motor_list(self.motors_file)
+        for detector in self.choose_detector_menu.actions():
+            if str(detector.text()) in self.detectors:
+                detector.setChecked(True)
+
+    def save_log_file_settings(self):
+        self.log_file_settings.setValue('log_file_dir', self.choose_dir)
+        self.log_file_settings.setValue('log_file_name', self.choose_file)
+        self.log_file_settings.setValue('pv_list_file', self.motors_file)
+        chosen_detectors = []
+        for detector in self.choose_detector_menu.actions():
+            if detector.isChecked():
+                chosen_detectors.append(detector.text())
+        self.log_file_settings.setValue('detectors', chosen_detectors)
+        self.save_motor_list(self.motors_file)
 
     def load_config(self):
         cfg = {}
