@@ -122,7 +122,8 @@ class FolderMaker(QtWidgets.QWidget):
                                                     str(time.localtime().tm_mon).zfill(2) + '_' +
                                                     str(time.localtime().tm_mday).zfill(2) +
                                                     '.txt')
-            self.caller.choose_dir = str(self.base_dir).rsplit('\\', 1)[0]
+            # self.caller.choose_dir = str(self.base_dir).rsplit('\\', 1)[0]
+            self.caller.choose_dir = str(self.base_dir)
             self.caller.set_choose_dir_label()
 
         self.caller.folder_maker_settings = self.new_settings.copy()
@@ -310,9 +311,10 @@ class DetectorSection(QtWidgets.QGroupBox):
         file_list = glob.glob(base_name + '*.*')
         fmax = 0
         for file in file_list:
-            fnum = int(file.rsplit('.', 1)[0].rsplit('_', 1)[-1])
-            if fnum > fmax:
-                fmax = fnum
+            if file.rsplit('.', 1)[1] == 'tif':
+                fnum = int(file.rsplit('.', 1)[0].rsplit('_', 1)[-1])
+                if fnum > fmax:
+                    fmax = fnum
         return int(fmax)+1
 
     def update_path(self):
