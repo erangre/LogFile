@@ -100,6 +100,7 @@ class StartMonitors(QWidget):
             self.output_line_common_end(detectors[detector]['prefix'], new_file_name, comments,
                                         self.chosen_detectors[detector]['temp_dict'][0])
             del(self.chosen_detectors[detector]['temp_dict'][0])
+        print(str(time.time() - t0))
 
     def build_comments(self, detector):
         comment_values = []

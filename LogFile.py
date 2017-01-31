@@ -427,6 +427,7 @@ class LogWindow(QtWidgets.QWidget):
             curr_item = self.grid_list_buttons.itemAt(ind)
             if type(curr_item) == QtWidgets.QWidgetItem:
                 curr_item.widget().setEnabled(enable_mode)
+        self.clear_detectors_stack_btn.setEnabled(True)
 
     def write_headings(self):
         heading = self.read_headings()
