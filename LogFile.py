@@ -91,6 +91,7 @@ class LogWindow(QtWidgets.QWidget):
         self.motor_move_dn_btn = QtWidgets.QPushButton(u'\u2193')
         self.motor_toggle_after_btn = QtWidgets.QPushButton('Before/After')
         self.create_folders_btn = QtWidgets.QPushButton('Create Folders')
+        self.clear_detectors_stack_btn = QtWidgets.QPushButton('Clear detectors')
         self.log_list = QtWidgets.QListWidget(self)
         self.splitter_log = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
         self.log_table = QtWidgets.QTableWidget(self)
@@ -176,6 +177,7 @@ class LogWindow(QtWidgets.QWidget):
         self.grid_list_buttons.addWidget(self.motor_rename_btn, 2, 2, 1, 1)
         self.grid_list_buttons.addWidget(self.motor_toggle_after_btn, 1, 0, 1, 1)
         self.grid_list_buttons.addWidget(self.create_folders_btn, 3, 1, 1, 1)
+        self.grid_list_buttons.addWidget(self.clear_detectors_stack_btn, 3, 2, 1, 1)
         self.hbox_lists.addLayout(self.grid_list_buttons)
 
         self.splitter_log.addWidget(self.log_list)
@@ -389,6 +391,7 @@ class LogWindow(QtWidgets.QWidget):
         # self.html_logger.start_html_logger()
 
         self.log_monitor = epics_monitor.StartMonitors(self, self.log_dict)
+        self.clear_detectors_stack_btn.clicked.connect(self.log_monitor.clear_detectors_stack_btn_clicked)
 
     def stop_logging(self):
         f_time = time.asctime()

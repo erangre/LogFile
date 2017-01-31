@@ -231,6 +231,12 @@ class StartMonitors(QWidget):
         if file_name[0] == 'IM':
             os.system("start " + file_name[-1])
 
+    def clear_detectors_stack_btn_clicked(self):
+        for detector in self.chosen_detectors:
+            while len(self.chosen_detectors[detector]['temp_dict']) > 0:
+                print(detector + ': ' + str(len(self.chosen_detectors[detector]['temp_dict'])))
+                del self.chosen_detectors[detector]['temp_dict'][0]
+
 
 class StopMonitors(object):
     def __init__(self, parent=None):
