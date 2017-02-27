@@ -117,11 +117,10 @@ class FolderMaker(QtWidgets.QWidget):
         self.update_detector_settings()
         self.save_folder_maker_settings()
         if not self.log_running:
-            self.caller.choose_file_name_le.setText('log_' +
-                                                    str(time.localtime().tm_year) + '_' +
-                                                    str(time.localtime().tm_mon).zfill(2) + '_' +
-                                                    str(time.localtime().tm_mday).zfill(2) +
-                                                    '.txt')
+            file_name = 'log_' + str(time.localtime().tm_year) + '_' + str(time.localtime().tm_mon).zfill(2) + \
+                        '_' + str(time.localtime().tm_mday).zfill(2) + '.txt'
+            self.caller.choose_file_name_le.setText(file_name)
+            self.caller.choose_file = file_name
             # self.caller.choose_dir = str(self.base_dir).rsplit('\\', 1)[0]
             self.caller.choose_dir = str(self.base_dir)
             self.caller.set_choose_dir_label()
