@@ -3,12 +3,12 @@ DAC_ver,13IDD:m83.RBV,0
 DAC_focus,13IDD:m82.RBV,0
 DAC_omega,13IDD:m96.RBV,1
 T_ds,13IDD:ds_las_temp.VAL,1
-T_int_ds,13IDD:dn_t_int,1
-laser_power_ds,13IDD:Laser2OutputPower,0
-laser_percent_ds,13IDD:DAC2_4.VAL,0
 T_us,13IDD:us_las_temp.VAL,1
+T_int_ds,13IDD:dn_t_int,1
 T_int_us,13IDD:up_t_int,1
+laser_power_ds,13IDD:Laser2OutputPower,0
 laser_power_us,13IDD:Laser1OutputPower,0
+laser_percent_ds,13IDD:DAC2_4.VAL,0
 laser_percent_us,13IDD:DAC2_3.VAL,0
 DET_pos_x,13IDD:m8.RBV,0
 Pilatus_z,13IDD:m5.RBV,0

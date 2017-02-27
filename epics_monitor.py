@@ -13,6 +13,7 @@ from detectors import detectors
 
 class StartMonitors(QWidget):
     log_signal = QtCore.Signal(str)
+    abort_signal = QtCore.Signal(str)
 
     def __init__(self, parent=None, log_dict=None):
         super(StartMonitors, self).__init__()
@@ -35,6 +36,7 @@ class StartMonitors(QWidget):
         # connections
 
         self.log_signal.connect(self.signal_received)
+        self.abort_signal.connect(self.abort_signal_received)
 
         self.chosen_detectors = {}
         for detector in self.parent.choose_detector_menu.actions():
@@ -51,6 +53,10 @@ class StartMonitors(QWidget):
                 self.chosen_detectors[detector]['end_signal_function'] = self.create_end_signal_function(detector)
                 camonitor(detectors[detector]['monitor_signal_end'],
                           callback=self.chosen_detectors[detector]['end_signal_function'])
+            if not detectors[detector].get('monitor_signal_abort', None) is None:
+                self.chosen_detectors[detector]['abort_signal_function'] = self.create_abort_signal_function(detector)
+                camonitor(detectors[detector]['monitor_signal_abort'],
+                          callback=self.chosen_detectors[detector]['abort_signal_function'])
 
     def signal_received(self, sig_name):
         t0 = time.time()
@@ -153,6 +159,16 @@ class StartMonitors(QWidget):
         if self.running_tasks == 0:
             self.parent.set_enabled_hbox_lists(True)
 
+    def abort_signal_received(self, sig_name):
+        detector, phase = sig_name.rsplit('_', 1)
+        if phase == 'abort':
+            while len(self.chosen_detectors[detector]['temp_dict']) > 0:
+                print(detector + ': ' + str(len(self.chosen_detectors[detector]['temp_dict'])))
+                del self.chosen_detectors[detector]['temp_dict'][0]
+                self.running_tasks -= 1
+            if self.running_tasks == 0:
+                self.parent.set_enabled_hbox_lists(True)
+
     def create_start_signal_function(self, detector):
         def new_start_signal_function(*args, **kwargs):
             if detectors[detector]['monitor_signal_start_value'] is None:
@@ -173,6 +189,14 @@ class StartMonitors(QWidget):
                 if kwargs['char_value'] == detectors[detector]['monitor_signal_end_value']:
                     self.log_signal.emit(detector + '_end')
         return new_end_signal_function
+
+    def create_abort_signal_function(self, detector):
+        def new_abort_signal_function(*args, **kwargs):
+            print(kwargs['char_value'])
+            if kwargs['char_value'] in detectors[detector]['monitor_signal_abort_value']:
+                self.abort_signal.emit(detector + '_abort')
+
+        return new_abort_signal_function
 
     def output_line_common(self, start_time, exp_time):
         new_heading = self.parent.read_headings()
@@ -237,6 +261,8 @@ class StartMonitors(QWidget):
             while len(self.chosen_detectors[detector]['temp_dict']) > 0:
                 print(detector + ': ' + str(len(self.chosen_detectors[detector]['temp_dict'])))
                 del self.chosen_detectors[detector]['temp_dict'][0]
+        self.running_tasks = 0
+        self.parent.set_enabled_hbox_lists(True)
 
 
 class StopMonitors(object):
