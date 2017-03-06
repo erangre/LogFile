@@ -46,7 +46,7 @@ class StartMonitors(QWidget):
 
         for detector in self.chosen_detectors:
             self.chosen_detectors[detector]['temp_dict'] = []
-            self.chosen_detectors[detector]['aborted_id_list'] = []
+            # self.chosen_detectors[detector]['aborted_id_list'] = []
             self.chosen_detectors[detector]['start_signal_function'] = self.create_start_signal_function(detector)
             camonitor(detectors[detector]['monitor_signal_start'],
                       callback=self.chosen_detectors[detector]['start_signal_function'])
@@ -77,14 +77,15 @@ class StartMonitors(QWidget):
 
         if phase == 'start':
             # First clean up aborted signals
-            num_aborted = len(self.chosen_detectors[detector]['aborted_id_list'])
-            while num_aborted > 0:
-                if self.chosen_detectors[detector]['temp_dict'][0]['id'] in \
-                        self.chosen_detectors[detector]['aborted_id_list']:
-                    print(detector + ': ' + str(len(self.chosen_detectors[detector]['temp_dict'])))
-                    del self.chosen_detectors[detector]['temp_dict'][0]
-                    self.running_tasks -= 1
-                    num_aborted -= 1
+            # (this caused problems like an endless loop sometimes)
+            # num_aborted = len(self.chosen_detectors[detector]['aborted_id_list'])
+            # while num_aborted > 0:
+            #     if self.chosen_detectors[detector]['temp_dict'][0]['id'] in \
+            #             self.chosen_detectors[detector]['aborted_id_list']:
+            #         print(detector + ': ' + str(len(self.chosen_detectors[detector]['temp_dict'])))
+            #         del self.chosen_detectors[detector]['temp_dict'][0]
+            #         self.running_tasks -= 1
+            #         num_aborted -= 1
 
             # Now deal with new signal
             if detectors[detector]['track_running_tasks']:
@@ -106,7 +107,7 @@ class StartMonitors(QWidget):
                                             self.chosen_detectors[detector]['temp_dict'][0])
                 del (self.chosen_detectors[detector]['temp_dict'][0])
 
-        elif phase == 'end':
+        elif phase == 'end' and len(self.chosen_detectors[detector]['temp_dict']) > 0:
             if detectors[detector]['track_running_tasks']:
                 self.running_tasks -= 1
             image_type_PV = detectors[detector]['image_type_PV']
@@ -118,7 +119,10 @@ class StartMonitors(QWidget):
             comments = self.build_comments(detector)
             self.output_line_common_end(detectors[detector]['prefix'], new_file_name, comments,
                                         self.chosen_detectors[detector]['temp_dict'][0])
-            del(self.chosen_detectors[detector]['aborted_id_list'][0])
+            # try:
+            #     del(self.chosen_detectors[detector]['aborted_id_list'][0])
+            # except IndexError:
+            #     pass
             del(self.chosen_detectors[detector]['temp_dict'][0])
         print(str(time.time() - t0))
 
@@ -179,9 +183,12 @@ class StartMonitors(QWidget):
     def abort_signal_received(self, sig_name):
         detector, phase = sig_name.rsplit('_', 1)
         if phase == 'abort':
-            self.chosen_detectors[detector]['aborted_id_list'] = []
-            for temp_dict in self.chosen_detectors[detector]['temp_dict']:
-                self.chosen_detectors[detector]['aborted_id_list'].append(temp_dict['id'])
+            # self.chosen_detectors[detector]['aborted_id_list'] = []
+            while len(self.chosen_detectors[detector]['temp_dict']) > 0:
+                del self.chosen_detectors[detector]['temp_dict'][0]
+                self.running_tasks -= 1
+            if self.running_tasks == 0:
+                self.parent.set_enabled_hbox_lists(True)
 
     def create_start_signal_function(self, detector):
         def new_start_signal_function(*args, **kwargs):
@@ -206,7 +213,6 @@ class StartMonitors(QWidget):
 
     def create_abort_signal_function(self, detector):
         def new_abort_signal_function(*args, **kwargs):
-            print(kwargs['char_value'])
             if kwargs['char_value'] in detectors[detector]['monitor_signal_abort_value']:
                 self.abort_signal.emit(detector + '_abort')
 
@@ -274,7 +280,7 @@ class StartMonitors(QWidget):
         for detector in self.chosen_detectors:
             while len(self.chosen_detectors[detector]['temp_dict']) > 0:
                 print(detector + ': ' + str(len(self.chosen_detectors[detector]['temp_dict'])))
-                del self.chosen_detectors[detector]['aborted_id_list'][0]
+                # del self.chosen_detectors[detector]['aborted_id_list'][0]
                 del self.chosen_detectors[detector]['temp_dict'][0]
         self.running_tasks = 0
         self.parent.set_enabled_hbox_lists(True)

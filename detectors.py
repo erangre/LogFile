@@ -31,17 +31,18 @@ detectors['marccd2'] = {
     'file_path': '13MARCCD2:TIFF1:FilePath',
     'file_name': '13MARCCD2:TIFF1:FileName',
     'file_number': '13MARCCD2:TIFF1:FileNumber',
+    'file_type': 'tif',
 }
 
 detectors['pilatus3'] = {
     'name': '13PIL3',
     'prefix': 'XRD',
-    'monitor_signal_start': '13PIL3:cam1:FullFileName_RBV',
-    'monitor_signal_start_value': None,
+    'monitor_signal_start': '13PIL3:cam1:Acquire',
+    'monitor_signal_start_value': 'Acquire',
     'monitor_signal_end': '13PIL3:TIFF1:FullFileName_RBV',
     'monitor_signal_end_value': None,
     'monitor_signal_abort': '13PIL3:cam1:DetectorState_RBV',
-    'monitor_signal_abort_value': ['Idle', 'Aborted', 'Error'],
+    'monitor_signal_abort_value': ['Aborted', 'Error'],
     'track_running_tasks': True,
     'frame_type_PV': None,
     'frame_type_values': 0,
@@ -60,6 +61,7 @@ detectors['pilatus3'] = {
     'file_path': '13PIL3:TIFF1:FilePath',
     'file_name': '13PIL3:TIFF1:FileName',
     'file_number': '13PIL3:TIFF1:FileNumber',
+    'file_type': 'tif',
 }
 
 detectors['marip2'] = {
@@ -86,6 +88,7 @@ detectors['marip2'] = {
     'file_path': '13MAR345_2:TIFF1:FilePath',
     'file_name': '13MAR345_2:TIFF1:FileName',
     'file_number': '13MAR345_2:TIFF1:FileNumber',
+    'file_type': 'tif',
 }
 
 detectors['lightfield'] =  {
@@ -144,6 +147,7 @@ detectors['lightfield'] =  {
     'file_path': '13IDDLF1:cam1:FilePath',
     'file_name': '13IDDLF1:cam1:FileName',
     'file_number': '13IDDLF1:cam1:FileNumber',
+    'file_type': 'spe',
 }
 
 detectors['us_visual'] = {
@@ -186,6 +190,7 @@ detectors['us_visual'] = {
     'file_path': '13IDD_PG1:TIFF1:FilePath',
     'file_name': '13IDD_PG1:TIFF1:FileName',
     'file_number': '13IDD_PG1:TIFF1:FileNumber',
+    'file_type': 'tif',
 }
 
 detectors['ds_visual'] = {
@@ -228,6 +233,7 @@ detectors['ds_visual'] = {
     'file_path': '13IDD_PG2:TIFF1:FilePath',
     'file_name': '13IDD_PG2:TIFF1:FileName',
     'file_number': '13IDD_PG2:TIFF1:FileNumber',
+    'file_type': 'tif',
 }
 
 detectors['ms_visual'] = {
@@ -256,4 +262,5 @@ detectors['ms_visual'] = {
     'file_path': '13IDD_PG3:TIFF1:FilePath',
     'file_name': '13IDD_PG3:TIFF1:FileName',
     'file_number': '13IDD_PG3:TIFF1:FileNumber',
+    'file_type': 'tif',
 }

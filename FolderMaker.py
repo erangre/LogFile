@@ -302,15 +302,16 @@ class DetectorSection(QtWidgets.QGroupBox):
             self.rel_dir_edit.setText('LaB6')
         current_dir = os.path.join(self.base_dir, str(self.rel_dir_edit.text()))
         if not self.sender() == self.num_edit:
-            next_num = self.find_next_number(str(current_dir + '\\' + self.base_name_edit.text() + '_'))
+            next_num = self.find_next_number(str(current_dir + '\\' + self.base_name_edit.text() + '_'),
+                                             detectors[self.detector]['file_type'])
             self.num_edit.setText(str(next_num))
         self.update_path()
 
-    def find_next_number(self, base_name):
+    def find_next_number(self, base_name, file_type):
         file_list = glob.glob(base_name + '*.*')
         fmax = 0
         for file in file_list:
-            if file.rsplit('.', 1)[1] == 'tif':
+            if file.rsplit('.', 1)[1] == file_type:
                 fnum = int(file.rsplit('.', 1)[0].rsplit('_', 1)[-1])
                 if fnum > fmax:
                     fmax = fnum
