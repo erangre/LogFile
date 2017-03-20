@@ -271,11 +271,6 @@ class StartMonitors(QWidget):
             self.parent.log_table.setItem(row_pos, 1, QTableWidgetItem(self.log_dict[file_name][item]))
         self.parent.log_table.resizeColumnsToContents()
 
-    def view_image_file(self):
-        file_name = str(self.parent.log_list.currentItem().text()).split('|', 1)
-        if file_name[0] == 'IM':
-            os.system("start " + file_name[-1])
-
     def clear_detectors_stack_btn_clicked(self):
         for detector in self.chosen_detectors:
             while len(self.chosen_detectors[detector]['temp_dict']) > 0:

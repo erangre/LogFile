@@ -227,7 +227,7 @@ class LogWindow(QtWidgets.QWidget):
         self.motor_move_up_btn.clicked.connect(self.move_up_motors)
         self.motor_move_dn_btn.clicked.connect(self.move_dn_motors)
         self.motor_toggle_after_btn.clicked.connect(self.toggle_after)
-        self.view_image_btn.clicked.connect(self.open_image_file)
+        self.view_image_btn.clicked.connect(self.view_image_file)
         self.create_folders_btn.clicked.connect(self.run_create_folders_widget)
         self.choose_detector_menu.triggered.connect(self.choose_detector_tb.click)
         self.choose_detector_tb.clicked.connect(self.choose_detector_changed)
@@ -288,7 +288,7 @@ class LogWindow(QtWidgets.QWidget):
         self.start_btn.setEnabled(False)
         self.setup_btn.setEnabled(False)
         self.choose_dir_btn.setEnabled(False)
-        self.view_image_btn.setEnabled(False)
+        # self.view_image_btn.setEnabled(False)
         self.choose_detector_tb.setEnabled(False)
         self.setup_motors_frame.hide()
 
@@ -660,8 +660,11 @@ class LogWindow(QtWidgets.QWidget):
             self.log_table.setItem(row_pos, 1, QtWidgets.QTableWidgetItem(self.log_dict[file_name][item]))
         self.log_table.resizeColumnsToContents()
 
-    def open_image_file(self):
-        self.log_monitor.view_image_file()
+    def view_image_file(self):
+        file_name = str(self.log_list.currentItem().text()).split('|', 1)
+        file_type = str(self.log_list.currentItem().text()).rsplit('.', 1)
+        if file_type[-1] == 'tif':
+            os.system("start " + file_name[-1])
 
     def run_create_folders_widget(self):
         if self.start_btn.isEnabled():

@@ -85,6 +85,7 @@ detectors['marip2'] = {
     'sleep_after_end': 0.0,
     'default_base_name': 'LaB6',
     'default_rel_dir': '',
+    'soft_link': '/DAC/',
     'file_path': '13MAR345_2:TIFF1:FilePath',
     'file_name': '13MAR345_2:TIFF1:FileName',
     'file_number': '13MAR345_2:TIFF1:FileNumber',
