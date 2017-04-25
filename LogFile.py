@@ -258,7 +258,7 @@ class LogWindow(QtWidgets.QWidget):
 
     def choose_dir_btn_clicked(self):
         CH_DIR_TEXT = 'Choose directory for saving log file'
-        self.choose_dir, _ = QtWidgets.QFileDialog.getExistingDirectory(self, CH_DIR_TEXT, self.choose_dir)
+        self.choose_dir = QtWidgets.QFileDialog.getExistingDirectory(self, CH_DIR_TEXT, self.choose_dir)
         if self.choose_dir:
             self.set_choose_dir_label()
 
