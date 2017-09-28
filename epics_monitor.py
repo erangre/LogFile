@@ -108,6 +108,10 @@ class StartMonitors(QWidget):
                 del (self.chosen_detectors[detector]['temp_dict'][0])
 
         elif phase == 'end' and len(self.chosen_detectors[detector]['temp_dict']) > 0:
+            delay = detectors[detector].get('delay_before_end', None)
+            if delay:
+                time.sleep(delay)
+
             if detectors[detector]['track_running_tasks']:
                 self.running_tasks -= 1
             image_type_PV = detectors[detector]['image_type_PV']
@@ -137,7 +141,7 @@ class StartMonitors(QWidget):
         return detectors[detector]['comments'].format(*comment_values)
 
     def output_line_common_start(self, start_time, exp_time):
-        t0 = time.time()
+        # t0 = time.time()
         self.id += 1
         new_heading = self.parent.read_headings()
         if not self.old_heading == new_heading:
@@ -151,7 +155,9 @@ class StartMonitors(QWidget):
         temp_dict['Exp_Time'] = exp_time
         for motor in self.parent.list_motor_short.selectedItems():
             if not self.parent.motor_dict[str(motor.text())]['after']:
+                # t1 = time.time()
                 m_value = caget(self.parent.motor_dict[str(motor.text())]['PV'], as_string=True)
+                # print(time.time()-t1, ' for ', self.parent.motor_dict[str(motor.text())]['PV'])
                 if m_value == '-2.27e-13':
                     m_value = '0'
                 temp_dict[str(motor.text())] = m_value

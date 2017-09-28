@@ -137,6 +137,7 @@ detectors['lightfield'] =  {
                                  3: '13IDDLF1:cam1:AcquireTime',
                                  4: '13IDDLF1:cam1:AcquireTime',
                                  5: '13IDDLF1:cam1:AcquireTime',
+                                 6: '13IDDLF1:cam1:AcquireTime',
                                  },
 
     'comments': 'Filter: {0}, Laser Shutter {1}',
@@ -156,6 +157,7 @@ detectors['lightfield'] =  {
     'file_name': '13IDDLF1:cam1:FileName',
     'file_number': '13IDDLF1:cam1:FileNumber',
     'file_type': 'spe',
+    'delay_before_end': 0.2,
 }
 
 detectors['us_visual'] = {
