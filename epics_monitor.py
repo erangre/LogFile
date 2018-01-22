@@ -128,6 +128,10 @@ class StartMonitors(QWidget):
             # except IndexError:
             #     pass
             del(self.chosen_detectors[detector]['temp_dict'][0])
+            pvs_to_clear = detectors[detector].get('end_clear_pvs', None)
+            if pvs_to_clear:
+                for pv in pvs_to_clear:
+                    caput(pv, '', wait=True)
         print(str(time.time() - t0))
 
     def build_comments(self, detector):
