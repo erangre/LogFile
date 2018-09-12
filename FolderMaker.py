@@ -41,7 +41,7 @@ class FolderMaker(QtWidgets.QWidget):
         self.full_path_header = QtWidgets.QLabel('Full Path:')
         self.full_path_label = QtWidgets.QLabel()
         self.show_advanced_settings_btn = QtWidgets.QPushButton('Advanced')
-        self.create_btn = QtWidgets.QPushButton('Create')
+        self.create_btn = QtWidgets.QPushButton('Create/Update')
 
         # Set Widget Properties
         self.all_time = time.localtime()
@@ -112,6 +112,8 @@ class FolderMaker(QtWidgets.QWidget):
             self.advanced_settings_gb.show()
 
     def create_btn_clicked(self):
+        self.update_all_full_paths()
+        time.sleep(0.5)
         self.check_and_make_dirs()
         self.update_epics()
         self.update_detector_settings()
@@ -298,8 +300,8 @@ class DetectorSection(QtWidgets.QGroupBox):
         self.setLayout(self.grid_layout_section)
 
     def value_changed(self):
-        if not self.sender() == self.rel_dir_edit and str(self.base_name_edit.text()) == 'LaB6':
-            self.rel_dir_edit.setText('LaB6')
+        # if not self.sender() == self.rel_dir_edit and str(self.base_name_edit.text()) == 'LaB6':
+        #     self.rel_dir_edit.setText('LaB6')
         current_dir = os.path.join(self.base_dir, str(self.rel_dir_edit.text()))
         if not self.sender() == self.num_edit:
             next_num = self.find_next_number(str(current_dir + '\\' + self.base_name_edit.text() + '_'),
@@ -307,7 +309,8 @@ class DetectorSection(QtWidgets.QGroupBox):
             self.num_edit.setText(str(next_num))
         self.update_path()
 
-    def find_next_number(self, base_name, file_type):
+    @staticmethod
+    def find_next_number(base_name, file_type):
         file_list = glob.glob(base_name + '*.*')
         fmax = 0
         for file in file_list:
