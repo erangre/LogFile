@@ -100,6 +100,36 @@ detectors['pilatusW300k'] = {
     'file_name': '13PIL300K:TIFF1:FileName',
     'file_number': '13PIL300K:TIFF1:FileNumber',
     'file_type': 'tif',
+    'end_clear_pvs': ['13PIL300K:AcquireSequence.STRA']
+}
+detectors['pilatus100k'] = {
+    'name': '13IDC-PIL',
+    'prefix': 'XES',
+    'monitor_signal_start': '13IDC-PIL:cam1:Acquire',
+    'monitor_signal_start_value': 'Acquire',
+    'monitor_signal_end': '13IDC-PIL:TIFF1:FullFileName_RBV',
+    'monitor_signal_end_value': None,
+    'monitor_signal_abort': '13IDC-PIL:cam1:DetectorState_RBV',
+    'monitor_signal_abort_value': ['Aborted', 'Error'],
+    'track_running_tasks': True,
+    'frame_type_PV': None,
+    'frame_type_values': {0: 'normal', },
+    'frame_type_messages': {0: 'Pilatus XRD'},
+    'image_type_PV': None,
+    'image_type_values': 0,
+    'image_type_exposure_time': {0: '13IDC-PIL:cam1:AcquireTime_RBV'},
+    'new_file_name': {0: '13IDC-PIL:TIFF1:FullFileName_RBV'},
+    'comments': '{0}, backup_file: {1}',
+    'comments_PVs': ['13IDC-PIL:AcquireSequence.STRA', '13IDC-PIL:cam1:FullFileName_RBV'],
+    'comments_values': [None, None],
+    'sleep_after_end': 0.0,
+    'default_base_name': '',
+    'default_rel_dir': '',
+    'soft_link': '/DAC/',
+    'file_path': '13IDC-PIL:TIFF1:FilePath',
+    'file_name': '13IDC-PIL:TIFF1:FileName',
+    'file_number': '13IDC-PIL:TIFF1:FileNumber',
+    'file_type': 'tif',
 }
 
 detectors['marip2'] = {

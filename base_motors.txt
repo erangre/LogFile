@@ -13,6 +13,8 @@ laser_percent_us,13IDD:DAC2_3.VAL,0
 DET_pos_x,13IDD:m8.RBV,0
 Pilatus_z,13IDD:m5.RBV,0
 MARCCD_z,13IDD:m84.RBV,0
+pinhole_ver,13IDD:m21.RBV,0
+pinhole_hor,13IDD:m20.RBV,0
 pinhole_Z,13IDD:m22.RBV,0
 xray_energy,13IDA:CDEn:E_RBV,0
 APS_current,S:SRcurrentAI.VAL,0

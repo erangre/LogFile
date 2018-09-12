@@ -160,7 +160,13 @@ class StartMonitors(QWidget):
         for motor in self.parent.list_motor_short.selectedItems():
             if not self.parent.motor_dict[str(motor.text())]['after']:
                 # t1 = time.time()
-                m_value = caget(self.parent.motor_dict[str(motor.text())]['PV'], as_string=True)
+                m_value = caget(self.parent.motor_dict[str(motor.text())]['PV'])
+                if type(m_value) is not str:
+                    if abs(m_value) < 1:
+                        m_value = '{:.3g}'.format(m_value)
+                    else:
+                        m_value = '{:.3f}'.format(m_value)
+
                 # print(time.time()-t1, ' for ', self.parent.motor_dict[str(motor.text())]['PV'])
                 if m_value == '-2.27e-13':
                     m_value = '0'
@@ -173,7 +179,13 @@ class StartMonitors(QWidget):
 
         for motor in self.parent.list_motor_short.selectedItems():
             if self.parent.motor_dict[str(motor.text())]['after']:
-                m_value = caget(self.parent.motor_dict[str(motor.text())]['PV'], as_string=True)
+                m_value = caget(self.parent.motor_dict[str(motor.text())]['PV'])
+                if type(m_value) is not str:
+                    if abs(m_value) < 1:
+                        m_value = '{:.3g}'.format(m_value)
+                    else:
+                        m_value = '{:.3f}'.format(m_value)
+
                 if m_value == '-2.27e-13':
                     m_value = '0'
                 temp_dict[str(motor.text())] = m_value
