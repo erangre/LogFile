@@ -334,5 +334,5 @@ def main():
 if __name__ == '__main__':
     main()
     app = QtWidgets.QApplication(sys.argv)
-    main_window = FolderMaker()
+    main_window = FolderMaker(chosen_detectors=['RamPG'])
     sys.exit(app.exec_())

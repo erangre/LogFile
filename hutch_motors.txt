@@ -1,8 +1,0 @@
-xray_energy,13IDA:CDEn:E_RBV,0
-lasers_filter,13IDD:Unidig1Bi4.VAL,0
-XRD_shutter,13IDD:Unidig1Bi11.VAL,0
-lasers_shutter,13IDD:Unidig2Bi4.VAL,0
-APS_current,S:SRcurrentAI.VAL,0
-T_Hutch,G:AHU:FP5088Ai.VAL,0
-delay,13IDD:BNC1:P3:Delay,0
-XRD_Intensity,13IDD:m40.RBV,0

@@ -1,8 +1,0 @@
-T1_before,13Keithley2:DMM1Ch1_calc.VAL,0
-T2_before,13Keithley2:DMM1Ch2_calc.VAL,0
-T3_before,13Keithley2:DMM1Ch3_calc.VAL,0
-T4_before,13Keithley2:DMM1Ch4_calc.VAL,0
-T1_after,13Keithley2:DMM1Ch1_calc.VAL,1
-T2_after,13Keithley2:DMM1Ch2_calc.VAL,1
-T3_after,13Keithley2:DMM1Ch3_calc.VAL,1
-T4_after,13Keithley2:DMM1Ch4_calc.VAL,1

@@ -1,8 +1,0 @@
-T_ds,13IDD:ds_las_temp.VAL,1
-T_int_ds,13IDD:dn_t_int,1
-T_us,13IDD:us_las_temp.VAL,1
-T_int_us,13IDD:up_t_int,1
-laser_power_ds,13IDD:Laser2OutputPower,0
-laser_percent_ds,13IDD:DAC2_4.VAL,0
-laser_power_us,13IDD:Laser1OutputPower,0
-laser_percent_us,13IDD:DAC2_3.VAL,0
