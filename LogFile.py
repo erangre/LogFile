@@ -13,6 +13,7 @@ except ImportError:
     caget = None
 import epics_monitor
 from FolderMaker import FolderMaker
+from widgets.LogWidgets import LogFileWidget
 from detectors import detectors
 import collections
 # from html_log import HtmlLogger
@@ -63,174 +64,41 @@ class LogWindow(QtWidgets.QWidget):
         self.folder_maker_settings = {}
 
         # self.detector = 1
-
-        # Create Widgets
-        self.label_fullpath = QtWidgets.QLabel(self)
-        self.choose_dir_btn = QtWidgets.QPushButton('Choose Folder')
-        self.choose_file_name_le = QtWidgets.QLineEdit()
-        self.load_log_btn = QtWidgets.QPushButton('Load Log')
-        self.reload_log_btn = QtWidgets.QPushButton('Reload Log')
-        self.label_start_time = QtWidgets.QLabel(self)
-        self.label_end_time = QtWidgets.QLabel(self)
-        self.setup_btn = QtWidgets.QPushButton('Setup')
-        self.show_log_btn = QtWidgets.QPushButton('Log')
-        self.comment_btn = QtWidgets.QPushButton('Comment')
-        self.html_log_cb = QtWidgets.QCheckBox('HTML Log')
-        self.choose_detector_tb = QtWidgets.QToolButton()
-        self.start_btn = QtWidgets.QPushButton('Start')
-        self.stop_btn = QtWidgets.QPushButton('Stop')
-        self.list_motor_short = QtWidgets.QListWidget(self)
-        self.list_motor_names = QtWidgets.QListWidget(self)
-        self.motor_load_btn = QtWidgets.QPushButton('Load')
-        self.motor_save_btn = QtWidgets.QPushButton('Save')
-        self.motor_remove_btn = QtWidgets.QPushButton('Remove')
-        self.motor_clear_btn = QtWidgets.QPushButton('Clear')
-        self.motor_add_btn = QtWidgets.QPushButton('Add')
-        self.motor_rename_btn = QtWidgets.QPushButton('Rename')
-        self.motor_move_up_btn = QtWidgets.QPushButton(u'\u2191')
-        self.motor_move_dn_btn = QtWidgets.QPushButton(u'\u2193')
-        self.motor_toggle_after_btn = QtWidgets.QPushButton('Before/After')
-        self.create_folders_btn = QtWidgets.QPushButton('Create Folders')
-        self.clear_detectors_stack_btn = QtWidgets.QPushButton('Clear detectors')
-        self.log_list = QtWidgets.QListWidget(self)
-        self.splitter_log = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
-        self.log_table = QtWidgets.QTableWidget(self)
-        self.view_image_btn = QtWidgets.QPushButton('Open Image')
-
-        # Set Widget Properties
-        self.choose_file_name_le.setText(self.choose_file)
-        self.label_fullpath.setText(self.choose_dir + '\\' + self.choose_file)
-        self.label_start_time.setText('Start Time: ')
-        self.label_end_time.setText('End Time: ')
-        for label_item in self.findChildren(QtWidgets.QLabel):
-            label_item.setStyleSheet('background-color: white')
-        self.setup_btn.setCheckable(True)
-        self.show_log_btn.setCheckable(True)
-        self.reload_log_btn.hide()
-        self.show_log_btn.hide()
-        self.comment_btn.hide()
-        self.comment_btn.setToolTip('Add a comment to the HTML log')
-        self.html_log_cb.setChecked(False)
-        self.html_log_cb.hide()
-        self.html_log_cb.setToolTip('Enable logging to HTML file')
-        self.choose_detector_tb.setText('Detectors')
-        self.choose_detector_menu = QtWidgets.QMenu()
+        self.widget = LogFileWidget(self)
+        self.widget.choose_file_name_le.setText(self.choose_file)
+        self.widget.label_fullpath.setText(self.choose_dir + '\\' + self.choose_file)
         for detector in detectors:
-            action = self.choose_detector_menu.addAction(detector)
+            action = self.widget.choose_detector_menu.addAction(detector)
             action.setCheckable(True)
-        self.choose_detector_tb.setMenu(self.choose_detector_menu)
-        self.choose_detector_tb.setPopupMode(QtWidgets.QToolButton.InstantPopup)
-
-        self.stop_btn.setEnabled(False)
-        self.list_motor_short.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-        self.list_motor_names.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-        self.motor_load_btn.setToolTip('Load does not clear the list')
-        self.log_table.setColumnCount(2)
-        self.log_table.setAlternatingRowColors(True)
-        self.log_table.setStyleSheet("alternate-background-color: lightgrey;background-color: white")
-        self.log_table.verticalHeader().setDefaultSectionSize(18)
-        self.log_table.verticalHeader().hide()
-        self.log_table.horizontalHeader().hide()
-
-        # Set Layout
-        self.vbox = QtWidgets.QVBoxLayout()      # Layout in vbox and hbox
-        hbox_file = QtWidgets.QHBoxLayout()
-        hbox_control = QtWidgets.QHBoxLayout()
-        self.setup_motors_frame = QtWidgets.QFrame(self)
-        self.setup_motors_frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.grid_list_buttons = QtWidgets.QGridLayout()
-        self.hbox_lists = QtWidgets.QHBoxLayout()
-        vbox_log = QtWidgets.QVBoxLayout()
-        hbox_log = QtWidgets.QHBoxLayout()
-        self.log_frame = QtWidgets.QFrame(self)
-        self.log_frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        hbox_bottom_buttons = QtWidgets.QHBoxLayout()
-
-        hbox_file.addWidget(self.label_fullpath)
-        hbox_file.addStretch(1)
-        hbox_file.addWidget(self.setup_btn)
-        hbox_file.addWidget(self.html_log_cb)
-        hbox_file.addWidget(self.choose_dir_btn)
-        hbox_file.addWidget(self.choose_file_name_le)
-        hbox_file.addWidget(self.reload_log_btn)
-        hbox_file.addWidget(self.load_log_btn)
-
-        hbox_control.addWidget(self.label_start_time)
-        hbox_control.addStretch(1)
-        hbox_control.addWidget(self.label_end_time)
-        hbox_control.addStretch(1)
-        hbox_control.addWidget(self.choose_detector_tb)
-        hbox_control.addWidget(self.comment_btn)
-        hbox_control.addWidget(self.show_log_btn)
-        hbox_control.addWidget(self.start_btn)
-        hbox_control.addWidget(self.stop_btn)
-
-        self.hbox_lists.addWidget(self.list_motor_short)
-        self.hbox_lists.addWidget(self.list_motor_names)
-        self.grid_list_buttons.addWidget(self.motor_move_up_btn, 0, 0, 1, 1)
-        self.grid_list_buttons.addWidget(self.motor_move_dn_btn, 2, 0, 1, 1)
-        self.grid_list_buttons.addWidget(self.motor_load_btn, 0, 1, 1, 1)
-        self.grid_list_buttons.addWidget(self.motor_save_btn, 0, 2, 1, 1)
-        self.grid_list_buttons.addWidget(self.motor_remove_btn, 1, 1, 1, 1)
-        self.grid_list_buttons.addWidget(self.motor_clear_btn, 1, 2, 1, 1)
-        self.grid_list_buttons.addWidget(self.motor_add_btn, 2, 1, 1, 1)
-        self.grid_list_buttons.addWidget(self.motor_rename_btn, 2, 2, 1, 1)
-        self.grid_list_buttons.addWidget(self.motor_toggle_after_btn, 1, 0, 1, 1)
-        self.grid_list_buttons.addWidget(self.create_folders_btn, 3, 1, 1, 1)
-        self.grid_list_buttons.addWidget(self.clear_detectors_stack_btn, 3, 2, 1, 1)
-        self.hbox_lists.addLayout(self.grid_list_buttons)
-
-        self.splitter_log.addWidget(self.log_list)
-        self.splitter_log.addWidget(self.log_table)
-        hbox_log.addWidget(self.splitter_log)
-
-        hbox_bottom_buttons.addWidget(self.view_image_btn)
-        hbox_bottom_buttons.addStretch(1)
-
-        vbox_log.addLayout(hbox_log)
-        vbox_log.addLayout(hbox_bottom_buttons)
-        self.log_frame.setLayout(vbox_log)
-        self.log_frame.hide()
-
-        self.vbox.addLayout(hbox_file)
-        self.vbox.addLayout(hbox_control)
-        self.setup_motors_frame.setLayout(self.hbox_lists)
-        self.setup_motors_frame.hide()
-
-        self.vbox.addWidget(self.setup_motors_frame)
-
-        self.vbox.addWidget(self.log_frame)
-        # self.vbox.addStretch(1)
-        self.setLayout(self.vbox)
 
         # Create connections
-        self.choose_dir_btn.clicked.connect(self.choose_dir_btn_clicked)
-        self.choose_file_name_le.returnPressed.connect(self.choose_file_name_le_changed)
-        self.choose_file_name_le.installEventFilter(self._filter)
-        self.load_log_btn.clicked.connect(self.load_previous_log)
-        self.reload_log_btn.clicked.connect(self.reload_previous_log)
-        self.setup_btn.clicked.connect(self.toggle_setup_menu)
-        self.show_log_btn.clicked.connect(self.toggle_show_log)
-        self.comment_btn.clicked.connect(self.add_comment)
-        self.start_btn.clicked.connect(self.start_logging)
-        self.stop_btn.clicked.connect(self.stop_logging)
-        self.motor_load_btn.clicked.connect(self.load_motor_list)
-        self.motor_save_btn.clicked.connect(self.save_motor_list)
-        self.motor_remove_btn.clicked.connect(self.remove_from_motor_list)
-        self.motor_add_btn.clicked.connect(self.add_to_motor_list)
-        self.motor_clear_btn.clicked.connect(self.clear_motor_list)
-        self.motor_rename_btn.clicked.connect(self.rename_motor)
-        self.list_motor_short.itemSelectionChanged.connect(self.change_names_selection)
-        self.list_motor_short.doubleClicked.connect(self.rename_motor)
-        self.list_motor_names.itemSelectionChanged.connect(self.change_short_selection)
-        self.list_motor_names.doubleClicked.connect(self.edit_motor)
-        self.motor_move_up_btn.clicked.connect(self.move_up_motors)
-        self.motor_move_dn_btn.clicked.connect(self.move_dn_motors)
-        self.motor_toggle_after_btn.clicked.connect(self.toggle_after)
-        self.view_image_btn.clicked.connect(self.view_image_file)
-        self.create_folders_btn.clicked.connect(self.run_create_folders_widget)
-        self.choose_detector_menu.triggered.connect(self.choose_detector_tb.click)
-        self.choose_detector_tb.clicked.connect(self.choose_detector_changed)
+        self.widget.choose_dir_btn.clicked.connect(self.choose_dir_btn_clicked)
+        self.widget.choose_file_name_le.returnPressed.connect(self.choose_file_name_le_changed)
+        self.widget.choose_file_name_le.installEventFilter(self._filter)
+        self.widget.load_log_btn.clicked.connect(self.load_previous_log)
+        self.widget.reload_log_btn.clicked.connect(self.reload_previous_log)
+        self.widget.setup_btn.clicked.connect(self.toggle_setup_menu)
+        self.widget.show_log_btn.clicked.connect(self.toggle_show_log)
+        # self.widget.comment_btn.clicked.connect(self.add_comment)
+        self.widget.start_btn.clicked.connect(self.start_logging)
+        self.widget.stop_btn.clicked.connect(self.stop_logging)
+        self.widget.motor_load_btn.clicked.connect(self.load_motor_list)
+        self.widget.motor_save_btn.clicked.connect(self.save_motor_list)
+        self.widget.motor_remove_btn.clicked.connect(self.remove_from_motor_list)
+        self.widget.motor_add_btn.clicked.connect(self.add_to_motor_list)
+        self.widget.motor_clear_btn.clicked.connect(self.clear_motor_list)
+        self.widget.motor_rename_btn.clicked.connect(self.rename_motor)
+        self.widget.list_motor_short.itemSelectionChanged.connect(self.change_names_selection)
+        self.widget.list_motor_short.doubleClicked.connect(self.rename_motor)
+        self.widget.list_motor_names.itemSelectionChanged.connect(self.change_short_selection)
+        self.widget.list_motor_names.doubleClicked.connect(self.edit_motor)
+        self.widget.motor_move_up_btn.clicked.connect(self.move_up_motors)
+        self.widget.motor_move_dn_btn.clicked.connect(self.move_dn_motors)
+        self.widget.motor_toggle_after_btn.clicked.connect(self.toggle_after)
+        self.widget.view_image_btn.clicked.connect(self.view_image_file)
+        self.widget.create_folders_btn.clicked.connect(self.run_create_folders_widget)
+        self.widget.choose_detector_menu.triggered.connect(self.widget.choose_detector_tb.click)
+        self.widget.choose_detector_tb.clicked.connect(self.choose_detector_changed)
 
         # Setup App Window
         QtWidgets.QApplication.setStyle(QtWidgets.QStyleFactory.create('Cleanlooks'))
@@ -239,7 +107,7 @@ class LogWindow(QtWidgets.QWidget):
         self.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         # self.load_config()
 
-        if caget == None or caput == None:
+        if caget is None or caput is None:
             self.disable_epics()
             self.load_log_file_settings(offline=True)
         else:
@@ -263,14 +131,14 @@ class LogWindow(QtWidgets.QWidget):
             self.set_choose_dir_label()
 
     def set_choose_dir_label(self):
-        self.label_fullpath.setText(self.choose_dir + '\\' + self.choose_file_name_le.text())
+        self.widget.label_fullpath.setText(self.choose_dir + '\\' + self.widget.choose_file_name_le.text())
 
     def choose_file_name_le_changed(self):
-        self.choose_file = self.choose_file_name_le.text()
-        self.label_fullpath.setText(self.choose_dir + '\\' + self.choose_file)
+        self.choose_file = self.widget.choose_file_name_le.text()
+        self.widget.label_fullpath.setText(self.choose_dir + '\\' + self.choose_file)
 
     def file_name_le_change_back(self):  # in case enter wasn't pressed (to avoid accidental changes)
-        self.choose_file_name_le.setText(self.choose_file)
+        self.widget.choose_file_name_le.setText(self.choose_file)
 
     def load_previous_log(self, file_name=None):
         if not file_name:
@@ -285,21 +153,21 @@ class LogWindow(QtWidgets.QWidget):
             self.parent().statusBar().showMessage(msg)
             return
 
-        self.start_btn.setEnabled(False)
-        self.setup_btn.setEnabled(False)
-        self.choose_dir_btn.setEnabled(False)
+        self.widget.start_btn.setEnabled(False)
+        self.widget.setup_btn.setEnabled(False)
+        self.widget.choose_dir_btn.setEnabled(False)
         # self.view_image_btn.setEnabled(False)
-        self.choose_detector_tb.setEnabled(False)
-        self.setup_motors_frame.hide()
+        self.widget.choose_detector_tb.setEnabled(False)
+        self.widget.setup_motors_frame.hide()
 
         self.read_log_file(load_log_name)
-        self.reload_log_btn.show()
+        self.widget.reload_log_btn.show()
         self.log_file_settings.setValue('offline_log_file', load_log_name)
 
     def read_log_file(self, load_log_name=None):
         self.log_dict = collections.OrderedDict()
         try:
-            self.log_list.itemSelectionChanged.disconnect()
+            self.widget.log_list.itemSelectionChanged.disconnect()
         except Exception:
             pass
 
@@ -308,7 +176,7 @@ class LogWindow(QtWidgets.QWidget):
             self.parent().statusBar().showMessage(msg)
             return
 
-        self.log_list.clear()
+        self.widget.log_list.clear()
         with open(load_log_name, 'r') as in_log_file:
             for curr_line in in_log_file:
                 curr_line = curr_line.split('\n')[0]
@@ -320,10 +188,10 @@ class LogWindow(QtWidgets.QWidget):
                     self.log_dict[file_name] = collections.OrderedDict()
                     for col_name, col_data in zip(self.headings, line_data):
                         self.log_dict[file_name][col_name] = col_data
-                    self.log_list.insertItem(0, file_name)
-        if not self.log_frame.isVisible():
+                    self.widget.log_list.insertItem(0, file_name)
+        if not self.widget.log_frame.isVisible():
             self.toggle_show_log()
-        self.log_list.itemSelectionChanged.connect(self.show_offline_info)
+        self.widget.log_list.itemSelectionChanged.connect(self.show_offline_info)
 
         msg = 'Loaded log file ' + load_log_name
         self.loaded_log = load_log_name
@@ -334,41 +202,41 @@ class LogWindow(QtWidgets.QWidget):
         self.load_previous_log(self.loaded_log)
 
     def toggle_setup_menu(self):
-        self.setup_motors_frame.setVisible(not self.setup_motors_frame.isVisible())
+        self.widget.setup_motors_frame.setVisible(not self.widget.setup_motors_frame.isVisible())
         # self.resize(self.sizeHint())
         self.parent().resize(self.parent().sizeHint())
-        if not self.setup_motors_frame.isVisible() and not self.log_frame.isVisible():
+        if not self.widget.setup_motors_frame.isVisible() and not self.widget.log_frame.isVisible():
             self.parent().setMinimumHeight(self.parent().min_height)
             self.parent().resize(self.parent().width(), self.parent().minimumHeight())
 
     def toggle_show_log(self):
-        self.log_frame.setVisible(not self.log_frame.isVisible())
+        self.widget.log_frame.setVisible(not self.widget.log_frame.isVisible())
         # self.resize(self.sizeHint())
         self.parent().resize(self.parent().sizeHint())
         # print(self.parent().sizeHint())
-        if not self.log_frame.isVisible() and not self.setup_motors_frame.isVisible():
+        if not self.widget.log_frame.isVisible() and not self.widget.setup_motors_frame.isVisible():
             self.parent().setMinimumHeight(self.parent().min_height)
             self.parent().resize(self.parent().width(), self.parent().minimumHeight())
 
     def start_logging(self):
         f_time = time.asctime()
-        self.label_start_time.setText('Start Time: ' + f_time)
-        self.start_btn.setEnabled(False)
-        self.load_log_btn.setEnabled(False)
-        self.stop_btn.setEnabled(True)
-        self.show_log_btn.show()
+        self.widget.label_start_time.setText('Start Time: ' + f_time)
+        self.widget.start_btn.setEnabled(False)
+        self.widget.load_log_btn.setEnabled(False)
+        self.widget.stop_btn.setEnabled(True)
+        self.widget.show_log_btn.show()
         # self.comment_btn.show()
         # self.html_log_cb.show()
-        self.choose_dir_btn.setEnabled(False)
-        self.choose_file_name_le.setEnabled(False)
-        self.choose_detector_tb.setVisible(False)
-        self.log_list.clear()
+        self.widget.choose_dir_btn.setEnabled(False)
+        self.widget.choose_file_name_le.setEnabled(False)
+        self.widget.choose_detector_tb.setVisible(False)
+        self.widget.log_list.clear()
 
-        full_path = self.label_fullpath.text()
+        full_path = self.widget.label_fullpath.text()
         if os.path.isfile(full_path):
             self.read_log_file(full_path)
             try:
-                self.log_list.itemSelectionChanged.disconnect()
+                self.widget.log_list.itemSelectionChanged.disconnect()
             except Exception:
                 pass
 
@@ -380,7 +248,7 @@ class LogWindow(QtWidgets.QWidget):
         msg = 'Started logging to: ' + full_path
         self.parent().statusBar().showMessage(msg)
 
-        self.log_list.itemSelectionChanged.connect(self.show_selected_info)
+        self.widget.log_list.itemSelectionChanged.connect(self.show_selected_info)
 
         self.motors_file = str(self.choose_file).rsplit('.')[0] + '_motors.txt'
         self.save_config()
@@ -391,43 +259,43 @@ class LogWindow(QtWidgets.QWidget):
         # self.html_logger.start_html_logger()
 
         self.log_monitor = epics_monitor.StartMonitors(self, self.log_dict)
-        self.clear_detectors_stack_btn.clicked.connect(self.log_monitor.clear_detectors_stack_btn_clicked)
+        self.widget.clear_detectors_stack_btn.clicked.connect(self.log_monitor.clear_detectors_stack_btn_clicked)
 
     def stop_logging(self):
         f_time = time.asctime()
-        self.label_end_time.setText('End Time: ' + f_time)
-        self.start_btn.setEnabled(True)
-        self.stop_btn.setEnabled(False)
-        if self.show_log_btn.isChecked():
-            self.show_log_btn.click()
+        self.widget.label_end_time.setText('End Time: ' + f_time)
+        self.widget.start_btn.setEnabled(True)
+        self.widget.stop_btn.setEnabled(False)
+        if self.widget.show_log_btn.isChecked():
+            self.widget.show_log_btn.click()
         # self.setup_btn.show()
-        self.show_log_btn.hide()
-        self.choose_dir_btn.setEnabled(True)
-        self.comment_btn.hide()
-        self.html_log_cb.hide()
-        self.choose_file_name_le.setEnabled(True)
-        self.choose_detector_tb.setVisible(True)
+        self.widget.show_log_btn.hide()
+        self.widget.choose_dir_btn.setEnabled(True)
+        # self.widget.comment_btn.hide()
+        # self.widget.html_log_cb.hide()
+        self.widget.choose_file_name_le.setEnabled(True)
+        self.widget.choose_detector_tb.setVisible(True)
 
         self.log_file.close()
         epics_monitor.StopMonitors(self)
         msg = 'Stopped logging!'
         self.parent().statusBar().showMessage(msg)
         # self.set_enabled_hbox_lists(True)
-        self.log_list.itemSelectionChanged.disconnect()
-        self.log_list.clear()
-        self.load_log_btn.setEnabled(True)
+        self.widget.log_list.itemSelectionChanged.disconnect()
+        self.widget.log_list.clear()
+        self.widget.load_log_btn.setEnabled(True)
         self.set_enabled_hbox_lists(True)
 
     def set_enabled_hbox_lists(self, enable_mode):
-        for ind in range(0, self.hbox_lists.count()):
-            curr_item = self.hbox_lists.itemAt(ind)
+        for ind in range(0, self.widget.hbox_lists.count()):
+            curr_item = self.widget.hbox_lists.itemAt(ind)
             if type(curr_item) == QtWidgets.QWidgetItem:
                 curr_item.widget().setEnabled(enable_mode)
-        for ind in range(0, self.grid_list_buttons.count()):
-            curr_item = self.grid_list_buttons.itemAt(ind)
+        for ind in range(0, self.widget.grid_list_buttons.count()):
+            curr_item = self.widget.grid_list_buttons.itemAt(ind)
             if type(curr_item) == QtWidgets.QWidgetItem:
                 curr_item.widget().setEnabled(enable_mode)
-        self.clear_detectors_stack_btn.setEnabled(True)
+        self.widget.clear_detectors_stack_btn.setEnabled(True)
 
     def write_headings(self):
         heading = self.read_headings()
@@ -435,15 +303,15 @@ class LogWindow(QtWidgets.QWidget):
 
     def read_headings(self):
         heading = 'Day_Date_Time_Year\tFile_Name\tDirectory\tExposure_Time_(sec)\t'
-        self.list_motor_short.selectAll()
-        for motor in self.list_motor_short.selectedItems():
+        self.widget.list_motor_short.selectAll()
+        for motor in self.widget.list_motor_short.selectedItems():
             heading = heading + motor.text() + '\t'
         heading = heading + 'Comments' + '\n'
         return heading
 
     def choose_detector_changed(self):
         self.detectors = []
-        for detector in self.choose_detector_menu.actions():
+        for detector in self.widget.choose_detector_menu.actions():
             if detector.isChecked():
                 self.detectors.append(detector.text())
 
@@ -468,11 +336,13 @@ class LogWindow(QtWidgets.QWidget):
                     self.motor_dict[row[0]]['after'] = int(row[2].split('\n')[0])
                 else:
                     self.motor_dict[row[0]]['after'] = 0
-                self.list_motor_short.addItem(row[0])
-                self.list_motor_names.addItem(row[1].split('\n')[0])
+                self.widget.list_motor_short.addItem(row[0])
+                self.widget.list_motor_names.addItem(row[1].split('\n')[0])
                 if self.motor_dict[row[0]]['after']:
-                    self.list_motor_short.item(self.list_motor_short.count()-1).setForeground(QtGui.QColor('blue'))
-                    self.list_motor_names.item(self.list_motor_names.count()-1).setForeground(QtGui.QColor('blue'))
+                    self.widget.list_motor_short.item(
+                        self.widget.list_motor_short.count()-1).setForeground(QtGui.QColor('blue'))
+                    self.widget.list_motor_names.item(
+                        self.widget.list_motor_names.count()-1).setForeground(QtGui.QColor('blue'))
 
             msg = 'Loaded motor list from ' + load_name
             self.parent().statusBar().showMessage(msg)
@@ -489,29 +359,29 @@ class LogWindow(QtWidgets.QWidget):
             self.parent().statusBar().showMessage(msg)
             return
         with open(save_name, 'w') as out_file:
-            self.list_motor_short.selectAll()
-            for motor in self.list_motor_short.selectedItems():
-                row_ind = self.list_motor_short.row(motor)
-                out_line = str(motor.text()) + ',' + self.list_motor_names.item(row_ind).text() + ','
+            self.widget.list_motor_short.selectAll()
+            for motor in self.widget.list_motor_short.selectedItems():
+                row_ind = self.widget.list_motor_short.row(motor)
+                out_line = str(motor.text()) + ',' + self.widget.list_motor_names.item(row_ind).text() + ','
                 out_line = out_line + str(self.motor_dict[str(motor.text())]['after']) + '\n'
                 out_file.write(out_line)
             msg = 'Saved motor list to ' + save_name
             self.parent().statusBar().showMessage(msg)
 
     def remove_from_motor_list(self):
-        for motor in self.list_motor_short.selectedItems():
+        for motor in self.widget.list_motor_short.selectedItems():
             self.remove_one_motor(motor)
             msg = 'Removed ' + motor.text().split('\t')[0] + ' from motor list'
             self.parent().statusBar().showMessage(msg)
 
     def remove_one_motor(self, motor):
-        self.list_motor_names.takeItem(self.list_motor_short.row(motor))
-        self.list_motor_short.takeItem(self.list_motor_short.row(motor))
+        self.widget.list_motor_names.takeItem(self.widget.list_motor_short.row(motor))
+        self.widget.list_motor_short.takeItem(self.widget.list_motor_short.row(motor))
         del self.motor_dict[str(motor.text())]
 
     def clear_motor_list(self):
-        self.list_motor_short.clear()
-        self.list_motor_names.clear()
+        self.widget.list_motor_short.clear()
+        self.widget.list_motor_names.clear()
         self.motor_dict = {}
         msg = 'Motor list cleared'
         self.parent().statusBar().showMessage(msg)
@@ -520,7 +390,8 @@ class LogWindow(QtWidgets.QWidget):
         short_name, ok_sn = QtWidgets.QInputDialog.getText(self, 'Add Motor to List', 'Provide short name for motor:')
         motor_name, ok_mn = QtWidgets.QInputDialog.getText(self, 'Add Motor to List', 'Provide Motor address:')
         after_msg = 'Should this PV be read after file completion?'
-        after = QtWidgets.QMessageBox.question(self, 'Message', after_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+        after = QtWidgets.QMessageBox.question(self, 'Message', after_msg, QtWidgets.QMessageBox.Yes,
+                                               QtWidgets.QMessageBox.No)
         if ok_sn and ok_mn:
             self.add_one_motor(short_name, motor_name, after)
             msg = 'Added ' + short_name + ' to motor list'
@@ -529,92 +400,96 @@ class LogWindow(QtWidgets.QWidget):
     def add_one_motor(self, short_name, motor_name, after):
         self.motor_dict[str(short_name)] = {}
         self.motor_dict[str(short_name)]['PV'] = str(motor_name)
-        self.list_motor_short.addItem(str(short_name))
-        self.list_motor_names.addItem(str(motor_name))
+        self.widget.list_motor_short.addItem(str(short_name))
+        self.widget.list_motor_names.addItem(str(motor_name))
         if after == QtWidgets.QMessageBox.Yes:
             self.motor_dict[str(short_name)]['after'] = 1
-            self.list_motor_short.item(self.list_motor_short.count()-1).setForeground(QtGui.QColor('blue'))
-            self.list_motor_names.item(self.list_motor_names.count()-1).setForeground(QtGui.QColor('blue'))
+            self.widget.list_motor_short.item(
+                self.widget.list_motor_short.count()-1).setForeground(QtGui.QColor('blue'))
+            self.widget.list_motor_names.item(
+                self.widget.list_motor_names.count()-1).setForeground(QtGui.QColor('blue'))
         else:
             self.motor_dict[str(short_name)]['after'] = 0
 
     def rename_motor(self):
-        for motor in self.list_motor_short.selectedItems():
+        for motor in self.widget.list_motor_short.selectedItems():
             old_short_name = motor.text()
-            row = self.list_motor_short.row(motor)
-            motor_name = self.list_motor_names.item(row).text()
+            row = self.widget.list_motor_short.row(motor)
+            motor_name = self.widget.list_motor_names.item(row).text()
             message = 'Provide new short name for motor ' + old_short_name + ':'
             short_name, ok_sn = QtWidgets.QInputDialog.getText(self, 'Rename motor in List', message,
                                                            QtWidgets.QLineEdit.Normal, old_short_name)
             if ok_sn:
                 after = self.motor_dict[str(old_short_name)]['after']
                 del self.motor_dict[str(old_short_name)]
-                self.list_motor_short.takeItem(self.list_motor_short.row(motor))
-                self.list_motor_short.insertItem(row, str(short_name))
+                self.widget.list_motor_short.takeItem(self.widget.list_motor_short.row(motor))
+                self.widget.list_motor_short.insertItem(row, str(short_name))
                 self.motor_dict[str(short_name)] = {}
                 self.motor_dict[str(short_name)]['PV'] = str(motor_name)
                 self.motor_dict[str(short_name)]['after'] = after
                 if after:
-                    self.list_motor_short.item(row).setForeground(QtGui.QColor('blue'))
+                    self.widget.list_motor_short.item(row).setForeground(QtGui.QColor('blue'))
                 msg = 'Renamed ' + old_short_name + ' to ' + short_name + ' in motor list'
                 self.parent().statusBar().showMessage(msg)
 
     def edit_motor(self):
-        for motor in self.list_motor_names.selectedItems():
+        for motor in self.widget.list_motor_names.selectedItems():
             old_motor_name = motor.text()
-            row = self.list_motor_names.row(motor)
-            motor_short = self.list_motor_short.item(row).text()
+            row = self.widget.list_motor_names.row(motor)
+            motor_short = self.widget.list_motor_short.item(row).text()
             message = 'Provide new PV for motor ' + motor_short + ':'
             motor_name, ok_sn = QtWidgets.QInputDialog.getText(self, 'Change PV', message,
                                                            QtWidgets.QLineEdit.Normal, old_motor_name)
             if ok_sn:
                 self.motor_dict[str(motor_short)]['PV'] = str(motor_name)
-                self.list_motor_names.takeItem(self.list_motor_names.row(motor))
-                self.list_motor_names.insertItem(row, str(motor_name))
+                self.widget.list_motor_names.takeItem(self.widget.list_motor_names.row(motor))
+                self.widget.list_motor_names.insertItem(row, str(motor_name))
                 msg = 'Updated ' + motor_short + ' from ' + old_motor_name + ' to ' + motor_name + ' in motor list'
                 self.parent().statusBar().showMessage(msg)
 
     def toggle_after(self):
-        for motor in self.list_motor_short.selectedItems():
-            row = self.list_motor_short.row(motor)
+        for motor in self.widget.list_motor_short.selectedItems():
+            row = self.widget.list_motor_short.row(motor)
             if self.motor_dict[str(motor.text())]['after']:
                 self.motor_dict[str(motor.text())]['after'] = 0
-                self.list_motor_short.item(row).setForeground(QtGui.QColor('black'))
-                self.list_motor_names.item(row).setForeground(QtGui.QColor('black'))
+                self.widget.list_motor_short.item(row).setForeground(QtGui.QColor('black'))
+                self.widget.list_motor_names.item(row).setForeground(QtGui.QColor('black'))
             else:
                 self.motor_dict[str(motor.text())]['after'] = 1
-                self.list_motor_short.item(row).setForeground(QtGui.QColor('blue'))
-                self.list_motor_names.item(row).setForeground(QtGui.QColor('blue'))
+                self.widget.list_motor_short.item(row).setForeground(QtGui.QColor('blue'))
+                self.widget.list_motor_names.item(row).setForeground(QtGui.QColor('blue'))
 
     def move_up_motors(self):
         sorted_motors = self.sort_selected_motors_by_row()
         for motor in sorted_motors:
-            row = self.list_motor_short.row(motor)
+            row = self.widget.list_motor_short.row(motor)
             if row == 0:
                 continue
-            short_name = self.list_motor_short.takeItem(row)
-            motor_name = self.list_motor_names.takeItem(row)
-            self.list_motor_short.insertItem(row-1, short_name)
-            self.list_motor_names.insertItem(row-1, motor_name)
-            self.list_motor_short.setCurrentItem(self.list_motor_short.item(row-1), QtCore.QItemSelectionModel.Select)
+            short_name = self.widget.list_motor_short.takeItem(row)
+            motor_name = self.widget.list_motor_names.takeItem(row)
+            self.widget.list_motor_short.insertItem(row-1, short_name)
+            self.widget.list_motor_names.insertItem(row-1, motor_name)
+            self.widget.list_motor_short.setCurrentItem(self.widget.list_motor_short.item(row-1),
+                                                        QtCore.QItemSelectionModel.Select)
 
     def move_dn_motors(self):
         sorted_motors = self.sort_selected_motors_by_row()
         for motor in reversed(sorted_motors):
-            row = self.list_motor_short.row(motor)
-            if row == self.list_motor_short.count()-1:
+            row = self.widget.list_motor_short.row(motor)
+            if row == self.widget.list_motor_short.count()-1:
                 continue
-            short_name = self.list_motor_short.takeItem(row)
-            motor_name = self.list_motor_names.takeItem(row)
-            self.list_motor_short.insertItem(row+1, short_name)
-            self.list_motor_names.insertItem(row+1, motor_name)
-            self.list_motor_short.setCurrentItem(self.list_motor_short.item(row+1), QtCore.QItemSelectionModel.Select)
+            short_name = self.widget.list_motor_short.takeItem(row)
+            motor_name = self.widget.list_motor_names.takeItem(row)
+            self.widget.list_motor_short.insertItem(row+1, short_name)
+            self.widget.list_motor_names.insertItem(row+1, motor_name)
+            self.widget.list_motor_short.setCurrentItem(self.widget.list_motor_short.item(row+1),
+                                                        QtCore.QItemSelectionModel.Select)
 
     def sort_selected_motors_by_row(self):
-        selected_motors = self.list_motor_short.selectedItems()
+        selected_motors = self.widget.list_motor_short.selectedItems()
         temp_dict = {}
         for motor in selected_motors:
-            temp_dict[self.list_motor_short.row(motor)] = motor
+            temp_dict[self.widget.list_motor_short.row(motor)] = motor
 
         temp_index = sorted(temp_dict)
         sorted_motors = []
@@ -623,26 +498,28 @@ class LogWindow(QtWidgets.QWidget):
         return sorted_motors
 
     def change_names_selection(self):  # occurs when the short name selection changes
-        self.list_motor_short.itemSelectionChanged.disconnect()
-        self.list_motor_names.itemSelectionChanged.disconnect()
-        for motor in self.list_motor_names.selectedItems():
-            self.list_motor_names.setCurrentItem(motor, QtCore.QItemSelectionModel.Deselect)
-        for motor in self.list_motor_short.selectedItems():
-            row_ind = self.list_motor_short.row(motor)
-            self.list_motor_names.setCurrentItem(self.list_motor_names.item(row_ind), QtCore.QItemSelectionModel.Select)
-        self.list_motor_short.itemSelectionChanged.connect(self.change_names_selection)
-        self.list_motor_names.itemSelectionChanged.connect(self.change_short_selection)
+        self.widget.list_motor_short.itemSelectionChanged.disconnect()
+        self.widget.list_motor_names.itemSelectionChanged.disconnect()
+        for motor in self.widget.list_motor_names.selectedItems():
+            self.widget.list_motor_names.setCurrentItem(motor, QtCore.QItemSelectionModel.Deselect)
+        for motor in self.widget.list_motor_short.selectedItems():
+            row_ind = self.widget.list_motor_short.row(motor)
+            self.widget.list_motor_names.setCurrentItem(self.widget.list_motor_names.item(row_ind),
+                                                        QtCore.QItemSelectionModel.Select)
+        self.widget.list_motor_short.itemSelectionChanged.connect(self.change_names_selection)
+        self.widget.list_motor_names.itemSelectionChanged.connect(self.change_short_selection)
 
     def change_short_selection(self):  # occurs when the full motor name selection changes
-        self.list_motor_short.itemSelectionChanged.disconnect()
-        self.list_motor_names.itemSelectionChanged.disconnect()
-        for motor in self.list_motor_short.selectedItems():
-            self.list_motor_short.setCurrentItem(motor, QtCore.QItemSelectionModel.Deselect)
-        for motor in self.list_motor_names.selectedItems():
-            row_ind = self.list_motor_names.row(motor)
-            self.list_motor_short.setCurrentItem(self.list_motor_short.item(row_ind), QtCore.QItemSelectionModel.Select)
-        self.list_motor_short.itemSelectionChanged.connect(self.change_names_selection)
-        self.list_motor_names.itemSelectionChanged.connect(self.change_short_selection)
+        self.widget.list_motor_short.itemSelectionChanged.disconnect()
+        self.widget.list_motor_names.itemSelectionChanged.disconnect()
+        for motor in self.widget.list_motor_short.selectedItems():
+            self.widget.list_motor_short.setCurrentItem(motor, QtCore.QItemSelectionModel.Deselect)
+        for motor in self.widget.list_motor_names.selectedItems():
+            row_ind = self.widget.list_motor_names.row(motor)
+            self.widget.list_motor_short.setCurrentItem(self.widget.list_motor_short.item(row_ind),
+                                                        QtCore.QItemSelectionModel.Select)
+        self.widget.list_motor_short.itemSelectionChanged.connect(self.change_names_selection)
+        self.widget.list_motor_names.itemSelectionChanged.connect(self.change_short_selection)
 
     def show_selected_info(self):
         self.log_monitor.update_log_label()
@@ -650,28 +527,34 @@ class LogWindow(QtWidgets.QWidget):
         # self.parent().resize(self.parent().sizeHint())
 
     def show_offline_info(self):
-        file_name = str(self.log_list.currentItem().text())
-        for row in range(self.log_table.rowCount()):
-            self.log_table.removeRow(0)
+        file_name = str(self.widget.log_list.currentItem().text())
+        for row in range(self.widget.log_table.rowCount()):
+            self.widget.log_table.removeRow(0)
         for item in self.log_dict[file_name]:
-            row_pos = self.log_table.rowCount()
-            self.log_table.insertRow(row_pos)
-            self.log_table.setItem(row_pos, 0, QtWidgets.QTableWidgetItem(item))
-            self.log_table.setItem(row_pos, 1, QtWidgets.QTableWidgetItem(self.log_dict[file_name][item]))
-        self.log_table.resizeColumnsToContents()
+            row_pos = self.widget.log_table.rowCount()
+            self.widget.log_table.insertRow(row_pos)
+            self.widget.log_table.setItem(row_pos, 0, QtWidgets.QTableWidgetItem(item))
+            self.widget.log_table.setItem(row_pos, 1, QtWidgets.QTableWidgetItem(self.log_dict[file_name][item]))
+        self.widget.log_table.resizeColumnsToContents()
 
     def view_image_file(self):
-        file_name = str(self.log_list.currentItem().text()).split('|', 1)
-        file_type = str(self.log_list.currentItem().text()).rsplit('.', 1)
+        file_name = str(self.widget.log_list.currentItem().text()).split('|', 1)
+        file_type = str(self.widget.log_list.currentItem().text()).rsplit('.', 1)
         if file_type[-1] == 'tif':
             os.system("start " + file_name[-1])
 
     def run_create_folders_widget(self):
-        if self.start_btn.isEnabled():
+        if self.widget.start_btn.isEnabled():
             self.folder_widget = FolderMaker(parent=self, running=False, chosen_detectors=self.detectors)
         else:
             self.folder_widget = FolderMaker(parent=self, running=True, chosen_detectors=self.detectors,
                                              previous_detector_settings=self.folder_maker_settings)
+        self.folder_widget.folders_created.connect(self.folders_created_emitted)
+
+    def folders_created_emitted(self):
+        if self.widget.stop_btn.isVisible():
+            self.widget.stop_btn.click()
+        self.widget.start_btn.click()
 
     def add_comment(self):
         message = 'Please input a new comment for the HTML logger'
@@ -691,11 +574,11 @@ class LogWindow(QtWidgets.QWidget):
         self.motors_file = self.log_file_settings.value('pv_list_file', defaultValue='')
         self.detectors = self.log_file_settings.value('detectors', defaultValue=[])
 
-        self.choose_file_name_le.setText(self.choose_file)
+        self.widget.choose_file_name_le.setText(self.choose_file)
         self.set_choose_dir_label()
         self.load_motor_list(self.motors_file)
 
-        for detector in self.choose_detector_menu.actions():
+        for detector in self.widget.choose_detector_menu.actions():
             if str(detector.text()) in self.detectors:
                 detector.setChecked(True)
 
@@ -704,7 +587,7 @@ class LogWindow(QtWidgets.QWidget):
         self.log_file_settings.setValue('log_file_name', self.choose_file)
         self.log_file_settings.setValue('pv_list_file', self.motors_file)
         chosen_detectors = []
-        for detector in self.choose_detector_menu.actions():
+        for detector in self.widget.choose_detector_menu.actions():
             if detector.isChecked():
                 chosen_detectors.append(detector.text())
         self.log_file_settings.setValue('detectors', chosen_detectors)
@@ -725,7 +608,7 @@ class LogWindow(QtWidgets.QWidget):
         self.motors_file = cfg['motor_file']
         self.detectors = cfg['detectors'].split(',')
 
-        self.choose_file_name_le.setText(self.choose_file)
+        self.widget.choose_file_name_le.setText(self.choose_file)
         self.set_choose_dir_label()
         self.load_motor_list(self.motors_file)
         for detector in self.choose_detector_menu.actions():
@@ -745,7 +628,7 @@ class LogWindow(QtWidgets.QWidget):
         cfg_file.write(outline)
 
         selected_detectors = []
-        for detector in self.choose_detector_menu.actions():
+        for detector in self.widget.choose_detector_menu.actions():
             if detector.isChecked():
                 selected_detectors.append(detector.text())
         selected_detectors_csv = ','.join(selected_detectors)

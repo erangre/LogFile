@@ -13,6 +13,8 @@ import collections
 
 
 class FolderMaker(QtWidgets.QWidget):
+    folders_created = QtCore.Signal()
+
     def __init__(self, parent=None, running=False, chosen_detectors=None, previous_detector_settings=None):
         super(FolderMaker, self).__init__()
         self.folder_maker_settings = QtCore.QSettings("Logger", "FolderMaker")
@@ -118,16 +120,17 @@ class FolderMaker(QtWidgets.QWidget):
         self.update_epics()
         self.update_detector_settings()
         self.save_folder_maker_settings()
-        if not self.log_running:
-            file_name = 'log_' + str(time.localtime().tm_year) + '_' + str(time.localtime().tm_mon).zfill(2) + \
-                        '_' + str(time.localtime().tm_mday).zfill(2) + '.txt'
-            self.caller.choose_file_name_le.setText(file_name)
-            self.caller.choose_file = file_name
-            # self.caller.choose_dir = str(self.base_dir).rsplit('\\', 1)[0]
-            self.caller.choose_dir = str(self.base_dir)
-            self.caller.set_choose_dir_label()
+
+        file_name = 'log_' + str(time.localtime().tm_year) + '_' + str(time.localtime().tm_mon).zfill(2) + \
+                    '_' + str(time.localtime().tm_mday).zfill(2) + '.txt'
+        self.caller.widget.choose_file_name_le.setText(file_name)
+        self.caller.choose_file = file_name
+        # self.caller.choose_dir = str(self.base_dir).rsplit('\\', 1)[0]
+        self.caller.choose_dir = str(self.base_dir)
+        self.caller.set_choose_dir_label()
 
         self.caller.folder_maker_settings = self.new_settings.copy()
+        self.folders_created.emit()
 
     def check_and_make_dirs(self):
         base_dir = str(self.base_dir)
