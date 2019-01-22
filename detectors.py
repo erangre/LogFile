@@ -160,7 +160,7 @@ detectors['marip2'] = {
     'file_type': 'tif',
 }
 
-detectors['lightfield'] =  {
+detectors['lightfield'] = {
     'name': '13IDDLF1',
     'prefix': 'T',
     'monitor_signal_start': '13IDDLF1:cam1:Acquire',
