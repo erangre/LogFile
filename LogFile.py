@@ -145,7 +145,7 @@ class LogWindow(QtWidgets.QWidget):
         if not file_name:
             msg = 'Choose log file to view'
             load_log_name, _ = QtWidgets.QFileDialog.getOpenFileName(self, msg, directory=self.offline_log_file,
-                                                                     filter='Text Files (*.txt)' )
+                                                                     filter='Text Files (*.txt)')
         else:
             load_log_name = file_name
 
@@ -320,7 +320,7 @@ class LogWindow(QtWidgets.QWidget):
     def load_pv_list(self, file_name=None):
         if not file_name or not os.path.isfile(file_name):
             load_name, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Choose file name for loading pv list', '.',
-                                                          'Text Files (*.txt)')
+                                                                 'Text Files (*.txt)')
         else:
             load_name = file_name
 
@@ -352,7 +352,7 @@ class LogWindow(QtWidgets.QWidget):
     def save_pv_list(self, file_name=None):
         if not file_name:
             save_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Choose file name for saving pv list', '.',
-                                                          'Text Files (*.txt)')
+                                                                 'Text Files (*.txt)')
         else:
             save_name = file_name
 
@@ -389,8 +389,8 @@ class LogWindow(QtWidgets.QWidget):
         self.parent().statusBar().showMessage(msg)
 
     def add_to_pv_list(self):
-        short_name, ok_sn = QtWidgets.QInputDialog.getText(self, 'Add Motor to List', 'Provide short name for pv:')
-        pv_name, ok_mn = QtWidgets.QInputDialog.getText(self, 'Add Motor to List', 'Provide Motor address:')
+        short_name, ok_sn = QtWidgets.QInputDialog.getText(self, 'Add PV to List', 'Provide short name for PV:')
+        pv_name, ok_mn = QtWidgets.QInputDialog.getText(self, 'Add PV to List', 'Provide PV address:')
         after_msg = 'Should this PV be read after file completion?'
         after = QtWidgets.QMessageBox.question(self, 'Message', after_msg, QtWidgets.QMessageBox.Yes,
                                                QtWidgets.QMessageBox.No)
@@ -420,7 +420,7 @@ class LogWindow(QtWidgets.QWidget):
             pv_name = self.widget.pv_list.item(row).text()
             message = 'Provide new short name for pv ' + old_short_name + ':'
             short_name, ok_sn = QtWidgets.QInputDialog.getText(self, 'Rename pv in List', message,
-                                                           QtWidgets.QLineEdit.Normal, old_short_name)
+                                                               QtWidgets.QLineEdit.Normal, old_short_name)
             if ok_sn:
                 after = self.pv_dict[str(old_short_name)]['after']
                 del self.pv_dict[str(old_short_name)]
@@ -441,7 +441,7 @@ class LogWindow(QtWidgets.QWidget):
             pv_short = self.widget.pv_short_name_list.item(row).text()
             message = 'Provide new PV for pv ' + pv_short + ':'
             pv_name, ok_sn = QtWidgets.QInputDialog.getText(self, 'Change PV', message,
-                                                           QtWidgets.QLineEdit.Normal, old_pv_name)
+                                                            QtWidgets.QLineEdit.Normal, old_pv_name)
             if ok_sn:
                 self.pv_dict[str(pv_short)]['PV'] = str(pv_name)
                 self.widget.pv_list.takeItem(self.widget.pv_list.row(pv))
@@ -472,7 +472,7 @@ class LogWindow(QtWidgets.QWidget):
             self.widget.pv_short_name_list.insertItem(row-1, short_name)
             self.widget.pv_list.insertItem(row-1, pv_name)
             self.widget.pv_short_name_list.setCurrentItem(self.widget.pv_short_name_list.item(row-1),
-                                                        QtCore.QItemSelectionModel.Select)
+                                                          QtCore.QItemSelectionModel.Select)
 
     def move_dn_pvs(self):
         sorted_pvs = self.sort_selected_pvs_by_row()
@@ -485,7 +485,7 @@ class LogWindow(QtWidgets.QWidget):
             self.widget.pv_short_name_list.insertItem(row+1, short_name)
             self.widget.pv_list.insertItem(row+1, pv_name)
             self.widget.pv_short_name_list.setCurrentItem(self.widget.pv_short_name_list.item(row+1),
-                                                        QtCore.QItemSelectionModel.Select)
+                                                          QtCore.QItemSelectionModel.Select)
 
     def sort_selected_pvs_by_row(self):
         selected_pvs = self.widget.pv_short_name_list.selectedItems()
@@ -507,7 +507,7 @@ class LogWindow(QtWidgets.QWidget):
         for pv in self.widget.pv_short_name_list.selectedItems():
             row_ind = self.widget.pv_short_name_list.row(pv)
             self.widget.pv_list.setCurrentItem(self.widget.pv_list.item(row_ind),
-                                                        QtCore.QItemSelectionModel.Select)
+                                               QtCore.QItemSelectionModel.Select)
         self.widget.pv_short_name_list.itemSelectionChanged.connect(self.change_names_selection)
         self.widget.pv_list.itemSelectionChanged.connect(self.change_short_selection)
 
@@ -519,7 +519,7 @@ class LogWindow(QtWidgets.QWidget):
         for pv in self.widget.pv_list.selectedItems():
             row_ind = self.widget.pv_list.row(pv)
             self.widget.pv_short_name_list.setCurrentItem(self.widget.pv_short_name_list.item(row_ind),
-                                                        QtCore.QItemSelectionModel.Select)
+                                                          QtCore.QItemSelectionModel.Select)
         self.widget.pv_short_name_list.itemSelectionChanged.connect(self.change_names_selection)
         self.widget.pv_list.itemSelectionChanged.connect(self.change_short_selection)
 
