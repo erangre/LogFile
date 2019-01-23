@@ -54,13 +54,13 @@ class LogWindow(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(LogWindow, self).__init__(parent)
         self._filter = Filter()
-        self.motor_dict = {}
+        self.pv_dict = {}
         self.log_dict = None
         self.log_file_settings = QtCore.QSettings("Logger", "LogFile")
 
         self.choose_dir = DEF_DIR
         self.choose_file = DEF_FILE
-        self.motors_file = ''
+        self.pvs_file = ''
         self.folder_maker_settings = {}
 
         # self.detector = 1
@@ -82,19 +82,19 @@ class LogWindow(QtWidgets.QWidget):
         # self.widget.comment_btn.clicked.connect(self.add_comment)
         self.widget.start_btn.clicked.connect(self.start_logging)
         self.widget.stop_btn.clicked.connect(self.stop_logging)
-        self.widget.motor_load_btn.clicked.connect(self.load_motor_list)
-        self.widget.motor_save_btn.clicked.connect(self.save_motor_list)
-        self.widget.motor_remove_btn.clicked.connect(self.remove_from_motor_list)
-        self.widget.motor_add_btn.clicked.connect(self.add_to_motor_list)
-        self.widget.motor_clear_btn.clicked.connect(self.clear_motor_list)
-        self.widget.motor_rename_btn.clicked.connect(self.rename_motor)
-        self.widget.list_motor_short.itemSelectionChanged.connect(self.change_names_selection)
-        self.widget.list_motor_short.doubleClicked.connect(self.rename_motor)
-        self.widget.list_motor_names.itemSelectionChanged.connect(self.change_short_selection)
-        self.widget.list_motor_names.doubleClicked.connect(self.edit_motor)
-        self.widget.motor_move_up_btn.clicked.connect(self.move_up_motors)
-        self.widget.motor_move_dn_btn.clicked.connect(self.move_dn_motors)
-        self.widget.motor_toggle_after_btn.clicked.connect(self.toggle_after)
+        self.widget.pv_load_btn.clicked.connect(self.load_pv_list)
+        self.widget.pv_save_btn.clicked.connect(self.save_pv_list)
+        self.widget.pv_remove_btn.clicked.connect(self.remove_from_pv_list)
+        self.widget.pv_add_btn.clicked.connect(self.add_to_pv_list)
+        self.widget.pv_clear_btn.clicked.connect(self.clear_pv_list)
+        self.widget.pv_rename_btn.clicked.connect(self.rename_pv)
+        self.widget.list_pv_short.itemSelectionChanged.connect(self.change_names_selection)
+        self.widget.list_pv_short.doubleClicked.connect(self.rename_pv)
+        self.widget.list_pv_names.itemSelectionChanged.connect(self.change_short_selection)
+        self.widget.list_pv_names.doubleClicked.connect(self.edit_pv)
+        self.widget.pv_move_up_btn.clicked.connect(self.move_up_pvs)
+        self.widget.pv_move_dn_btn.clicked.connect(self.move_dn_pvs)
+        self.widget.pv_toggle_after_btn.clicked.connect(self.toggle_after)
         self.widget.view_image_btn.clicked.connect(self.view_image_file)
         self.widget.create_folders_btn.clicked.connect(self.run_create_folders_widget)
         self.widget.choose_detector_menu.triggered.connect(self.widget.choose_detector_tb.click)
@@ -114,19 +114,20 @@ class LogWindow(QtWidgets.QWidget):
             self.load_log_file_settings()
 
     def disable_epics(self):
-        self.setup_btn.setVisible(False)
-        self.start_btn.setVisible(False)
-        self.stop_btn.setVisible(False)
-        self.choose_detector_tb.setVisible(False)
-        self.label_start_time.setVisible(False)
-        self.label_end_time.setVisible(False)
-        self.label_fullpath.setVisible(False)
-        self.choose_file_name_le.setVisible(False)
-        self.choose_dir_btn.setVisible(False)
+        self.widget.setup_btn.setVisible(False)
+        self.widge.start_btn.setVisible(False)
+        self.widge.stop_btn.setVisible(False)
+        self.widge.choose_detector_tb.setVisible(False)
+        self.widge.label_start_time.setVisible(False)
+        self.widge.label_end_time.setVisible(False)
+        self.widge.label_fullpath.setVisible(False)
+        self.widge.choose_file_name_le.setVisible(False)
+        self.widge.choose_dir_btn.setVisible(False)
+        self.widget.create_folders_btn.setVisible(False)
 
     def choose_dir_btn_clicked(self):
-        CH_DIR_TEXT = 'Choose directory for saving log file'
-        self.choose_dir = QtWidgets.QFileDialog.getExistingDirectory(self, CH_DIR_TEXT, self.choose_dir)
+        msg = 'Choose directory for saving log file'
+        self.choose_dir = QtWidgets.QFileDialog.getExistingDirectory(self, msg, self.choose_dir)
         if self.choose_dir:
             self.set_choose_dir_label()
 
@@ -158,7 +159,8 @@ class LogWindow(QtWidgets.QWidget):
         self.widget.choose_dir_btn.setEnabled(False)
         # self.view_image_btn.setEnabled(False)
         self.widget.choose_detector_tb.setEnabled(False)
-        self.widget.setup_motors_frame.hide()
+        self.widget.create_folders_btn.setEnabled(False)
+        self.widget.setup_pvs_frame.hide()
 
         self.read_log_file(load_log_name)
         self.widget.reload_log_btn.show()
@@ -202,10 +204,10 @@ class LogWindow(QtWidgets.QWidget):
         self.load_previous_log(self.loaded_log)
 
     def toggle_setup_menu(self):
-        self.widget.setup_motors_frame.setVisible(not self.widget.setup_motors_frame.isVisible())
+        self.widget.setup_pvs_frame.setVisible(not self.widget.setup_pvs_frame.isVisible())
         # self.resize(self.sizeHint())
         self.parent().resize(self.parent().sizeHint())
-        if not self.widget.setup_motors_frame.isVisible() and not self.widget.log_frame.isVisible():
+        if not self.widget.setup_pvs_frame.isVisible() and not self.widget.log_frame.isVisible():
             self.parent().setMinimumHeight(self.parent().min_height)
             self.parent().resize(self.parent().width(), self.parent().minimumHeight())
 
@@ -214,7 +216,7 @@ class LogWindow(QtWidgets.QWidget):
         # self.resize(self.sizeHint())
         self.parent().resize(self.parent().sizeHint())
         # print(self.parent().sizeHint())
-        if not self.widget.log_frame.isVisible() and not self.widget.setup_motors_frame.isVisible():
+        if not self.widget.log_frame.isVisible() and not self.widget.setup_pvs_frame.isVisible():
             self.parent().setMinimumHeight(self.parent().min_height)
             self.parent().resize(self.parent().width(), self.parent().minimumHeight())
 
@@ -250,7 +252,7 @@ class LogWindow(QtWidgets.QWidget):
 
         self.widget.log_list.itemSelectionChanged.connect(self.show_selected_info)
 
-        self.motors_file = str(self.choose_file).rsplit('.')[0] + '_motors.txt'
+        self.pvs_file = str(self.choose_file).rsplit('.')[0] + '_motors.txt'
         self.save_config()
         self.save_log_file_settings()
 
@@ -303,9 +305,9 @@ class LogWindow(QtWidgets.QWidget):
 
     def read_headings(self):
         heading = 'Day_Date_Time_Year\tFile_Name\tDirectory\tExposure_Time_(sec)\t'
-        self.widget.list_motor_short.selectAll()
-        for motor in self.widget.list_motor_short.selectedItems():
-            heading = heading + motor.text() + '\t'
+        self.widget.list_pv_short.selectAll()
+        for pv in self.widget.list_pv_short.selectedItems():
+            heading = heading + pv.text() + '\t'
         heading = heading + 'Comments' + '\n'
         return heading
 
@@ -315,9 +317,9 @@ class LogWindow(QtWidgets.QWidget):
             if detector.isChecked():
                 self.detectors.append(detector.text())
 
-    def load_motor_list(self, file_name=None):
+    def load_pv_list(self, file_name=None):
         if not file_name or not os.path.isfile(file_name):
-            load_name, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Choose file name for loading motor list', '.',
+            load_name, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Choose file name for loading pv list', '.',
                                                           'Text Files (*.txt)')
         else:
             load_name = file_name
@@ -328,28 +330,28 @@ class LogWindow(QtWidgets.QWidget):
             return
 
         with open(load_name, 'r') as in_file:
-            for motor in in_file:
-                row = motor.split(',')
-                self.motor_dict[row[0]] = {}
-                self.motor_dict[row[0]]['PV'] = row[1].split('\n')[0]
+            for pv in in_file:
+                row = pv.split(',')
+                self.pv_dict[row[0]] = {}
+                self.pv_dict[row[0]]['PV'] = row[1].split('\n')[0]
                 if len(row) > 2:
-                    self.motor_dict[row[0]]['after'] = int(row[2].split('\n')[0])
+                    self.pv_dict[row[0]]['after'] = int(row[2].split('\n')[0])
                 else:
-                    self.motor_dict[row[0]]['after'] = 0
-                self.widget.list_motor_short.addItem(row[0])
-                self.widget.list_motor_names.addItem(row[1].split('\n')[0])
-                if self.motor_dict[row[0]]['after']:
-                    self.widget.list_motor_short.item(
-                        self.widget.list_motor_short.count()-1).setForeground(QtGui.QColor('blue'))
-                    self.widget.list_motor_names.item(
-                        self.widget.list_motor_names.count()-1).setForeground(QtGui.QColor('blue'))
+                    self.pv_dict[row[0]]['after'] = 0
+                self.widget.list_pv_short.addItem(row[0])
+                self.widget.list_pv_names.addItem(row[1].split('\n')[0])
+                if self.pv_dict[row[0]]['after']:
+                    self.widget.list_pv_short.item(
+                        self.widget.list_pv_short.count()-1).setForeground(QtGui.QColor('blue'))
+                    self.widget.list_pv_names.item(
+                        self.widget.list_pv_names.count()-1).setForeground(QtGui.QColor('blue'))
 
-            msg = 'Loaded motor list from ' + load_name
+            msg = 'Loaded pv list from ' + load_name
             self.parent().statusBar().showMessage(msg)
 
-    def save_motor_list(self, file_name=None):
+    def save_pv_list(self, file_name=None):
         if not file_name:
-            save_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Choose file name for saving motor list', '.',
+            save_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Choose file name for saving pv list', '.',
                                                           'Text Files (*.txt)')
         else:
             save_name = file_name
@@ -359,167 +361,167 @@ class LogWindow(QtWidgets.QWidget):
             self.parent().statusBar().showMessage(msg)
             return
         with open(save_name, 'w') as out_file:
-            self.widget.list_motor_short.selectAll()
-            for motor in self.widget.list_motor_short.selectedItems():
-                row_ind = self.widget.list_motor_short.row(motor)
-                out_line = str(motor.text()) + ',' + self.widget.list_motor_names.item(row_ind).text() + ','
-                out_line = out_line + str(self.motor_dict[str(motor.text())]['after']) + '\n'
+            self.widget.list_pv_short.selectAll()
+            for pv in self.widget.list_pv_short.selectedItems():
+                row_ind = self.widget.list_pv_short.row(pv)
+                out_line = str(pv.text()) + ',' + self.widget.list_pv_names.item(row_ind).text() + ','
+                out_line = out_line + str(self.pv_dict[str(pv.text())]['after']) + '\n'
                 out_file.write(out_line)
-            msg = 'Saved motor list to ' + save_name
+            msg = 'Saved pv list to ' + save_name
             self.parent().statusBar().showMessage(msg)
 
-    def remove_from_motor_list(self):
-        for motor in self.widget.list_motor_short.selectedItems():
-            self.remove_one_motor(motor)
-            msg = 'Removed ' + motor.text().split('\t')[0] + ' from motor list'
+    def remove_from_pv_list(self):
+        for pv in self.widget.list_pv_short.selectedItems():
+            self.remove_one_pv(pv)
+            msg = 'Removed ' + pv.text().split('\t')[0] + ' from pv list'
             self.parent().statusBar().showMessage(msg)
 
-    def remove_one_motor(self, motor):
-        self.widget.list_motor_names.takeItem(self.widget.list_motor_short.row(motor))
-        self.widget.list_motor_short.takeItem(self.widget.list_motor_short.row(motor))
-        del self.motor_dict[str(motor.text())]
+    def remove_one_pv(self, pv):
+        self.widget.list_pv_names.takeItem(self.widget.list_pv_short.row(pv))
+        self.widget.list_pv_short.takeItem(self.widget.list_pv_short.row(pv))
+        del self.pv_dict[str(pv.text())]
 
-    def clear_motor_list(self):
-        self.widget.list_motor_short.clear()
-        self.widget.list_motor_names.clear()
-        self.motor_dict = {}
+    def clear_pv_list(self):
+        self.widget.list_pv_short.clear()
+        self.widget.list_pv_names.clear()
+        self.pv_dict = {}
         msg = 'Motor list cleared'
         self.parent().statusBar().showMessage(msg)
 
-    def add_to_motor_list(self):
-        short_name, ok_sn = QtWidgets.QInputDialog.getText(self, 'Add Motor to List', 'Provide short name for motor:')
-        motor_name, ok_mn = QtWidgets.QInputDialog.getText(self, 'Add Motor to List', 'Provide Motor address:')
+    def add_to_pv_list(self):
+        short_name, ok_sn = QtWidgets.QInputDialog.getText(self, 'Add Motor to List', 'Provide short name for pv:')
+        pv_name, ok_mn = QtWidgets.QInputDialog.getText(self, 'Add Motor to List', 'Provide Motor address:')
         after_msg = 'Should this PV be read after file completion?'
         after = QtWidgets.QMessageBox.question(self, 'Message', after_msg, QtWidgets.QMessageBox.Yes,
                                                QtWidgets.QMessageBox.No)
         if ok_sn and ok_mn:
-            self.add_one_motor(short_name, motor_name, after)
-            msg = 'Added ' + short_name + ' to motor list'
+            self.add_one_pv(short_name, pv_name, after)
+            msg = 'Added ' + short_name + ' to pv list'
             self.parent().statusBar().showMessage(msg)
 
-    def add_one_motor(self, short_name, motor_name, after):
-        self.motor_dict[str(short_name)] = {}
-        self.motor_dict[str(short_name)]['PV'] = str(motor_name)
-        self.widget.list_motor_short.addItem(str(short_name))
-        self.widget.list_motor_names.addItem(str(motor_name))
+    def add_one_pv(self, short_name, pv_name, after):
+        self.pv_dict[str(short_name)] = {}
+        self.pv_dict[str(short_name)]['PV'] = str(pv_name)
+        self.widget.list_pv_short.addItem(str(short_name))
+        self.widget.list_pv_names.addItem(str(pv_name))
         if after == QtWidgets.QMessageBox.Yes:
-            self.motor_dict[str(short_name)]['after'] = 1
-            self.widget.list_motor_short.item(
-                self.widget.list_motor_short.count()-1).setForeground(QtGui.QColor('blue'))
-            self.widget.list_motor_names.item(
-                self.widget.list_motor_names.count()-1).setForeground(QtGui.QColor('blue'))
+            self.pv_dict[str(short_name)]['after'] = 1
+            self.widget.list_pv_short.item(
+                self.widget.list_pv_short.count()-1).setForeground(QtGui.QColor('blue'))
+            self.widget.list_pv_names.item(
+                self.widget.list_pv_names.count()-1).setForeground(QtGui.QColor('blue'))
         else:
-            self.motor_dict[str(short_name)]['after'] = 0
+            self.pv_dict[str(short_name)]['after'] = 0
 
-    def rename_motor(self):
-        for motor in self.widget.list_motor_short.selectedItems():
-            old_short_name = motor.text()
-            row = self.widget.list_motor_short.row(motor)
-            motor_name = self.widget.list_motor_names.item(row).text()
-            message = 'Provide new short name for motor ' + old_short_name + ':'
-            short_name, ok_sn = QtWidgets.QInputDialog.getText(self, 'Rename motor in List', message,
+    def rename_pv(self):
+        for pv in self.widget.list_pv_short.selectedItems():
+            old_short_name = pv.text()
+            row = self.widget.list_pv_short.row(pv)
+            pv_name = self.widget.list_pv_names.item(row).text()
+            message = 'Provide new short name for pv ' + old_short_name + ':'
+            short_name, ok_sn = QtWidgets.QInputDialog.getText(self, 'Rename pv in List', message,
                                                            QtWidgets.QLineEdit.Normal, old_short_name)
             if ok_sn:
-                after = self.motor_dict[str(old_short_name)]['after']
-                del self.motor_dict[str(old_short_name)]
-                self.widget.list_motor_short.takeItem(self.widget.list_motor_short.row(motor))
-                self.widget.list_motor_short.insertItem(row, str(short_name))
-                self.motor_dict[str(short_name)] = {}
-                self.motor_dict[str(short_name)]['PV'] = str(motor_name)
-                self.motor_dict[str(short_name)]['after'] = after
+                after = self.pv_dict[str(old_short_name)]['after']
+                del self.pv_dict[str(old_short_name)]
+                self.widget.list_pv_short.takeItem(self.widget.list_pv_short.row(pv))
+                self.widget.list_pv_short.insertItem(row, str(short_name))
+                self.pv_dict[str(short_name)] = {}
+                self.pv_dict[str(short_name)]['PV'] = str(pv_name)
+                self.pv_dict[str(short_name)]['after'] = after
                 if after:
-                    self.widget.list_motor_short.item(row).setForeground(QtGui.QColor('blue'))
-                msg = 'Renamed ' + old_short_name + ' to ' + short_name + ' in motor list'
+                    self.widget.list_pv_short.item(row).setForeground(QtGui.QColor('blue'))
+                msg = 'Renamed ' + old_short_name + ' to ' + short_name + ' in pv list'
                 self.parent().statusBar().showMessage(msg)
 
-    def edit_motor(self):
-        for motor in self.widget.list_motor_names.selectedItems():
-            old_motor_name = motor.text()
-            row = self.widget.list_motor_names.row(motor)
-            motor_short = self.widget.list_motor_short.item(row).text()
-            message = 'Provide new PV for motor ' + motor_short + ':'
-            motor_name, ok_sn = QtWidgets.QInputDialog.getText(self, 'Change PV', message,
-                                                           QtWidgets.QLineEdit.Normal, old_motor_name)
+    def edit_pv(self):
+        for pv in self.widget.list_pv_names.selectedItems():
+            old_pv_name = pv.text()
+            row = self.widget.list_pv_names.row(pv)
+            pv_short = self.widget.list_pv_short.item(row).text()
+            message = 'Provide new PV for pv ' + pv_short + ':'
+            pv_name, ok_sn = QtWidgets.QInputDialog.getText(self, 'Change PV', message,
+                                                           QtWidgets.QLineEdit.Normal, old_pv_name)
             if ok_sn:
-                self.motor_dict[str(motor_short)]['PV'] = str(motor_name)
-                self.widget.list_motor_names.takeItem(self.widget.list_motor_names.row(motor))
-                self.widget.list_motor_names.insertItem(row, str(motor_name))
-                msg = 'Updated ' + motor_short + ' from ' + old_motor_name + ' to ' + motor_name + ' in motor list'
+                self.pv_dict[str(pv_short)]['PV'] = str(pv_name)
+                self.widget.list_pv_names.takeItem(self.widget.list_pv_names.row(pv))
+                self.widget.list_pv_names.insertItem(row, str(pv_name))
+                msg = 'Updated ' + pv_short + ' from ' + old_pv_name + ' to ' + pv_name + ' in pv list'
                 self.parent().statusBar().showMessage(msg)
 
     def toggle_after(self):
-        for motor in self.widget.list_motor_short.selectedItems():
-            row = self.widget.list_motor_short.row(motor)
-            if self.motor_dict[str(motor.text())]['after']:
-                self.motor_dict[str(motor.text())]['after'] = 0
-                self.widget.list_motor_short.item(row).setForeground(QtGui.QColor('black'))
-                self.widget.list_motor_names.item(row).setForeground(QtGui.QColor('black'))
+        for pv in self.widget.list_pv_short.selectedItems():
+            row = self.widget.list_pv_short.row(pv)
+            if self.pv_dict[str(pv.text())]['after']:
+                self.pv_dict[str(pv.text())]['after'] = 0
+                self.widget.list_pv_short.item(row).setForeground(QtGui.QColor('black'))
+                self.widget.list_pv_names.item(row).setForeground(QtGui.QColor('black'))
             else:
-                self.motor_dict[str(motor.text())]['after'] = 1
-                self.widget.list_motor_short.item(row).setForeground(QtGui.QColor('blue'))
-                self.widget.list_motor_names.item(row).setForeground(QtGui.QColor('blue'))
+                self.pv_dict[str(pv.text())]['after'] = 1
+                self.widget.list_pv_short.item(row).setForeground(QtGui.QColor('blue'))
+                self.widget.list_pv_names.item(row).setForeground(QtGui.QColor('blue'))
 
-    def move_up_motors(self):
-        sorted_motors = self.sort_selected_motors_by_row()
-        for motor in sorted_motors:
-            row = self.widget.list_motor_short.row(motor)
+    def move_up_pvs(self):
+        sorted_pvs = self.sort_selected_pvs_by_row()
+        for pv in sorted_pvs:
+            row = self.widget.list_pv_short.row(pv)
             if row == 0:
                 continue
-            short_name = self.widget.list_motor_short.takeItem(row)
-            motor_name = self.widget.list_motor_names.takeItem(row)
-            self.widget.list_motor_short.insertItem(row-1, short_name)
-            self.widget.list_motor_names.insertItem(row-1, motor_name)
-            self.widget.list_motor_short.setCurrentItem(self.widget.list_motor_short.item(row-1),
+            short_name = self.widget.list_pv_short.takeItem(row)
+            pv_name = self.widget.list_pv_names.takeItem(row)
+            self.widget.list_pv_short.insertItem(row-1, short_name)
+            self.widget.list_pv_names.insertItem(row-1, pv_name)
+            self.widget.list_pv_short.setCurrentItem(self.widget.list_pv_short.item(row-1),
                                                         QtCore.QItemSelectionModel.Select)
 
-    def move_dn_motors(self):
-        sorted_motors = self.sort_selected_motors_by_row()
-        for motor in reversed(sorted_motors):
-            row = self.widget.list_motor_short.row(motor)
-            if row == self.widget.list_motor_short.count()-1:
+    def move_dn_pvs(self):
+        sorted_pvs = self.sort_selected_pvs_by_row()
+        for pv in reversed(sorted_pvs):
+            row = self.widget.list_pv_short.row(pv)
+            if row == self.widget.list_pv_short.count()-1:
                 continue
-            short_name = self.widget.list_motor_short.takeItem(row)
-            motor_name = self.widget.list_motor_names.takeItem(row)
-            self.widget.list_motor_short.insertItem(row+1, short_name)
-            self.widget.list_motor_names.insertItem(row+1, motor_name)
-            self.widget.list_motor_short.setCurrentItem(self.widget.list_motor_short.item(row+1),
+            short_name = self.widget.list_pv_short.takeItem(row)
+            pv_name = self.widget.list_pv_names.takeItem(row)
+            self.widget.list_pv_short.insertItem(row+1, short_name)
+            self.widget.list_pv_names.insertItem(row+1, pv_name)
+            self.widget.list_pv_short.setCurrentItem(self.widget.list_pv_short.item(row+1),
                                                         QtCore.QItemSelectionModel.Select)
 
-    def sort_selected_motors_by_row(self):
-        selected_motors = self.widget.list_motor_short.selectedItems()
+    def sort_selected_pvs_by_row(self):
+        selected_pvs = self.widget.list_pv_short.selectedItems()
         temp_dict = {}
-        for motor in selected_motors:
-            temp_dict[self.widget.list_motor_short.row(motor)] = motor
+        for pv in selected_pvs:
+            temp_dict[self.widget.list_pv_short.row(pv)] = pv
 
         temp_index = sorted(temp_dict)
-        sorted_motors = []
+        sorted_pvs = []
         for index in temp_index:
-            sorted_motors.append(temp_dict[index])
-        return sorted_motors
+            sorted_pvs.append(temp_dict[index])
+        return sorted_pvs
 
     def change_names_selection(self):  # occurs when the short name selection changes
-        self.widget.list_motor_short.itemSelectionChanged.disconnect()
-        self.widget.list_motor_names.itemSelectionChanged.disconnect()
-        for motor in self.widget.list_motor_names.selectedItems():
-            self.widget.list_motor_names.setCurrentItem(motor, QtCore.QItemSelectionModel.Deselect)
-        for motor in self.widget.list_motor_short.selectedItems():
-            row_ind = self.widget.list_motor_short.row(motor)
-            self.widget.list_motor_names.setCurrentItem(self.widget.list_motor_names.item(row_ind),
+        self.widget.list_pv_short.itemSelectionChanged.disconnect()
+        self.widget.list_pv_names.itemSelectionChanged.disconnect()
+        for pv in self.widget.list_pv_names.selectedItems():
+            self.widget.list_pv_names.setCurrentItem(pv, QtCore.QItemSelectionModel.Deselect)
+        for pv in self.widget.list_pv_short.selectedItems():
+            row_ind = self.widget.list_pv_short.row(pv)
+            self.widget.list_pv_names.setCurrentItem(self.widget.list_pv_names.item(row_ind),
                                                         QtCore.QItemSelectionModel.Select)
-        self.widget.list_motor_short.itemSelectionChanged.connect(self.change_names_selection)
-        self.widget.list_motor_names.itemSelectionChanged.connect(self.change_short_selection)
+        self.widget.list_pv_short.itemSelectionChanged.connect(self.change_names_selection)
+        self.widget.list_pv_names.itemSelectionChanged.connect(self.change_short_selection)
 
-    def change_short_selection(self):  # occurs when the full motor name selection changes
-        self.widget.list_motor_short.itemSelectionChanged.disconnect()
-        self.widget.list_motor_names.itemSelectionChanged.disconnect()
-        for motor in self.widget.list_motor_short.selectedItems():
-            self.widget.list_motor_short.setCurrentItem(motor, QtCore.QItemSelectionModel.Deselect)
-        for motor in self.widget.list_motor_names.selectedItems():
-            row_ind = self.widget.list_motor_names.row(motor)
-            self.widget.list_motor_short.setCurrentItem(self.widget.list_motor_short.item(row_ind),
+    def change_short_selection(self):  # occurs when the full pv name selection changes
+        self.widget.list_pv_short.itemSelectionChanged.disconnect()
+        self.widget.list_pv_names.itemSelectionChanged.disconnect()
+        for pv in self.widget.list_pv_short.selectedItems():
+            self.widget.list_pv_short.setCurrentItem(pv, QtCore.QItemSelectionModel.Deselect)
+        for pv in self.widget.list_pv_names.selectedItems():
+            row_ind = self.widget.list_pv_names.row(pv)
+            self.widget.list_pv_short.setCurrentItem(self.widget.list_pv_short.item(row_ind),
                                                         QtCore.QItemSelectionModel.Select)
-        self.widget.list_motor_short.itemSelectionChanged.connect(self.change_names_selection)
-        self.widget.list_motor_names.itemSelectionChanged.connect(self.change_short_selection)
+        self.widget.list_pv_short.itemSelectionChanged.connect(self.change_names_selection)
+        self.widget.list_pv_names.itemSelectionChanged.connect(self.change_short_selection)
 
     def show_selected_info(self):
         self.log_monitor.update_log_label()
@@ -563,7 +565,6 @@ class LogWindow(QtWidgets.QWidget):
             self.html_logger.add_comment_line(new_comment)
 
     def load_log_file_settings(self, offline=False):
-
         self.offline_log_file = self.log_file_settings.value('offline_log_file', defaultValue=None)
 
         if offline:
@@ -571,12 +572,12 @@ class LogWindow(QtWidgets.QWidget):
 
         self.choose_dir = self.log_file_settings.value('log_file_dir', defaultValue=self.choose_dir)
         self.choose_file = self.log_file_settings.value('log_file_name', defaultValue=self.choose_file)
-        self.motors_file = self.log_file_settings.value('pv_list_file', defaultValue='')
+        self.pvs_file = self.log_file_settings.value('pv_list_file', defaultValue='')
         self.detectors = self.log_file_settings.value('detectors', defaultValue=[])
 
         self.widget.choose_file_name_le.setText(self.choose_file)
         self.set_choose_dir_label()
-        self.load_motor_list(self.motors_file)
+        self.load_pv_list(self.pvs_file)
 
         for detector in self.widget.choose_detector_menu.actions():
             if str(detector.text()) in self.detectors:
@@ -585,13 +586,13 @@ class LogWindow(QtWidgets.QWidget):
     def save_log_file_settings(self):
         self.log_file_settings.setValue('log_file_dir', self.choose_dir)
         self.log_file_settings.setValue('log_file_name', self.choose_file)
-        self.log_file_settings.setValue('pv_list_file', self.motors_file)
+        self.log_file_settings.setValue('pv_list_file', self.pvs_file)
         chosen_detectors = []
         for detector in self.widget.choose_detector_menu.actions():
             if detector.isChecked():
                 chosen_detectors.append(detector.text())
         self.log_file_settings.setValue('detectors', chosen_detectors)
-        self.save_motor_list(self.motors_file)
+        self.save_pv_list(self.pvs_file)
 
     def load_config(self):
         cfg = {}
@@ -605,12 +606,12 @@ class LogWindow(QtWidgets.QWidget):
 
         self.choose_file = cfg['file']
         self.choose_dir = cfg['directory']
-        self.motors_file = cfg['motor_file']
+        self.pvs_file = cfg['pv_file']
         self.detectors = cfg['detectors'].split(',')
 
         self.widget.choose_file_name_le.setText(self.choose_file)
         self.set_choose_dir_label()
-        self.load_motor_list(self.motors_file)
+        self.load_pv_list(self.pvs_file)
         for detector in self.choose_detector_menu.actions():
             if str(detector.text()) in self.detectors:
                 detector.setChecked(True)
@@ -624,7 +625,7 @@ class LogWindow(QtWidgets.QWidget):
         outline = 'file\t' + self.choose_file + '\n'
         cfg_file.write(outline)
 
-        outline = 'motor_file\t' + self.motors_file + '\n'
+        outline = 'pv_file\t' + self.pvs_file + '\n'
         cfg_file.write(outline)
 
         selected_detectors = []
@@ -636,7 +637,7 @@ class LogWindow(QtWidgets.QWidget):
         outline = 'detectors\t' + selected_detectors_csv + '\n'
         cfg_file.write(outline)
 
-        self.save_motor_list(self.motors_file)
+        self.save_pv_list(self.pvs_file)
 
 
 class Filter(QtCore.QObject):

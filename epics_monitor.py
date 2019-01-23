@@ -157,29 +157,29 @@ class StartMonitors(QWidget):
         temp_dict['id'] = self.id
         temp_dict['Time'] = start_time
         temp_dict['Exp_Time'] = exp_time
-        for motor in self.parent.widget.list_motor_short.selectedItems():
-            if not self.parent.motor_dict[str(motor.text())]['after']:
+        for pv in self.parent.widget.list_pv_short.selectedItems():
+            if not self.parent.pv_dict[str(pv.text())]['after']:
                 # t1 = time.time()
-                m_value = caget(self.parent.motor_dict[str(motor.text())]['PV'])
+                m_value = caget(self.parent.pv_dict[str(pv.text())]['PV'])
                 if type(m_value) is not str:
                     if abs(m_value) < 1:
                         m_value = '{:.3g}'.format(m_value)
                     else:
                         m_value = '{:.3f}'.format(m_value)
 
-                # print(time.time()-t1, ' for ', self.parent.motor_dict[str(motor.text())]['PV'])
+                # print(time.time()-t1, ' for ', self.parent.pv_dict[str(pv.text())]['PV'])
                 if m_value == '-2.27e-13':
                     m_value = '0'
-                temp_dict[str(motor.text())] = m_value
+                temp_dict[str(pv.text())] = m_value
         return temp_dict
 
     def output_line_common_end(self, prefix, file_name, comments, temp_dict):
         temp_dict['Directory'] = file_name.replace('/', '\\').rsplit('\\', 1)[0]
         temp_dict['File_Name'] = file_name.replace('/', '\\').rsplit('\\', 1)[-1]
 
-        for motor in self.parent.widget.list_motor_short.selectedItems():
-            if self.parent.motor_dict[str(motor.text())]['after']:
-                m_value = caget(self.parent.motor_dict[str(motor.text())]['PV'])
+        for pv in self.parent.widget.list_pv_short.selectedItems():
+            if self.parent.pv_dict[str(pv.text())]['after']:
+                m_value = caget(self.parent.pv_dict[str(pv.text())]['PV'])
                 if type(m_value) is not str:
                     if abs(m_value) < 1:
                         m_value = '{:.3g}'.format(m_value)
@@ -188,7 +188,7 @@ class StartMonitors(QWidget):
 
                 if m_value == '-2.27e-13':
                     m_value = '0'
-                temp_dict[str(motor.text())] = m_value
+                temp_dict[str(pv.text())] = m_value
         temp_dict['Comments'] = comments
         new_line = ''
         for key in temp_dict:
@@ -250,12 +250,12 @@ class StartMonitors(QWidget):
         temp_dict = self.create_dict()
         temp_dict['Time'] = start_time
         temp_dict['Exp_Time'] = exp_time
-        for motor in self.parent.widget.list_motor_short.selectedItems():
-            if not self.parent.motor_dict[str(motor.text())]['after']:
-                m_value = caget(self.parent.motor_dict[str(motor.text())]['PV'], as_string=True)
+        for pv in self.parent.widget.list_pv_short.selectedItems():
+            if not self.parent.pv_dict[str(pv.text())]['after']:
+                m_value = caget(self.parent.pv_dict[str(pv.text())]['PV'], as_string=True)
                 if m_value == '-2.27e-13':
                     m_value = '0'
-                temp_dict[str(motor.text())] = m_value
+                temp_dict[str(pv.text())] = m_value
         return temp_dict
 
     def create_dict(self):
@@ -264,8 +264,8 @@ class StartMonitors(QWidget):
         temp_dict['File_Name'] = ''
         temp_dict['Directory'] = ''
         temp_dict['Exp_Time'] = ''
-        for motor in self.parent.widget.list_motor_short.selectedItems():
-            temp_dict[str(motor.text())] = ''
+        for pv in self.parent.widget.list_pv_short.selectedItems():
+            temp_dict[str(pv.text())] = ''
         temp_dict['Comments'] = ''
         return temp_dict
 
