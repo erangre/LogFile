@@ -157,7 +157,7 @@ class StartMonitors(QWidget):
         temp_dict['id'] = self.id
         temp_dict['Time'] = start_time
         temp_dict['Exp_Time'] = exp_time
-        for pv in self.parent.widget.list_pv_short.selectedItems():
+        for pv in self.parent.widget.pv_short_name_list.selectedItems():
             if not self.parent.pv_dict[str(pv.text())]['after']:
                 # t1 = time.time()
                 m_value = caget(self.parent.pv_dict[str(pv.text())]['PV'])
@@ -177,7 +177,7 @@ class StartMonitors(QWidget):
         temp_dict['Directory'] = file_name.replace('/', '\\').rsplit('\\', 1)[0]
         temp_dict['File_Name'] = file_name.replace('/', '\\').rsplit('\\', 1)[-1]
 
-        for pv in self.parent.widget.list_pv_short.selectedItems():
+        for pv in self.parent.widget.pv_short_name_list.selectedItems():
             if self.parent.pv_dict[str(pv.text())]['after']:
                 m_value = caget(self.parent.pv_dict[str(pv.text())]['PV'])
                 if type(m_value) is not str:
@@ -197,7 +197,7 @@ class StartMonitors(QWidget):
         new_line = new_line + '\n'
         self.parent.log_file.write(new_line)
         self.parent.log_file.flush()
-        self.parent.widget.log_list.insertItem(0, prefix + '|' + file_name)
+        self.parent.widget.log_entries_list.insertItem(0, prefix + '|' + file_name)
         self.update_log_dict(temp_dict, file_name)
         if self.running_tasks == 0:
             self.parent.set_enabled_hbox_lists(True)
@@ -250,7 +250,7 @@ class StartMonitors(QWidget):
         temp_dict = self.create_dict()
         temp_dict['Time'] = start_time
         temp_dict['Exp_Time'] = exp_time
-        for pv in self.parent.widget.list_pv_short.selectedItems():
+        for pv in self.parent.widget.pv_short_name_list.selectedItems():
             if not self.parent.pv_dict[str(pv.text())]['after']:
                 m_value = caget(self.parent.pv_dict[str(pv.text())]['PV'], as_string=True)
                 if m_value == '-2.27e-13':
@@ -264,7 +264,7 @@ class StartMonitors(QWidget):
         temp_dict['File_Name'] = ''
         temp_dict['Directory'] = ''
         temp_dict['Exp_Time'] = ''
-        for pv in self.parent.widget.list_pv_short.selectedItems():
+        for pv in self.parent.widget.pv_short_name_list.selectedItems():
             temp_dict[str(pv.text())] = ''
         temp_dict['Comments'] = ''
         return temp_dict
@@ -275,23 +275,23 @@ class StartMonitors(QWidget):
             self.log_dict[str(file_name)][key] = temp_dict[key]
 
     def update_log_label(self):
-        file_name = str(self.parent.widget.log_list.currentItem().text())
+        file_name = str(self.parent.widget.log_entries_list.currentItem().text())
         try:
             file_name = file_name.split('|', 1)[1]
         except IndexError:
             pass
         file_dir = file_name.replace('/', '\\').rsplit('\\', 1)[0]
         file_file = file_name.replace('/', '\\').rsplit('\\', 1)[-1]
-        for row in range(self.parent.widget.log_table.rowCount()):
-            self.parent.widget.log_table.removeRow(0)
-        row_pos = self.parent.widget.log_table.rowCount()
+        for row in range(self.parent.widget.log_entry_table.rowCount()):
+            self.parent.widget.log_entry_table.removeRow(0)
+        row_pos = self.parent.widget.log_entry_table.rowCount()
 
         for item in self.log_dict[file_name]:
-            row_pos = self.parent.widget.log_table.rowCount()
-            self.parent.widget.log_table.insertRow(row_pos)
-            self.parent.widget.log_table.setItem(row_pos, 0, QTableWidgetItem(item))
-            self.parent.widget.log_table.setItem(row_pos, 1, QTableWidgetItem(self.log_dict[file_name][item]))
-        self.parent.widget.log_table.resizeColumnsToContents()
+            row_pos = self.parent.widget.log_entry_table.rowCount()
+            self.parent.widget.log_entry_table.insertRow(row_pos)
+            self.parent.widget.log_entry_table.setItem(row_pos, 0, QTableWidgetItem(item))
+            self.parent.widget.log_entry_table.setItem(row_pos, 1, QTableWidgetItem(self.log_dict[file_name][item]))
+        self.parent.widget.log_entry_table.resizeColumnsToContents()
 
     def clear_detectors_stack_btn_clicked(self):
         for detector in self.chosen_detectors:

@@ -66,7 +66,7 @@ class LogWindow(QtWidgets.QWidget):
         # self.detector = 1
         self.widget = LogFileWidget(self)
         self.widget.choose_file_name_le.setText(self.choose_file)
-        self.widget.label_fullpath.setText(self.choose_dir + '\\' + self.choose_file)
+        self.widget.full_path_lbl.setText(self.choose_dir + '\\' + self.choose_file)
         for detector in detectors:
             action = self.widget.choose_detector_menu.addAction(detector)
             action.setCheckable(True)
@@ -88,10 +88,10 @@ class LogWindow(QtWidgets.QWidget):
         self.widget.pv_add_btn.clicked.connect(self.add_to_pv_list)
         self.widget.pv_clear_btn.clicked.connect(self.clear_pv_list)
         self.widget.pv_rename_btn.clicked.connect(self.rename_pv)
-        self.widget.list_pv_short.itemSelectionChanged.connect(self.change_names_selection)
-        self.widget.list_pv_short.doubleClicked.connect(self.rename_pv)
-        self.widget.list_pv_names.itemSelectionChanged.connect(self.change_short_selection)
-        self.widget.list_pv_names.doubleClicked.connect(self.edit_pv)
+        self.widget.pv_short_name_list.itemSelectionChanged.connect(self.change_names_selection)
+        self.widget.pv_short_name_list.doubleClicked.connect(self.rename_pv)
+        self.widget.pv_list.itemSelectionChanged.connect(self.change_short_selection)
+        self.widget.pv_list.doubleClicked.connect(self.edit_pv)
         self.widget.pv_move_up_btn.clicked.connect(self.move_up_pvs)
         self.widget.pv_move_dn_btn.clicked.connect(self.move_dn_pvs)
         self.widget.pv_toggle_after_btn.clicked.connect(self.toggle_after)
@@ -118,9 +118,9 @@ class LogWindow(QtWidgets.QWidget):
         self.widge.start_btn.setVisible(False)
         self.widge.stop_btn.setVisible(False)
         self.widge.choose_detector_tb.setVisible(False)
-        self.widge.label_start_time.setVisible(False)
-        self.widge.label_end_time.setVisible(False)
-        self.widge.label_fullpath.setVisible(False)
+        self.widge.start_time_lbl.setVisible(False)
+        self.widge.end_time_lbl.setVisible(False)
+        self.widge.full_path_lbl.setVisible(False)
         self.widge.choose_file_name_le.setVisible(False)
         self.widge.choose_dir_btn.setVisible(False)
         self.widget.create_folders_btn.setVisible(False)
@@ -132,11 +132,11 @@ class LogWindow(QtWidgets.QWidget):
             self.set_choose_dir_label()
 
     def set_choose_dir_label(self):
-        self.widget.label_fullpath.setText(self.choose_dir + '\\' + self.widget.choose_file_name_le.text())
+        self.widget.full_path_lbl.setText(self.choose_dir + '\\' + self.widget.choose_file_name_le.text())
 
     def choose_file_name_le_changed(self):
         self.choose_file = self.widget.choose_file_name_le.text()
-        self.widget.label_fullpath.setText(self.choose_dir + '\\' + self.choose_file)
+        self.widget.full_path_lbl.setText(self.choose_dir + '\\' + self.choose_file)
 
     def file_name_le_change_back(self):  # in case enter wasn't pressed (to avoid accidental changes)
         self.widget.choose_file_name_le.setText(self.choose_file)
@@ -169,7 +169,7 @@ class LogWindow(QtWidgets.QWidget):
     def read_log_file(self, load_log_name=None):
         self.log_dict = collections.OrderedDict()
         try:
-            self.widget.log_list.itemSelectionChanged.disconnect()
+            self.widget.log_entries_list.itemSelectionChanged.disconnect()
         except Exception:
             pass
 
@@ -178,7 +178,7 @@ class LogWindow(QtWidgets.QWidget):
             self.parent().statusBar().showMessage(msg)
             return
 
-        self.widget.log_list.clear()
+        self.widget.log_entries_list.clear()
         with open(load_log_name, 'r') as in_log_file:
             for curr_line in in_log_file:
                 curr_line = curr_line.split('\n')[0]
@@ -190,10 +190,10 @@ class LogWindow(QtWidgets.QWidget):
                     self.log_dict[file_name] = collections.OrderedDict()
                     for col_name, col_data in zip(self.headings, line_data):
                         self.log_dict[file_name][col_name] = col_data
-                    self.widget.log_list.insertItem(0, file_name)
+                    self.widget.log_entries_list.insertItem(0, file_name)
         if not self.widget.log_frame.isVisible():
             self.toggle_show_log()
-        self.widget.log_list.itemSelectionChanged.connect(self.show_offline_info)
+        self.widget.log_entries_list.itemSelectionChanged.connect(self.show_offline_info)
 
         msg = 'Loaded log file ' + load_log_name
         self.loaded_log = load_log_name
@@ -222,7 +222,7 @@ class LogWindow(QtWidgets.QWidget):
 
     def start_logging(self):
         f_time = time.asctime()
-        self.widget.label_start_time.setText('Start Time: ' + f_time)
+        self.widget.start_time_lbl.setText('Start Time: ' + f_time)
         self.widget.start_btn.setEnabled(False)
         self.widget.load_log_btn.setEnabled(False)
         self.widget.stop_btn.setEnabled(True)
@@ -232,13 +232,13 @@ class LogWindow(QtWidgets.QWidget):
         self.widget.choose_dir_btn.setEnabled(False)
         self.widget.choose_file_name_le.setEnabled(False)
         self.widget.choose_detector_tb.setVisible(False)
-        self.widget.log_list.clear()
+        self.widget.log_entries_list.clear()
 
-        full_path = self.widget.label_fullpath.text()
+        full_path = self.widget.full_path_lbl.text()
         if os.path.isfile(full_path):
             self.read_log_file(full_path)
             try:
-                self.widget.log_list.itemSelectionChanged.disconnect()
+                self.widget.log_entries_list.itemSelectionChanged.disconnect()
             except Exception:
                 pass
 
@@ -250,7 +250,7 @@ class LogWindow(QtWidgets.QWidget):
         msg = 'Started logging to: ' + full_path
         self.parent().statusBar().showMessage(msg)
 
-        self.widget.log_list.itemSelectionChanged.connect(self.show_selected_info)
+        self.widget.log_entries_list.itemSelectionChanged.connect(self.show_selected_info)
 
         self.pvs_file = str(self.choose_file).rsplit('.')[0] + '_motors.txt'
         self.save_config()
@@ -265,7 +265,7 @@ class LogWindow(QtWidgets.QWidget):
 
     def stop_logging(self):
         f_time = time.asctime()
-        self.widget.label_end_time.setText('End Time: ' + f_time)
+        self.widget.end_time_lbl.setText('End Time: ' + f_time)
         self.widget.start_btn.setEnabled(True)
         self.widget.stop_btn.setEnabled(False)
         if self.widget.show_log_btn.isChecked():
@@ -283,8 +283,8 @@ class LogWindow(QtWidgets.QWidget):
         msg = 'Stopped logging!'
         self.parent().statusBar().showMessage(msg)
         # self.set_enabled_hbox_lists(True)
-        self.widget.log_list.itemSelectionChanged.disconnect()
-        self.widget.log_list.clear()
+        self.widget.log_entries_list.itemSelectionChanged.disconnect()
+        self.widget.log_entries_list.clear()
         self.widget.load_log_btn.setEnabled(True)
         self.set_enabled_hbox_lists(True)
 
@@ -305,8 +305,8 @@ class LogWindow(QtWidgets.QWidget):
 
     def read_headings(self):
         heading = 'Day_Date_Time_Year\tFile_Name\tDirectory\tExposure_Time_(sec)\t'
-        self.widget.list_pv_short.selectAll()
-        for pv in self.widget.list_pv_short.selectedItems():
+        self.widget.pv_short_name_list.selectAll()
+        for pv in self.widget.pv_short_name_list.selectedItems():
             heading = heading + pv.text() + '\t'
         heading = heading + 'Comments' + '\n'
         return heading
@@ -338,13 +338,13 @@ class LogWindow(QtWidgets.QWidget):
                     self.pv_dict[row[0]]['after'] = int(row[2].split('\n')[0])
                 else:
                     self.pv_dict[row[0]]['after'] = 0
-                self.widget.list_pv_short.addItem(row[0])
-                self.widget.list_pv_names.addItem(row[1].split('\n')[0])
+                self.widget.pv_short_name_list.addItem(row[0])
+                self.widget.pv_list.addItem(row[1].split('\n')[0])
                 if self.pv_dict[row[0]]['after']:
-                    self.widget.list_pv_short.item(
-                        self.widget.list_pv_short.count()-1).setForeground(QtGui.QColor('blue'))
-                    self.widget.list_pv_names.item(
-                        self.widget.list_pv_names.count()-1).setForeground(QtGui.QColor('blue'))
+                    self.widget.pv_short_name_list.item(
+                        self.widget.pv_short_name_list.count()-1).setForeground(QtGui.QColor('blue'))
+                    self.widget.pv_list.item(
+                        self.widget.pv_list.count()-1).setForeground(QtGui.QColor('blue'))
 
             msg = 'Loaded pv list from ' + load_name
             self.parent().statusBar().showMessage(msg)
@@ -361,29 +361,29 @@ class LogWindow(QtWidgets.QWidget):
             self.parent().statusBar().showMessage(msg)
             return
         with open(save_name, 'w') as out_file:
-            self.widget.list_pv_short.selectAll()
-            for pv in self.widget.list_pv_short.selectedItems():
-                row_ind = self.widget.list_pv_short.row(pv)
-                out_line = str(pv.text()) + ',' + self.widget.list_pv_names.item(row_ind).text() + ','
+            self.widget.pv_short_name_list.selectAll()
+            for pv in self.widget.pv_short_name_list.selectedItems():
+                row_ind = self.widget.pv_short_name_list.row(pv)
+                out_line = str(pv.text()) + ',' + self.widget.pv_list.item(row_ind).text() + ','
                 out_line = out_line + str(self.pv_dict[str(pv.text())]['after']) + '\n'
                 out_file.write(out_line)
             msg = 'Saved pv list to ' + save_name
             self.parent().statusBar().showMessage(msg)
 
     def remove_from_pv_list(self):
-        for pv in self.widget.list_pv_short.selectedItems():
+        for pv in self.widget.pv_short_name_list.selectedItems():
             self.remove_one_pv(pv)
             msg = 'Removed ' + pv.text().split('\t')[0] + ' from pv list'
             self.parent().statusBar().showMessage(msg)
 
     def remove_one_pv(self, pv):
-        self.widget.list_pv_names.takeItem(self.widget.list_pv_short.row(pv))
-        self.widget.list_pv_short.takeItem(self.widget.list_pv_short.row(pv))
+        self.widget.pv_list.takeItem(self.widget.pv_short_name_list.row(pv))
+        self.widget.pv_short_name_list.takeItem(self.widget.pv_short_name_list.row(pv))
         del self.pv_dict[str(pv.text())]
 
     def clear_pv_list(self):
-        self.widget.list_pv_short.clear()
-        self.widget.list_pv_names.clear()
+        self.widget.pv_short_name_list.clear()
+        self.widget.pv_list.clear()
         self.pv_dict = {}
         msg = 'Motor list cleared'
         self.parent().statusBar().showMessage(msg)
@@ -402,96 +402,96 @@ class LogWindow(QtWidgets.QWidget):
     def add_one_pv(self, short_name, pv_name, after):
         self.pv_dict[str(short_name)] = {}
         self.pv_dict[str(short_name)]['PV'] = str(pv_name)
-        self.widget.list_pv_short.addItem(str(short_name))
-        self.widget.list_pv_names.addItem(str(pv_name))
+        self.widget.pv_short_name_list.addItem(str(short_name))
+        self.widget.pv_list.addItem(str(pv_name))
         if after == QtWidgets.QMessageBox.Yes:
             self.pv_dict[str(short_name)]['after'] = 1
-            self.widget.list_pv_short.item(
-                self.widget.list_pv_short.count()-1).setForeground(QtGui.QColor('blue'))
-            self.widget.list_pv_names.item(
-                self.widget.list_pv_names.count()-1).setForeground(QtGui.QColor('blue'))
+            self.widget.pv_short_name_list.item(
+                self.widget.pv_short_name_list.count()-1).setForeground(QtGui.QColor('blue'))
+            self.widget.pv_list.item(
+                self.widget.pv_list.count()-1).setForeground(QtGui.QColor('blue'))
         else:
             self.pv_dict[str(short_name)]['after'] = 0
 
     def rename_pv(self):
-        for pv in self.widget.list_pv_short.selectedItems():
+        for pv in self.widget.pv_short_name_list.selectedItems():
             old_short_name = pv.text()
-            row = self.widget.list_pv_short.row(pv)
-            pv_name = self.widget.list_pv_names.item(row).text()
+            row = self.widget.pv_short_name_list.row(pv)
+            pv_name = self.widget.pv_list.item(row).text()
             message = 'Provide new short name for pv ' + old_short_name + ':'
             short_name, ok_sn = QtWidgets.QInputDialog.getText(self, 'Rename pv in List', message,
                                                            QtWidgets.QLineEdit.Normal, old_short_name)
             if ok_sn:
                 after = self.pv_dict[str(old_short_name)]['after']
                 del self.pv_dict[str(old_short_name)]
-                self.widget.list_pv_short.takeItem(self.widget.list_pv_short.row(pv))
-                self.widget.list_pv_short.insertItem(row, str(short_name))
+                self.widget.pv_short_name_list.takeItem(self.widget.pv_short_name_list.row(pv))
+                self.widget.pv_short_name_list.insertItem(row, str(short_name))
                 self.pv_dict[str(short_name)] = {}
                 self.pv_dict[str(short_name)]['PV'] = str(pv_name)
                 self.pv_dict[str(short_name)]['after'] = after
                 if after:
-                    self.widget.list_pv_short.item(row).setForeground(QtGui.QColor('blue'))
+                    self.widget.pv_short_name_list.item(row).setForeground(QtGui.QColor('blue'))
                 msg = 'Renamed ' + old_short_name + ' to ' + short_name + ' in pv list'
                 self.parent().statusBar().showMessage(msg)
 
     def edit_pv(self):
-        for pv in self.widget.list_pv_names.selectedItems():
+        for pv in self.widget.pv_list.selectedItems():
             old_pv_name = pv.text()
-            row = self.widget.list_pv_names.row(pv)
-            pv_short = self.widget.list_pv_short.item(row).text()
+            row = self.widget.pv_list.row(pv)
+            pv_short = self.widget.pv_short_name_list.item(row).text()
             message = 'Provide new PV for pv ' + pv_short + ':'
             pv_name, ok_sn = QtWidgets.QInputDialog.getText(self, 'Change PV', message,
                                                            QtWidgets.QLineEdit.Normal, old_pv_name)
             if ok_sn:
                 self.pv_dict[str(pv_short)]['PV'] = str(pv_name)
-                self.widget.list_pv_names.takeItem(self.widget.list_pv_names.row(pv))
-                self.widget.list_pv_names.insertItem(row, str(pv_name))
+                self.widget.pv_list.takeItem(self.widget.pv_list.row(pv))
+                self.widget.pv_list.insertItem(row, str(pv_name))
                 msg = 'Updated ' + pv_short + ' from ' + old_pv_name + ' to ' + pv_name + ' in pv list'
                 self.parent().statusBar().showMessage(msg)
 
     def toggle_after(self):
-        for pv in self.widget.list_pv_short.selectedItems():
-            row = self.widget.list_pv_short.row(pv)
+        for pv in self.widget.pv_short_name_list.selectedItems():
+            row = self.widget.pv_short_name_list.row(pv)
             if self.pv_dict[str(pv.text())]['after']:
                 self.pv_dict[str(pv.text())]['after'] = 0
-                self.widget.list_pv_short.item(row).setForeground(QtGui.QColor('black'))
-                self.widget.list_pv_names.item(row).setForeground(QtGui.QColor('black'))
+                self.widget.pv_short_name_list.item(row).setForeground(QtGui.QColor('black'))
+                self.widget.pv_list.item(row).setForeground(QtGui.QColor('black'))
             else:
                 self.pv_dict[str(pv.text())]['after'] = 1
-                self.widget.list_pv_short.item(row).setForeground(QtGui.QColor('blue'))
-                self.widget.list_pv_names.item(row).setForeground(QtGui.QColor('blue'))
+                self.widget.pv_short_name_list.item(row).setForeground(QtGui.QColor('blue'))
+                self.widget.pv_list.item(row).setForeground(QtGui.QColor('blue'))
 
     def move_up_pvs(self):
         sorted_pvs = self.sort_selected_pvs_by_row()
         for pv in sorted_pvs:
-            row = self.widget.list_pv_short.row(pv)
+            row = self.widget.pv_short_name_list.row(pv)
             if row == 0:
                 continue
-            short_name = self.widget.list_pv_short.takeItem(row)
-            pv_name = self.widget.list_pv_names.takeItem(row)
-            self.widget.list_pv_short.insertItem(row-1, short_name)
-            self.widget.list_pv_names.insertItem(row-1, pv_name)
-            self.widget.list_pv_short.setCurrentItem(self.widget.list_pv_short.item(row-1),
+            short_name = self.widget.pv_short_name_list.takeItem(row)
+            pv_name = self.widget.pv_list.takeItem(row)
+            self.widget.pv_short_name_list.insertItem(row-1, short_name)
+            self.widget.pv_list.insertItem(row-1, pv_name)
+            self.widget.pv_short_name_list.setCurrentItem(self.widget.pv_short_name_list.item(row-1),
                                                         QtCore.QItemSelectionModel.Select)
 
     def move_dn_pvs(self):
         sorted_pvs = self.sort_selected_pvs_by_row()
         for pv in reversed(sorted_pvs):
-            row = self.widget.list_pv_short.row(pv)
-            if row == self.widget.list_pv_short.count()-1:
+            row = self.widget.pv_short_name_list.row(pv)
+            if row == self.widget.pv_short_name_list.count()-1:
                 continue
-            short_name = self.widget.list_pv_short.takeItem(row)
-            pv_name = self.widget.list_pv_names.takeItem(row)
-            self.widget.list_pv_short.insertItem(row+1, short_name)
-            self.widget.list_pv_names.insertItem(row+1, pv_name)
-            self.widget.list_pv_short.setCurrentItem(self.widget.list_pv_short.item(row+1),
+            short_name = self.widget.pv_short_name_list.takeItem(row)
+            pv_name = self.widget.pv_list.takeItem(row)
+            self.widget.pv_short_name_list.insertItem(row+1, short_name)
+            self.widget.pv_list.insertItem(row+1, pv_name)
+            self.widget.pv_short_name_list.setCurrentItem(self.widget.pv_short_name_list.item(row+1),
                                                         QtCore.QItemSelectionModel.Select)
 
     def sort_selected_pvs_by_row(self):
-        selected_pvs = self.widget.list_pv_short.selectedItems()
+        selected_pvs = self.widget.pv_short_name_list.selectedItems()
         temp_dict = {}
         for pv in selected_pvs:
-            temp_dict[self.widget.list_pv_short.row(pv)] = pv
+            temp_dict[self.widget.pv_short_name_list.row(pv)] = pv
 
         temp_index = sorted(temp_dict)
         sorted_pvs = []
@@ -500,28 +500,28 @@ class LogWindow(QtWidgets.QWidget):
         return sorted_pvs
 
     def change_names_selection(self):  # occurs when the short name selection changes
-        self.widget.list_pv_short.itemSelectionChanged.disconnect()
-        self.widget.list_pv_names.itemSelectionChanged.disconnect()
-        for pv in self.widget.list_pv_names.selectedItems():
-            self.widget.list_pv_names.setCurrentItem(pv, QtCore.QItemSelectionModel.Deselect)
-        for pv in self.widget.list_pv_short.selectedItems():
-            row_ind = self.widget.list_pv_short.row(pv)
-            self.widget.list_pv_names.setCurrentItem(self.widget.list_pv_names.item(row_ind),
+        self.widget.pv_short_name_list.itemSelectionChanged.disconnect()
+        self.widget.pv_list.itemSelectionChanged.disconnect()
+        for pv in self.widget.pv_list.selectedItems():
+            self.widget.pv_list.setCurrentItem(pv, QtCore.QItemSelectionModel.Deselect)
+        for pv in self.widget.pv_short_name_list.selectedItems():
+            row_ind = self.widget.pv_short_name_list.row(pv)
+            self.widget.pv_list.setCurrentItem(self.widget.pv_list.item(row_ind),
                                                         QtCore.QItemSelectionModel.Select)
-        self.widget.list_pv_short.itemSelectionChanged.connect(self.change_names_selection)
-        self.widget.list_pv_names.itemSelectionChanged.connect(self.change_short_selection)
+        self.widget.pv_short_name_list.itemSelectionChanged.connect(self.change_names_selection)
+        self.widget.pv_list.itemSelectionChanged.connect(self.change_short_selection)
 
     def change_short_selection(self):  # occurs when the full pv name selection changes
-        self.widget.list_pv_short.itemSelectionChanged.disconnect()
-        self.widget.list_pv_names.itemSelectionChanged.disconnect()
-        for pv in self.widget.list_pv_short.selectedItems():
-            self.widget.list_pv_short.setCurrentItem(pv, QtCore.QItemSelectionModel.Deselect)
-        for pv in self.widget.list_pv_names.selectedItems():
-            row_ind = self.widget.list_pv_names.row(pv)
-            self.widget.list_pv_short.setCurrentItem(self.widget.list_pv_short.item(row_ind),
+        self.widget.pv_short_name_list.itemSelectionChanged.disconnect()
+        self.widget.pv_list.itemSelectionChanged.disconnect()
+        for pv in self.widget.pv_short_name_list.selectedItems():
+            self.widget.pv_short_name_list.setCurrentItem(pv, QtCore.QItemSelectionModel.Deselect)
+        for pv in self.widget.pv_list.selectedItems():
+            row_ind = self.widget.pv_list.row(pv)
+            self.widget.pv_short_name_list.setCurrentItem(self.widget.pv_short_name_list.item(row_ind),
                                                         QtCore.QItemSelectionModel.Select)
-        self.widget.list_pv_short.itemSelectionChanged.connect(self.change_names_selection)
-        self.widget.list_pv_names.itemSelectionChanged.connect(self.change_short_selection)
+        self.widget.pv_short_name_list.itemSelectionChanged.connect(self.change_names_selection)
+        self.widget.pv_list.itemSelectionChanged.connect(self.change_short_selection)
 
     def show_selected_info(self):
         self.log_monitor.update_log_label()
@@ -529,19 +529,19 @@ class LogWindow(QtWidgets.QWidget):
         # self.parent().resize(self.parent().sizeHint())
 
     def show_offline_info(self):
-        file_name = str(self.widget.log_list.currentItem().text())
-        for row in range(self.widget.log_table.rowCount()):
-            self.widget.log_table.removeRow(0)
+        file_name = str(self.widget.log_entries_list.currentItem().text())
+        for row in range(self.widget.log_entry_table.rowCount()):
+            self.widget.log_entry_table.removeRow(0)
         for item in self.log_dict[file_name]:
-            row_pos = self.widget.log_table.rowCount()
-            self.widget.log_table.insertRow(row_pos)
-            self.widget.log_table.setItem(row_pos, 0, QtWidgets.QTableWidgetItem(item))
-            self.widget.log_table.setItem(row_pos, 1, QtWidgets.QTableWidgetItem(self.log_dict[file_name][item]))
-        self.widget.log_table.resizeColumnsToContents()
+            row_pos = self.widget.log_entry_table.rowCount()
+            self.widget.log_entry_table.insertRow(row_pos)
+            self.widget.log_entry_table.setItem(row_pos, 0, QtWidgets.QTableWidgetItem(item))
+            self.widget.log_entry_table.setItem(row_pos, 1, QtWidgets.QTableWidgetItem(self.log_dict[file_name][item]))
+        self.widget.log_entry_table.resizeColumnsToContents()
 
     def view_image_file(self):
-        file_name = str(self.widget.log_list.currentItem().text()).split('|', 1)
-        file_type = str(self.widget.log_list.currentItem().text()).rsplit('.', 1)
+        file_name = str(self.widget.log_entries_list.currentItem().text()).split('|', 1)
+        file_type = str(self.widget.log_entries_list.currentItem().text()).rsplit('.', 1)
         if file_type[-1] == 'tif':
             os.system("start " + file_name[-1])
 
