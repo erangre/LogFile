@@ -40,6 +40,8 @@ class FolderMaker(QtWidgets.QWidget):
         self.advanced_settings_gb = AdvancedSettingsSection()
         self.main_dir_label = QtWidgets.QLabel('Group Name:')
         self.main_dir_edit = QtWidgets.QLineEdit()
+        self.sample_dir_label = QtWidgets.QLabel('Sample:')
+        self.sample_dir_edit = QtWidgets.QLineEdit()
         self.full_path_header = QtWidgets.QLabel('Full Path:')
         self.full_path_label = QtWidgets.QLabel()
         self.show_advanced_settings_btn = QtWidgets.QPushButton('Advanced')
@@ -62,6 +64,7 @@ class FolderMaker(QtWidgets.QWidget):
         # Connections
         self.create_btn.clicked.connect(self.create_btn_clicked)
         self.main_dir_edit.textChanged.connect(self.update_all_full_paths)
+        self.sample_dir_edit.textChanged.connect(self.update_all_full_paths)
         self.advanced_settings_gb.advancedSettingsChanged.connect(self.update_all_full_paths)
         self.show_advanced_settings_btn.clicked.connect(self.show_advanced_settings_btn_clicked)
 
@@ -70,7 +73,9 @@ class FolderMaker(QtWidgets.QWidget):
 
         self.grid_layout_general = QtWidgets.QGridLayout()
         self.grid_layout_general.addWidget(self.main_dir_label, 0, 0, 1, 1)
-        self.grid_layout_general.addWidget(self.main_dir_edit, 0, 1, 1, 3)
+        self.grid_layout_general.addWidget(self.main_dir_edit, 0, 1, 1, 1)
+        self.grid_layout_general.addWidget(self.sample_dir_label, 0, 2, 1, 1)
+        self.grid_layout_general.addWidget(self.sample_dir_edit, 0, 3, 1, 1)
         self.grid_layout_general.addWidget(self.full_path_header, 1, 0, 1, 1)
         self.grid_layout_general.addWidget(self.full_path_label, 1, 1, 1, 3)
         self.grid_layout_general.addWidget(self.show_advanced_settings_btn, 2, 0, 1, 1)
@@ -99,7 +104,7 @@ class FolderMaker(QtWidgets.QWidget):
             year=self.advanced_settings_gb.year_edit.text(),
             cycle=self.advanced_settings_gb.cycle_edit.text()
         )
-        self.base_dir = os.path.join(root_dir, self.main_dir_edit.text())
+        self.base_dir = os.path.join(root_dir, self.main_dir_edit.text(), self.sample_dir_edit.text())
         self.full_path_label.setText(self.base_dir)
 
         for detector in self.chosen_detectors:
