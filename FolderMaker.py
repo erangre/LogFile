@@ -161,7 +161,7 @@ class FolderMaker(QtWidgets.QWidget):
                 path, file = os.path.split(full_path)
                 file = file.rsplit('_', 1)[0]
             else:
-                main_dir = str(self.main_dir_edit.text())
+                main_dir = str(self.main_dir_edit.text() + '\\' + self.sample_dir_edit.text())
                 rel_dir = str(self.chosen_detectors[detector].rel_dir_edit.text())
                 path = (soft_link + main_dir + '\\' + rel_dir).replace('\\', '/')
                 file = str(self.chosen_detectors[detector].base_name_edit.text())
@@ -285,6 +285,9 @@ class DetectorSection(QtWidgets.QGroupBox):
             self.base_name_edit.setText(parameters['base_name_edit'])
             self.num_edit.setText(parameters['num_edit'])
             self.update_cb.setChecked(parameters['update_toggle'])
+        bg_color = detectors[self.detector].get('bg_color', '')
+        if bg_color:
+            self.setStyleSheet('background-color:' + bg_color)
         self.detector_label.setText("<b>" + self.detector + "</b>" + ' directory / basename / #:')
         self.full_path_label_font = QtGui.QFont()
         self.full_path_label_font.setBold(True)

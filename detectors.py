@@ -42,6 +42,7 @@ detectors['marccd2'] = {
 }
 
 detectors['pilatus3'] = {
+    'bg_color': 'lightgrey',
     'name': '13PIL3',
     'prefix': 'XRD',
     'monitor_signal_start': '13PIL3:cam1:Acquire',
