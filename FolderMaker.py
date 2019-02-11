@@ -104,7 +104,7 @@ class FolderMaker(QtWidgets.QWidget):
             year=self.advanced_settings_gb.year_edit.text(),
             cycle=self.advanced_settings_gb.cycle_edit.text()
         )
-        self.base_dir = os.path.join(root_dir, self.main_dir_edit.text(), self.sample_dir_edit.text())
+        self.base_dir = os.path.join(root_dir, self.main_dir_edit.text().replace('/', '\\'), self.sample_dir_edit.text().replace('/', '\\'))
         self.full_path_label.setText(self.base_dir)
 
         for detector in self.chosen_detectors:
@@ -161,10 +161,10 @@ class FolderMaker(QtWidgets.QWidget):
                 path, file = os.path.split(full_path)
                 file = file.rsplit('_', 1)[0]
             else:
-                main_dir = str(self.main_dir_edit.text() + '\\' + self.sample_dir_edit.text())
-                rel_dir = str(self.chosen_detectors[detector].rel_dir_edit.text())
+                main_dir = str(self.main_dir_edit.text().replace('/', '\\') + '\\' + self.sample_dir_edit.text().replace('/', '\\'))
+                rel_dir = str(self.chosen_detectors[detector].rel_dir_edit.text().replace('/', '\\'))
                 path = (soft_link + main_dir + '\\' + rel_dir).replace('\\', '/')
-                file = str(self.chosen_detectors[detector].base_name_edit.text())
+                file = str(self.chosen_detectors[detector].base_name_edit.text().replace('/', '\\'))
             number = str(self.chosen_detectors[detector].num_edit.text())
 
             caput(detectors[detector]['file_path'], path)
@@ -178,12 +178,14 @@ class FolderMaker(QtWidgets.QWidget):
             self.new_settings[detector]['base_dir'] = self.chosen_detectors[detector].base_dir
             self.new_settings[detector]['update_toggle'] = self.chosen_detectors[detector].update_cb.isChecked()
             # self.new_settings[detector]['detector_label'] = self.chosen_detectors[detector].detector_label.text()
-            self.new_settings[detector]['rel_dir_edit'] = self.chosen_detectors[detector].rel_dir_edit.text()
-            self.new_settings[detector]['base_name_edit'] = self.chosen_detectors[detector].base_name_edit.text()
+            self.new_settings[detector]['rel_dir_edit'] = \
+                self.chosen_detectors[detector].rel_dir_edit.text().replace('/', '\\')
+            self.new_settings[detector]['base_name_edit'] = \
+                self.chosen_detectors[detector].base_name_edit.text().replace('/', '\\')
             self.new_settings[detector]['num_edit'] = self.chosen_detectors[detector].num_edit.text()
             self.chosen_detectors[detector].update_path()
         self.new_settings['general'] = {}
-        self.new_settings['general']['base_dir'] = self.main_dir_edit.text()
+        self.new_settings['general']['base_dir'] = self.main_dir_edit.text().replace('/', '\\')
         self.new_settings['general']['year'] = self.advanced_settings_gb.year_edit.text()
         self.new_settings['general']['cycle'] = self.advanced_settings_gb.cycle_edit.text()
 
@@ -313,7 +315,7 @@ class DetectorSection(QtWidgets.QGroupBox):
     def value_changed(self):
         # if not self.sender() == self.rel_dir_edit and str(self.base_name_edit.text()) == 'LaB6':
         #     self.rel_dir_edit.setText('LaB6')
-        current_dir = os.path.join(self.base_dir, str(self.rel_dir_edit.text()))
+        current_dir = os.path.join(self.base_dir, str(self.rel_dir_edit.text().replace('/', '\\')))
         if not self.sender() == self.num_edit:
             next_num = self.find_next_number(str(current_dir + '\\' + self.base_name_edit.text() + '_'),
                                              detectors[self.detector]['file_type'])
@@ -332,8 +334,9 @@ class DetectorSection(QtWidgets.QGroupBox):
         return int(fmax)+1
 
     def update_path(self):
-        self.full_path = os.path.join(self.base_dir, str(self.rel_dir_edit.text()),
-                                      str(self.base_name_edit.text()) + '_' + str(self.num_edit.text()).zfill(3))
+        self.full_path = os.path.join(self.base_dir, str(self.rel_dir_edit.text().replace('/', '\\')),
+                                      str(self.base_name_edit.text().replace('/', '\\')) + '_'
+                                      + str(self.num_edit.text()).zfill(3))
 
         self.full_path_label.setText(self.full_path)
         if os.path.isdir(self.full_path.rsplit('\\', 1)[0]):
