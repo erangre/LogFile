@@ -274,6 +274,9 @@ class DetectorSection(QtWidgets.QGroupBox):
         self.base_name_edit = QtWidgets.QLineEdit()
         self.num_edit = QtWidgets.QLineEdit()
         self.full_path_label = QtWidgets.QLabel()
+        self.sub_folder_label = QtWidgets.QLabel('Subfolder')
+        self.file_name_label = QtWidgets.QLabel('File Name')
+        self.file_number_label = QtWidgets.QLabel('Next #')
 
     def set_widget_properties(self, parameters=None):
         if parameters is None:
@@ -290,7 +293,8 @@ class DetectorSection(QtWidgets.QGroupBox):
         bg_color = detectors[self.detector].get('bg_color', '')
         if bg_color:
             self.setStyleSheet('background-color:' + bg_color)
-        self.detector_label.setText("<b>" + self.detector + "</b>" + ' directory / basename / #:')
+        # self.detector_label.setText("<b>" + self.detector + "</b>" + ' directory / basename / #:')
+        self.detector_label.setText("<b>" + self.detector + "</b>")
         self.full_path_label_font = QtGui.QFont()
         self.full_path_label_font.setBold(True)
         self.full_path_label.setFont(self.full_path_label_font)
@@ -304,11 +308,14 @@ class DetectorSection(QtWidgets.QGroupBox):
         self.grid_layout_section = QtWidgets.QGridLayout()
         self.grid_layout_section.addWidget(self.update_label, 0, 0, 1, 1)
         self.grid_layout_section.addWidget(self.update_cb, 0, 1, 1, 1)
-        self.grid_layout_section.addWidget(self.detector_label, 1, 0, 1, 1)
-        self.grid_layout_section.addWidget(self.rel_dir_edit, 1, 1, 1, 1)
-        self.grid_layout_section.addWidget(self.base_name_edit, 1, 2, 1, 1)
-        self.grid_layout_section.addWidget(self.num_edit, 1, 3, 1, 1)
-        self.grid_layout_section.addWidget(self.full_path_label, 2, 0, 1, 4)
+        self.grid_layout_section.addWidget(self.sub_folder_label, 0, 2, 1, 1)
+        self.grid_layout_section.addWidget(self.file_name_label, 0, 3, 1, 1)
+        self.grid_layout_section.addWidget(self.file_number_label, 0, 4, 1, 1)
+        self.grid_layout_section.addWidget(self.detector_label, 2, 0, 1, 1)
+        self.grid_layout_section.addWidget(self.rel_dir_edit, 2, 2, 1, 1)
+        self.grid_layout_section.addWidget(self.base_name_edit, 2, 3, 1, 1)
+        self.grid_layout_section.addWidget(self.num_edit, 2, 4, 1, 1)
+        self.grid_layout_section.addWidget(self.full_path_label, 3, 0, 1, 4)
         self.grid_layout_section.setVerticalSpacing(12)
         self.setLayout(self.grid_layout_section)
 
