@@ -100,7 +100,8 @@ detectors['pilatusW300k'] = {
     'file_name': '13PIL300K:TIFF1:FileName',
     'file_number': '13PIL300K:TIFF1:FileNumber',
     'file_type': 'tif',
-    'end_clear_pvs': ['13PIL300K:AcquireSequence.STRA']
+    'end_clear_pvs': ['13PIL300K:AcquireSequence.STRA'],
+    'bg_color': 'grey',
 }
 # detectors['pilatus100k'] = {
 #     'name': '13IDC-PIL',
