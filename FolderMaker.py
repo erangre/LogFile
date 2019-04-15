@@ -13,6 +13,8 @@ import collections
 
 
 class FolderMaker(QtWidgets.QWidget):
+    folders_created = QtCore.Signal()
+
     def __init__(self, parent=None, running=False, chosen_detectors=None, previous_detector_settings=None):
         super(FolderMaker, self).__init__()
         self.folder_maker_settings = QtCore.QSettings("Logger", "FolderMaker")
@@ -38,6 +40,8 @@ class FolderMaker(QtWidgets.QWidget):
         self.advanced_settings_gb = AdvancedSettingsSection()
         self.main_dir_label = QtWidgets.QLabel('Group Name:')
         self.main_dir_edit = QtWidgets.QLineEdit()
+        self.sample_dir_label = QtWidgets.QLabel('Sample:')
+        self.sample_dir_edit = QtWidgets.QLineEdit()
         self.full_path_header = QtWidgets.QLabel('Full Path:')
         self.full_path_label = QtWidgets.QLabel()
         self.show_advanced_settings_btn = QtWidgets.QPushButton('Advanced')
@@ -60,6 +64,7 @@ class FolderMaker(QtWidgets.QWidget):
         # Connections
         self.create_btn.clicked.connect(self.create_btn_clicked)
         self.main_dir_edit.textChanged.connect(self.update_all_full_paths)
+        self.sample_dir_edit.textChanged.connect(self.update_all_full_paths)
         self.advanced_settings_gb.advancedSettingsChanged.connect(self.update_all_full_paths)
         self.show_advanced_settings_btn.clicked.connect(self.show_advanced_settings_btn_clicked)
 
@@ -68,7 +73,9 @@ class FolderMaker(QtWidgets.QWidget):
 
         self.grid_layout_general = QtWidgets.QGridLayout()
         self.grid_layout_general.addWidget(self.main_dir_label, 0, 0, 1, 1)
-        self.grid_layout_general.addWidget(self.main_dir_edit, 0, 1, 1, 3)
+        self.grid_layout_general.addWidget(self.main_dir_edit, 0, 1, 1, 1)
+        self.grid_layout_general.addWidget(self.sample_dir_label, 0, 2, 1, 1)
+        self.grid_layout_general.addWidget(self.sample_dir_edit, 0, 3, 1, 1)
         self.grid_layout_general.addWidget(self.full_path_header, 1, 0, 1, 1)
         self.grid_layout_general.addWidget(self.full_path_label, 1, 1, 1, 3)
         self.grid_layout_general.addWidget(self.show_advanced_settings_btn, 2, 0, 1, 1)
@@ -97,7 +104,7 @@ class FolderMaker(QtWidgets.QWidget):
             year=self.advanced_settings_gb.year_edit.text(),
             cycle=self.advanced_settings_gb.cycle_edit.text()
         )
-        self.base_dir = os.path.join(root_dir, self.main_dir_edit.text())
+        self.base_dir = os.path.join(root_dir, self.main_dir_edit.text().replace('/', '\\'), self.sample_dir_edit.text().replace('/', '\\'))
         self.full_path_label.setText(self.base_dir)
 
         for detector in self.chosen_detectors:
@@ -118,16 +125,17 @@ class FolderMaker(QtWidgets.QWidget):
         self.update_epics()
         self.update_detector_settings()
         self.save_folder_maker_settings()
-        if not self.log_running:
-            file_name = 'log_' + str(time.localtime().tm_year) + '_' + str(time.localtime().tm_mon).zfill(2) + \
-                        '_' + str(time.localtime().tm_mday).zfill(2) + '.txt'
-            self.caller.choose_file_name_le.setText(file_name)
-            self.caller.choose_file = file_name
-            # self.caller.choose_dir = str(self.base_dir).rsplit('\\', 1)[0]
-            self.caller.choose_dir = str(self.base_dir)
-            self.caller.set_choose_dir_label()
+
+        file_name = 'log_' + str(time.localtime().tm_year) + '_' + str(time.localtime().tm_mon).zfill(2) + \
+                    '_' + str(time.localtime().tm_mday).zfill(2) + '.txt'
+        self.caller.widget.choose_file_name_le.setText(file_name)
+        self.caller.choose_file = file_name
+        # self.caller.choose_dir = str(self.base_dir).rsplit('\\', 1)[0]
+        self.caller.choose_dir = str(self.base_dir)
+        self.caller.set_choose_dir_label()
 
         self.caller.folder_maker_settings = self.new_settings.copy()
+        self.folders_created.emit()
 
     def check_and_make_dirs(self):
         base_dir = str(self.base_dir)
@@ -153,10 +161,10 @@ class FolderMaker(QtWidgets.QWidget):
                 path, file = os.path.split(full_path)
                 file = file.rsplit('_', 1)[0]
             else:
-                main_dir = str(self.main_dir_edit.text())
-                rel_dir = str(self.chosen_detectors[detector].rel_dir_edit.text())
+                main_dir = str(self.main_dir_edit.text().replace('/', '\\') + '\\' + self.sample_dir_edit.text().replace('/', '\\'))
+                rel_dir = str(self.chosen_detectors[detector].rel_dir_edit.text().replace('/', '\\'))
                 path = (soft_link + main_dir + '\\' + rel_dir).replace('\\', '/')
-                file = str(self.chosen_detectors[detector].base_name_edit.text())
+                file = str(self.chosen_detectors[detector].base_name_edit.text().replace('/', '\\'))
             number = str(self.chosen_detectors[detector].num_edit.text())
 
             caput(detectors[detector]['file_path'], path)
@@ -170,12 +178,14 @@ class FolderMaker(QtWidgets.QWidget):
             self.new_settings[detector]['base_dir'] = self.chosen_detectors[detector].base_dir
             self.new_settings[detector]['update_toggle'] = self.chosen_detectors[detector].update_cb.isChecked()
             # self.new_settings[detector]['detector_label'] = self.chosen_detectors[detector].detector_label.text()
-            self.new_settings[detector]['rel_dir_edit'] = self.chosen_detectors[detector].rel_dir_edit.text()
-            self.new_settings[detector]['base_name_edit'] = self.chosen_detectors[detector].base_name_edit.text()
+            self.new_settings[detector]['rel_dir_edit'] = \
+                self.chosen_detectors[detector].rel_dir_edit.text().replace('/', '\\')
+            self.new_settings[detector]['base_name_edit'] = \
+                self.chosen_detectors[detector].base_name_edit.text().replace('/', '\\')
             self.new_settings[detector]['num_edit'] = self.chosen_detectors[detector].num_edit.text()
             self.chosen_detectors[detector].update_path()
         self.new_settings['general'] = {}
-        self.new_settings['general']['base_dir'] = self.main_dir_edit.text()
+        self.new_settings['general']['base_dir'] = self.main_dir_edit.text().replace('/', '\\')
         self.new_settings['general']['year'] = self.advanced_settings_gb.year_edit.text()
         self.new_settings['general']['cycle'] = self.advanced_settings_gb.cycle_edit.text()
 
@@ -264,6 +274,9 @@ class DetectorSection(QtWidgets.QGroupBox):
         self.base_name_edit = QtWidgets.QLineEdit()
         self.num_edit = QtWidgets.QLineEdit()
         self.full_path_label = QtWidgets.QLabel()
+        self.sub_folder_label = QtWidgets.QLabel('Subfolder')
+        self.file_name_label = QtWidgets.QLabel('File Name')
+        self.file_number_label = QtWidgets.QLabel('Next #')
 
     def set_widget_properties(self, parameters=None):
         if parameters is None:
@@ -277,7 +290,11 @@ class DetectorSection(QtWidgets.QGroupBox):
             self.base_name_edit.setText(parameters['base_name_edit'])
             self.num_edit.setText(parameters['num_edit'])
             self.update_cb.setChecked(parameters['update_toggle'])
-        self.detector_label.setText("<b>" + self.detector + "</b>" + ' directory / basename / #:')
+        bg_color = detectors[self.detector].get('bg_color', '')
+        if bg_color:
+            self.setStyleSheet('background-color:' + bg_color)
+        # self.detector_label.setText("<b>" + self.detector + "</b>" + ' directory / basename / #:')
+        self.detector_label.setText("<b>" + self.detector + "</b>")
         self.full_path_label_font = QtGui.QFont()
         self.full_path_label_font.setBold(True)
         self.full_path_label.setFont(self.full_path_label_font)
@@ -291,18 +308,21 @@ class DetectorSection(QtWidgets.QGroupBox):
         self.grid_layout_section = QtWidgets.QGridLayout()
         self.grid_layout_section.addWidget(self.update_label, 0, 0, 1, 1)
         self.grid_layout_section.addWidget(self.update_cb, 0, 1, 1, 1)
-        self.grid_layout_section.addWidget(self.detector_label, 1, 0, 1, 1)
-        self.grid_layout_section.addWidget(self.rel_dir_edit, 1, 1, 1, 1)
-        self.grid_layout_section.addWidget(self.base_name_edit, 1, 2, 1, 1)
-        self.grid_layout_section.addWidget(self.num_edit, 1, 3, 1, 1)
-        self.grid_layout_section.addWidget(self.full_path_label, 2, 0, 1, 4)
+        self.grid_layout_section.addWidget(self.sub_folder_label, 0, 2, 1, 1)
+        self.grid_layout_section.addWidget(self.file_name_label, 0, 3, 1, 1)
+        self.grid_layout_section.addWidget(self.file_number_label, 0, 4, 1, 1)
+        self.grid_layout_section.addWidget(self.detector_label, 2, 0, 1, 1)
+        self.grid_layout_section.addWidget(self.rel_dir_edit, 2, 2, 1, 1)
+        self.grid_layout_section.addWidget(self.base_name_edit, 2, 3, 1, 1)
+        self.grid_layout_section.addWidget(self.num_edit, 2, 4, 1, 1)
+        self.grid_layout_section.addWidget(self.full_path_label, 3, 0, 1, 4)
         self.grid_layout_section.setVerticalSpacing(12)
         self.setLayout(self.grid_layout_section)
 
     def value_changed(self):
         # if not self.sender() == self.rel_dir_edit and str(self.base_name_edit.text()) == 'LaB6':
         #     self.rel_dir_edit.setText('LaB6')
-        current_dir = os.path.join(self.base_dir, str(self.rel_dir_edit.text()))
+        current_dir = os.path.join(self.base_dir, str(self.rel_dir_edit.text().replace('/', '\\')))
         if not self.sender() == self.num_edit:
             next_num = self.find_next_number(str(current_dir + '\\' + self.base_name_edit.text() + '_'),
                                              detectors[self.detector]['file_type'])
@@ -321,8 +341,9 @@ class DetectorSection(QtWidgets.QGroupBox):
         return int(fmax)+1
 
     def update_path(self):
-        self.full_path = os.path.join(self.base_dir, str(self.rel_dir_edit.text()),
-                                      str(self.base_name_edit.text()) + '_' + str(self.num_edit.text()).zfill(3))
+        self.full_path = os.path.join(self.base_dir, str(self.rel_dir_edit.text().replace('/', '\\')),
+                                      str(self.base_name_edit.text().replace('/', '\\')) + '_'
+                                      + str(self.num_edit.text()).zfill(3))
 
         self.full_path_label.setText(self.full_path)
         if os.path.isdir(self.full_path.rsplit('\\', 1)[0]):
