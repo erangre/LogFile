@@ -298,6 +298,8 @@ class DetectorSection(QtWidgets.QGroupBox):
         self.full_path_label_font = QtGui.QFont()
         self.full_path_label_font.setBold(True)
         self.full_path_label.setFont(self.full_path_label_font)
+        self.update_cb.setToolTip('When checked, this will be a subfolder in the GroupName\\Sample folder.\n' +
+                                  'When unchecked, it will not be updaed to changes in GroupName or Sample.')
 
     def setup_connections(self):
         self.rel_dir_edit.textChanged.connect(self.value_changed)
@@ -306,8 +308,6 @@ class DetectorSection(QtWidgets.QGroupBox):
 
     def set_layout(self):
         self.grid_layout_section = QtWidgets.QGridLayout()
-        self.grid_layout_section.addWidget(self.update_label, 0, 0, 1, 1)
-        self.grid_layout_section.addWidget(self.update_cb, 0, 1, 1, 1)
         self.grid_layout_section.addWidget(self.sub_folder_label, 0, 2, 1, 1)
         self.grid_layout_section.addWidget(self.file_name_label, 0, 3, 1, 1)
         self.grid_layout_section.addWidget(self.file_number_label, 0, 4, 1, 1)
@@ -315,7 +315,9 @@ class DetectorSection(QtWidgets.QGroupBox):
         self.grid_layout_section.addWidget(self.rel_dir_edit, 2, 2, 1, 1)
         self.grid_layout_section.addWidget(self.base_name_edit, 2, 3, 1, 1)
         self.grid_layout_section.addWidget(self.num_edit, 2, 4, 1, 1)
-        self.grid_layout_section.addWidget(self.full_path_label, 3, 0, 1, 4)
+        self.grid_layout_section.addWidget(self.update_label, 3, 0, 1, 1)
+        self.grid_layout_section.addWidget(self.update_cb, 3, 1, 1, 1)
+        self.grid_layout_section.addWidget(self.full_path_label, 3, 2, 1, 4)
         self.grid_layout_section.setVerticalSpacing(12)
         self.setLayout(self.grid_layout_section)
 
