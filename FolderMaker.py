@@ -11,6 +11,8 @@ from qtpy import QtGui, QtCore, QtWidgets
 from detectors import detectors
 import collections
 
+ADVANCED_PASSWORD = "Daagbf"
+
 
 class FolderMaker(QtWidgets.QWidget):
     folders_created = QtCore.Signal()
@@ -113,9 +115,16 @@ class FolderMaker(QtWidgets.QWidget):
                 self.chosen_detectors[detector].value_changed()
 
     def show_advanced_settings_btn_clicked(self):
+
         if self.advanced_settings_gb.isVisible():
             self.advanced_settings_gb.hide()
         else:
+            res, ok = QtWidgets.QInputDialog.getText(None, "Password for Advanced Settings", "Password?",
+                                                     QtWidgets.QLineEdit.Password)
+            if ok and res:
+                if not res == ADVANCED_PASSWORD:
+                    self.show_advanced_settings_btn.setChecked(False)
+                    return
             self.advanced_settings_gb.show()
 
     def create_btn_clicked(self):
