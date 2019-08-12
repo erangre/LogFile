@@ -115,14 +115,14 @@ class LogWindow(QtWidgets.QWidget):
 
     def disable_epics(self):
         self.widget.setup_btn.setVisible(False)
-        self.widge.start_btn.setVisible(False)
-        self.widge.stop_btn.setVisible(False)
-        self.widge.choose_detector_tb.setVisible(False)
-        self.widge.start_time_lbl.setVisible(False)
-        self.widge.end_time_lbl.setVisible(False)
-        self.widge.full_path_lbl.setVisible(False)
-        self.widge.choose_file_name_le.setVisible(False)
-        self.widge.choose_dir_btn.setVisible(False)
+        self.widget.start_btn.setVisible(False)
+        self.widget.stop_btn.setVisible(False)
+        self.widget.choose_detector_tb.setVisible(False)
+        self.widget.start_time_lbl.setVisible(False)
+        self.widget.end_time_lbl.setVisible(False)
+        self.widget.full_path_lbl.setVisible(False)
+        self.widget.choose_file_name_le.setVisible(False)
+        self.widget.choose_dir_btn.setVisible(False)
         self.widget.create_folders_btn.setVisible(False)
 
     def choose_dir_btn_clicked(self):
