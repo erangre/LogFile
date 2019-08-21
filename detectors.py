@@ -95,7 +95,7 @@ detectors['pilatusW300k'] = {
     'sleep_after_end': 0.0,
     'default_base_name': 'LaB6',
     'default_rel_dir': '',
-    'soft_link': '/DAC/',
+    'soft_link': '/cars5/Data/gpd_user/data/idc/2019/run2/sollerslits/',
     'file_path': '13PIL300K:TIFF1:FilePath',
     'file_name': '13PIL300K:TIFF1:FileName',
     'file_number': '13PIL300K:TIFF1:FileNumber',
